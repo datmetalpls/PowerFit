@@ -57,7 +57,9 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el a
 4. **28-09-2026 SE AGREGARON GET Y SET DE LOS ATRIBUTOS:**
    - Se encapsularon los atributos de la clase con prefijo `_`.
    - Se implementaron métodos `get` para todos los atributos: `getRut()`, `getNombres()`, `getApellidoPaterno()`, `getApellidoMaterno()`, `getTelefono()` y `getCorreoElectronico()`.
-   - Se implementaron métodos `set` para aquellos atributos editables de contacto: `setTelefono()` y `setCorreoElectronico()`.
+5. **IMPLEMENTACIÓN DEL ALGORITMO MÓDULO 11 EN `validarRut()`:**
+   - Se implementó el algoritmo de Módulo 11 en el método `validarRut()` de la clase `Persona`.
+   - Limpia formateos (puntos, guiones y espacios), separa el cuerpo numérico y calcula el dígito verificador esperado (incluyendo el caso 'K' y '0') para validar la autenticidad del RUT.
 
 ---
 

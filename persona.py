@@ -112,10 +112,45 @@ class Persona:
     # Método para validar el formato y la validez del RUT de la persona según el diagrama UML
     def validarRut(self) -> bool:
         """
-        Valida que el RUT de la persona cumpla con un formato válido.
-        Retorna True si es válido, False en caso contrario.
+        Valida que el RUT de la persona cumpla con el algoritmo de Módulo 11.
+        Retorna True si el RUT y su dígito verificador son válidos, False en caso contrario.
         """
-        pass
+        if not self._rut or not isinstance(self._rut, str):
+            return False
+
+        # Limpiar el RUT de puntos, guiones y espacios, y convertir a mayúsculas
+        rut_limpio = self._rut.replace(".", "").replace("-", "").replace(" ", "").upper()
+
+        # Debe contener al menos el cuerpo (mínimo 1 dígito) y el dígito verificador
+        if len(rut_limpio) < 2:
+            return False
+
+        cuerpo = rut_limpio[:-1]
+        dv_ingresado = rut_limpio[-1]
+
+        # El cuerpo del RUT debe ser puramente numérico
+        if not cuerpo.isdigit():
+            return False
+
+        # Algoritmo de Módulo 11
+        suma = 0
+        multiplicador = 2
+
+        for digito in reversed(cuerpo):
+            suma += int(digito) * multiplicador
+            multiplicador = 2 if multiplicador == 7 else multiplicador + 1
+
+        resto = suma % 11
+        resultado = 11 - resto
+
+        if resultado == 11:
+            dv_esperado = "0"
+        elif resultado == 10:
+            dv_esperado = "K"
+        else:
+            dv_esperado = str(resultado)
+
+        return dv_ingresado == dv_esperado
 
     # Método para validar el formato del número telefónico de contacto según el diagrama UML
     def validarTelefono(self) -> bool:
