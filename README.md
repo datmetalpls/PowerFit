@@ -28,6 +28,10 @@ Inicializa todos los atributos obligatorios al instanciar una objeto `Persona`:
 def __init__(self, rut: str, nombres: str, apellidoPaterno: str, apellidoMaterno: str, telefono: str, correoElectronico: str)
 ```
 
+#### Métodos Getter y Setter (Encapsulamiento)
+- **Getters (lectura)**: `getRut()`, `getNombres()`, `getApellidoPaterno()`, `getApellidoMaterno()`, `getTelefono()`, `getCorreoElectronico()`.
+- **Setters (modificación)**: `setTelefono(telefono)`, `setCorreoElectronico(correoElectronico)` (los atributos de identidad se conservan protegidos e inmutables).
+
 #### Métodos de Validación (UML)
 - **`validarRut() -> bool`**: Valida que el formato y dígito verificador del RUT sea correcto.
 - **`validarTelefono() -> bool`**: Valida que el formato telefónico sea válido.
@@ -49,6 +53,11 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el a
 3. **Inclusión de Métodos de Validación y Comentarios:**
    - Se incorporaron los métodos `validarRut()`, `validarTelefono()` y `validarCorreoElectronico()`.
    - Se agregaron comentarios explicativos y docstrings detallados en cada sección de la clase.
+
+4. **28-09-2026 SE AGREGARON GET Y SET DE LOS ATRIBUTOS:**
+   - Se encapsularon los atributos de la clase con prefijo `_`.
+   - Se implementaron métodos `get` para todos los atributos: `getRut()`, `getNombres()`, `getApellidoPaterno()`, `getApellidoMaterno()`, `getTelefono()` y `getCorreoElectronico()`.
+   - Se implementaron métodos `set` para aquellos atributos editables de contacto: `setTelefono()` y `setCorreoElectronico()`.
 
 ---
 
