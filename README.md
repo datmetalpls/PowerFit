@@ -39,6 +39,37 @@ def __init__(self, rut: str, nombres: str, apellidoPaterno: str, apellidoMaterno
 
 ---
 
+## 📌 Estado de la Clase `Direccion` (`direccion.py`)
+
+La clase `Direccion` representa la ubicación física y postal dentro del sistema PowerFit.
+
+### 📋 Atributos
+Todos los atributos han sido definidos con anotaciones de tipo y alineados estrictamente con el diagrama UML (`UML/ProyectGym.drawio`):
+
+| Atributo | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `idDireccion` | `int` | Identificador único de la dirección |
+| `tipoDireccion` | `str` | Tipo de vivienda (`'casa'`, `'dpto'`, `'block'`) |
+| `calle` | `str` | Nombre de la calle o avenida |
+| `numero` | `str` | Número de la dirección |
+| `referencia` | `str` | Información adicional o referencia de llegada |
+
+### 🛠️ Métodos y Encapsulamiento
+
+#### Constructor `__init__`
+Inicializa y valida los datos de la dirección al instanciar:
+```python
+def __init__(self, idDireccion: int, tipoDireccion: str, calle: str, numero: str, referencia: str)
+```
+- Incluye validación para `tipoDireccion` permitiendo únicamente: `'casa'`, `'dpto'` o `'block'` (ignorando mayúsculas y espacios en blanco). En caso de ingresar un valor inválido, lanza un `ValueError`.
+
+#### Métodos Getter y Setter (Encapsulamiento)
+- **Getters (lectura)**: `getIdDireccion()`, `getTipoDireccion()`, `getCalle()`, `getNumero()`, `getReferencia()`.
+- **Setters (modificación)**: `setIdDireccion()`, `setTipoDireccion()`, `setCalle()`, `setNumero()`, `setReferencia()`.
+  - `setTipoDireccion(tipoDireccion)`: Aplica la misma regla de validación restringida que el constructor.
+
+---
+
 ## 🧪 Pruebas Unitarias (`test.py`)
 
 Se cuenta con un script de pruebas unitarias ([`test.py`](./test.py)) para validar el comportamiento del método `validarRut()` ante múltiples casos reales.
@@ -82,12 +113,20 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
    - Se implementó el algoritmo de Módulo 11 en el método `validarRut()` de la clase `Persona`.
    - Se creó e integró el script `test.py` para pruebas automatizadas del validador de RUT.
 
+6. **Implementación y validación de la Clase `Direccion` (`direccion.py`):**
+   - Declaración de atributos con tipos según el diagrama UML (`idDireccion: int`, `tipoDireccion: str`, `calle: str`, `numero: str`, `referencia: str`).
+   - Implementación del constructor `__init__` con encapsulamiento de atributos con prefijo `_`.
+   - Implementación de métodos getters y setters para todos los atributos.
+   - Validación del atributo `tipoDireccion` restringido a `"casa"`, `"dpto"` y `"block"`, sanitizando espacios y mayúsculas (`strip().lower()`).
+
 ---
 
 ## 📁 Estructura del Repositorio
 
 - `persona.py`: Implementación de la clase `Persona`.
+- `direccion.py`: Implementación de la clase `Direccion` con validación de tipo de vivienda.
 - `test.py`: Suite de pruebas unitarias automatizadas para validar el comportamiento de los métodos de `Persona`.
 - `UML/ProyectGym.drawio`: Diagrama UML de clases oficial del proyecto.
 - `Requirements/`: Documentación del levantamiento de requerimientos y auditoría del diseño UML.
+
 
