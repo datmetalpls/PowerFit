@@ -33,15 +33,34 @@ def __init__(self, rut: str, nombres: str, apellidoPaterno: str, apellidoMaterno
 - **Setters (modificación)**: `setTelefono(telefono)`, `setCorreoElectronico(correoElectronico)` (los atributos de identidad se conservan protegidos e inmutables).
 
 #### Métodos de Validación (UML)
-- **`validarRut() -> bool`**: Valida que el formato y dígito verificador del RUT sea correcto.
+- **`validarRut() -> bool`**: Valida la autenticidad del RUT y su dígito verificador mediante el **Algoritmo Módulo 11** (soporta puntos, guión, espacios y dígito verificador 'K').
 - **`validarTelefono() -> bool`**: Valida que el formato telefónico sea válido.
 - **`validarCorreoElectronico() -> bool`**: Valida el formato del correo electrónico de la persona.
 
 ---
 
+## 🧪 Pruebas Unitarias (`test.py`)
+
+Se cuenta con un script de pruebas unitarias ([`test.py`](./test.py)) para validar el comportamiento del método `validarRut()` ante múltiples casos reales.
+
+### Ejecución de Pruebas
+Para ejecutar las pruebas en la consola:
+```bash
+python3 test.py
+```
+
+Las pruebas cubren los siguientes escenarios:
+- RUTs válidos con formato completo (`12.345.678-5`).
+- RUTs válidos sin puntos ni guiones (`123456785`).
+- RUTs válidos finalizados en dígito verificador `'K'` o `'k'` (`14.805.293-K`).
+- RUTs con dígitos verificadores o cuerpo incorrectos / caracteres no numéricos.
+- Casos borde como cadenas vacías o longitudes insuficientes.
+
+---
+
 ## 📝 Historial de Cambios Realizados
 
-A continuación se detallan las modificaciones realizadas paso a paso sobre el archivo `persona.py`:
+A continuación se detallan las modificaciones realizadas paso a paso sobre el proyecto:
 
 1. **Ajuste de Atributos y Eliminación Temporal del Constructor:**
    - Se declararon los atributos base `rut`, `nombre`, `apellidoPaterno`, `apellidoMaterno`, `telefono` y `correoElectronico` con sus correspondientes anotaciones de tipo `str`.
@@ -57,14 +76,18 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el a
 4. **28-09-2026 SE AGREGARON GET Y SET DE LOS ATRIBUTOS:**
    - Se encapsularon los atributos de la clase con prefijo `_`.
    - Se implementaron métodos `get` para todos los atributos: `getRut()`, `getNombres()`, `getApellidoPaterno()`, `getApellidoMaterno()`, `getTelefono()` y `getCorreoElectronico()`.
-5. **IMPLEMENTACIÓN DEL ALGORITMO MÓDULO 11 EN `validarRut()`:**
+   - Se implementaron métodos `set` para aquellos atributos editables de contacto: `setTelefono()` y `setCorreoElectronico()`.
+
+5. **IMPLEMENTACIÓN DEL ALGORITMO MÓDULO 11 EN `validarRut()` Y CREACIÓN DE `test.py`:**
    - Se implementó el algoritmo de Módulo 11 en el método `validarRut()` de la clase `Persona`.
-   - Limpia formateos (puntos, guiones y espacios), separa el cuerpo numérico y calcula el dígito verificador esperado (incluyendo el caso 'K' y '0') para validar la autenticidad del RUT.
+   - Se creó e integró el script `test.py` para pruebas automatizadas del validador de RUT.
 
 ---
 
 ## 📁 Estructura del Repositorio
 
 - `persona.py`: Implementación de la clase `Persona`.
+- `test.py`: Suite de pruebas unitarias automatizadas para validar el comportamiento de los métodos de `Persona`.
 - `UML/ProyectGym.drawio`: Diagrama UML de clases oficial del proyecto.
 - `Requirements/`: Documentación del levantamiento de requerimientos y auditoría del diseño UML.
+
