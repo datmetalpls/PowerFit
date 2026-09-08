@@ -1,10 +1,12 @@
 # Define la clase llamada Persona que servirá como plantilla para representar a una persona en el sistema.
 class Persona:
-    # La instrucción 'pass' se utiliza como un marcador de posición que permite definir una clase vacía sin atributos ni métodos por ahora.
-    rut: str
-    nombres: str
-    apellidoPaterno: str
-    apellidoMaterno: str
-    telefono: str
-    correoElectronico: str
-    pass
+    # Método constructor que inicializa los atributos de una nueva instancia de la clase Persona.
+    def __init__(self, rut: str, nombre: str, apellidoPaterno: str, apellidoMaterno: str):
+        # Asigna el parámetro 'rut' de tipo str al atributo de instancia correspondiente.
+        self.rut = rut
+        # Asigna el parámetro 'nombre' de tipo str al atributo de instancia correspondiente.
+        self.nombre = nombre
+        # Asigna el parámetro 'apellidoPaterno' de tipo str al atributo de instancia correspondiente.
+        self.apellidoPaterno = apellidoPaterno
+        # Asigna el parámetro 'apellidoMaterno' de tipo str al atributo de instancia correspondiente.
+        self.apellidoMaterno = apellidoMaterno
