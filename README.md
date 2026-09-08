@@ -4,6 +4,22 @@ Sistema desarrollado en Python bajo el paradigma de **Programación Orientada a 
 
 ---
 
+## 🗺️ Roadmap de Desarrollo del Proyecto
+
+![Roadmap del Proyecto PowerFit](roadmap_powerfit.jpg)
+
+El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas en el modelo de clases UML y el levantamiento de requerimientos:
+
+| Fase | Módulo / Componente | Estado | Descripción clave |
+| :--- | :--- | :---: | :--- |
+| **Fase 1** | **Fundamentos & Modelos Base** | 🟢 Completada | `Persona` (RUT Módulo 11), `Direccion` (tipos de vivienda) y `test.py`. |
+| **Fase 2** | **Jerarquía de Usuarios & Roles** | 🟡 Próxima | `Socio`, `Trabajador` y roles (`Instructor`, `Recepcionista`, `Administrador`). |
+| **Fase 3** | **Motor de Clases & Membresías** | ⚪ Pendiente | `Clase` (`Yoga`, `Spinning`, `Crossfit`), cálculo de cupos, `InscripcionMensual` y `MembresiaMensual`. |
+| **Fase 4** | **Punto de Venta & API Dólar** | ⚪ Pendiente | `Suplemento`, control de stock, `IndicadorDolar` (conversión CLP) y `Venta`. |
+| **Fase 5** | **Interfaz CLI & Entrega Final** | ⚪ Pendiente | Menú interactivo por consola según perfil, QA integral y documentación final. |
+
+---
+
 ## 📌 Estado de la Clase `Persona` (`persona.py`)
 
 La clase `Persona` actúa como la plantilla base (clase abstracta padre) para representar a todos los individuos del sistema (Socios, Trabajadores, Instructores, Recepcionistas, etc.).
@@ -119,6 +135,11 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
    - Implementación de métodos getters y setters para todos los atributos.
    - Validación del atributo `tipoDireccion` restringido a `"casa"`, `"dpto"` y `"block"`, sanitizando espacios y mayúsculas (`strip().lower()`).
 
+7. **Incorporación de Infografía del Roadmap y Actualización de Pruebas:**
+   - Se integró la infografía visual de arquitectura y fases del proyecto (`roadmap_powerfit.jpg`).
+   - Se incorporó la sección del Roadmap estructurado en 5 fases en el `README.md`.
+   - Se añadió un caso de prueba adicional en `test.py` para RUT con DV 'K'.
+
 ---
 
 ## 📁 Estructura del Repositorio
@@ -126,6 +147,7 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
 - `persona.py`: Implementación de la clase `Persona`.
 - `direccion.py`: Implementación de la clase `Direccion` con validación de tipo de vivienda.
 - `test.py`: Suite de pruebas unitarias automatizadas para validar el comportamiento de los métodos de `Persona`.
+- `roadmap_powerfit.jpg`: Infografía visual del Roadmap y fases de desarrollo del proyecto.
 - `UML/ProyectGym.drawio`: Diagrama UML de clases oficial del proyecto.
 - `Requirements/`: Documentación del levantamiento de requerimientos y auditoría del diseño UML.
 

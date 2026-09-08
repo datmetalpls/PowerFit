@@ -12,6 +12,7 @@ def probar_validar_rut():
         ("12.345.67A-5", False, "RUT con letras en el cuerpo"),
         ("1", False, "RUT demasiado corto"),
         ("", False, "RUT vacío"),
+        ("18.045.022-K", True, "RUT válido con DV 'K'"),
     ]
 
     print("=" * 70)
