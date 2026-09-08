@@ -5,6 +5,5 @@ class Persona:
     nombres: str
     apellidoPaterno: str
     apellidoMaterno: str
-    telefono: str
-    correoElectronico: str
+  
     pass
