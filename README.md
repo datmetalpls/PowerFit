@@ -140,6 +140,10 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
    - Se incorporó la sección del Roadmap estructurado en 5 fases en el `README.md`.
    - Se añadió un caso de prueba adicional en `test.py` para RUT con DV 'K'.
 
+8. **Creación del Historial de Cambios (`CHANGELOG.md`) y Sincronización de Ramas:**
+   - Se creó el archivo formal de registro de versiones [`CHANGELOG.md`](./CHANGELOG.md) bajo el estándar Keep a Changelog.
+   - Se auditó y sincronizó la rama `rama1.0` con la rama principal `main`.
+
 ---
 
 ## 📁 Estructura del Repositorio
@@ -147,8 +151,7 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
 - `persona.py`: Implementación de la clase `Persona`.
 - `direccion.py`: Implementación de la clase `Direccion` con validación de tipo de vivienda.
 - `test.py`: Suite de pruebas unitarias automatizadas para validar el comportamiento de los métodos de `Persona`.
+- `CHANGELOG.md`: Registro formal de cambios y control de versiones del proyecto.
 - `roadmap_powerfit.jpg`: Infografía visual del Roadmap y fases de desarrollo del proyecto.
 - `UML/ProyectGym.drawio`: Diagrama UML de clases oficial del proyecto.
 - `Requirements/`: Documentación del levantamiento de requerimientos y auditoría del diseño UML.
-
-
