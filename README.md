@@ -49,9 +49,9 @@ def __init__(self, rut: str, nombres: str, apellidoPaterno: str, apellidoMaterno
 - **Setters (modificación)**: `setTelefono(telefono)`, `setCorreoElectronico(correoElectronico)` (los atributos de identidad se conservan protegidos e inmutables).
 
 #### Métodos de Validación (UML)
-- **`validarRut() -> bool`**: Valida la autenticidad del RUT y su dígito verificador mediante el **Algoritmo Módulo 11** (soporta puntos, guión, espacios y dígito verificador 'K').
-- **`validarTelefono() -> bool`**: Valida que el formato telefónico sea válido.
-- **`validarCorreoElectronico() -> bool`**: Valida el formato del correo electrónico de la persona.
+- **`validarRut() -> bool`**: Valida la autenticidad del RUT y su dígito verificador mediante el **Algoritmo Módulo 11** (soporta puntos, guión, espacios y dígito verificador 'K'/'k').
+- **`validarTelefono() -> bool`**: Valida que el formato telefónico contenga entre 8 y 15 dígitos utilizando expresiones regulares.
+- **`validarCorreoElectronico() -> bool`**: Valida el formato de la dirección de correo electrónico mediante expresiones regulares (`r"^[^\s@]+@[^\s@]+\.[^\s@]+$"`).
 
 ---
 
@@ -88,7 +88,7 @@ def __init__(self, idDireccion: int, tipoDireccion: str, calle: str, numero: str
 
 ## 🧪 Pruebas Unitarias (`test.py`)
 
-Se cuenta con un script de pruebas unitarias ([`test.py`](./test.py)) para validar el comportamiento del método `validarRut()` ante múltiples casos reales.
+Se cuenta con una suite de pruebas unitarias ([`test.py`](./test.py)) para validar el comportamiento de los métodos de validación de `Persona` (`validarRut()`, `validarTelefono()`, `validarCorreoElectronico()`).
 
 ### Ejecución de Pruebas
 Para ejecutar las pruebas en la consola:
@@ -96,12 +96,10 @@ Para ejecutar las pruebas en la consola:
 python3 test.py
 ```
 
-Las pruebas cubren los siguientes escenarios:
-- RUTs válidos con formato completo (`12.345.678-5`).
-- RUTs válidos sin puntos ni guiones (`123456785`).
-- RUTs válidos finalizados en dígito verificador `'K'` o `'k'` (`14.805.293-K`).
-- RUTs con dígitos verificadores o cuerpo incorrectos / caracteres no numéricos.
-- Casos borde como cadenas vacías o longitudes insuficientes.
+Las pruebas cubren 19 escenarios en total:
+- **RUT (10 casos)**: RUTs válidos con formato completo (`12.345.678-5`), sin puntos/guiones (`123456785`), DV `'K'`/`'k'`, repetitivos, incorrectos, con letras, vacíos o demasiado cortos.
+- **Teléfono (4 casos)**: Formato chileno con prefijo (`+56 9...`), 9 dígitos, cadenas cortas y cadenas vacías.
+- **Correo Electrónico (5 casos)**: Formato estándar, dominios cortos, correos sin `@`, sin dominio y vacíos.
 
 ---
 
@@ -138,19 +136,23 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
 7. **Incorporación de Infografía del Roadmap y Actualización de Pruebas:**
    - Se integró la infografía visual de arquitectura y fases del proyecto (`roadmap_powerfit.jpg`).
    - Se incorporó la sección del Roadmap estructurado en 5 fases en el `README.md`.
-   - Se añadió un caso de prueba adicional en `test.py` para RUT con DV 'K'.
 
 8. **Creación del Historial de Cambios (`CHANGELOG.md`) y Sincronización de Ramas:**
    - Se creó el archivo formal de registro de versiones [`CHANGELOG.md`](./CHANGELOG.md) bajo el estándar Keep a Changelog.
    - Se auditó y sincronizó la rama `rama1.0` con la rama principal `main`.
 
+9. **Refactorización, Limpieza de Duplicados e Integración de Validaciones Regex:**
+   - Se eliminó el subdirectorio redundante `prueba de api/PowerFit/`.
+   - Se implementaron las validaciones con expresiones regulares para `validarTelefono()` y `validarCorreoElectronico()` en `Persona`.
+   - Se amplió `test.py` a 19 pruebas unitarias automatizadas cubriendo los 3 métodos de validación.
+
 ---
 
 ## 📁 Estructura del Repositorio
 
-- `persona.py`: Implementación de la clase `Persona`.
+- `persona.py`: Implementación de la clase base `Persona` (RUT Módulo 11, validación regex de teléfono y correo).
 - `direccion.py`: Implementación de la clase `Direccion` con validación de tipo de vivienda.
-- `test.py`: Suite de pruebas unitarias automatizadas para validar el comportamiento de los métodos de `Persona`.
+- `test.py`: Suite de 19 pruebas unitarias automatizadas para validar `Persona`.
 - `CHANGELOG.md`: Registro formal de cambios y control de versiones del proyecto.
 - `roadmap_powerfit.jpg`: Infografía visual del Roadmap y fases de desarrollo del proyecto.
 - `UML/ProyectGym.drawio`: Diagrama UML de clases oficial del proyecto.
