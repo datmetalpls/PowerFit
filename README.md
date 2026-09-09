@@ -105,25 +105,69 @@ Las pruebas cubren 19 escenarios en total:
 
 ## 🚀 Ejecución y Activación de la API REST (`FastAPI`)
 
-El proyecto incluye un servidor de API REST desarrollado con **FastAPI** ubicado en la carpeta `api/api.py`.
+El proyecto incluye un servidor de API REST desarrollado con **FastAPI** ubicado en la carpeta [`api/api.py`](./api/api.py).
 
-### 📦 Requisitos Previos
-Asegúrate de tener instaladas las dependencias necesarias:
-```bash
-pip install fastapi uvicorn pydantic
-```
+A continuación se detallan las instrucciones para crear el entorno virtual, instalar dependencias e iniciar el servidor según tu sistema operativo:
 
-### ⚡ Iniciar el Servidor de la API
-Para levantar el servidor en modo de desarrollo con recarga automática:
+### 🍏 macOS & 🐧 Linux
 
-```bash
-cd api
-uvicorn api:app --reload --port 8000
-```
+1. Abrir la terminal y navegar a la carpeta de la API:
+   ```bash
+   cd api
+   ```
+2. Crear el entorno virtual e instalar dependencias:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+3. Iniciar el servidor de la API:
+   ```bash
+   uvicorn api:app --reload --port 8000
+   ```
+
+---
+
+### 🪟 Windows (PowerShell / CMD)
+
+#### Usando PowerShell:
+1. Navegar a la carpeta de la API:
+   ```powershell
+   cd api
+   ```
+2. Crear y activar el entorno virtual:
+   ```powershell
+   python -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   pip install -r requirements.txt
+   ```
+   *(Nota: Si PowerShell bloquea los scripts por políticas de ejecución, ejecuta antes `Set-ExecutionPolicy Unrestricted -Scope Process`)*.
+3. Iniciar el servidor de la API:
+   ```powershell
+   uvicorn api:app --reload --port 8000
+   ```
+
+#### Usando Símbolo del Sistema (CMD):
+1. Navegar a la carpeta de la API:
+   ```cmd
+   cd api
+   ```
+2. Crear y activar el entorno virtual:
+   ```cmd
+   python -m venv .venv
+   .venv\Scripts\activate.bat
+   pip install -r requirements.txt
+   ```
+3. Iniciar el servidor de la API:
+   ```cmd
+   uvicorn api:app --reload --port 8000
+   ```
+
+---
 
 ### 🌐 Documentación Interactiva (Swagger / ReDoc)
-Una vez iniciado el servidor, accede desde tu navegador web a:
-- **Documentación Swagger UI (Interactive)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+Una vez iniciado el servidor, accede desde cualquier navegador a:
+- **Documentación Swagger UI (Interactiva)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - **Documentación ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
 ### 📌 Endpoints Principales Disponibles
