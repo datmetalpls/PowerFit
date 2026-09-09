@@ -45,8 +45,43 @@ def probar_validar_rut():
         print(f"{estado} | RUT: {rut:<15} | Esperado: {str(esperado):<5} | Obtenido: {str(resultado):<5} | ({descripcion})")
 
     print("=" * 70)
-    print(f"📊 RESUMEN: {exitos} exitosas, {fallos} fallidas de {len(casos_de_prueba)} pruebas totales.")
+    print(f"📊 RESUMEN RUT: {exitos} exitosas, {fallos} fallidas de {len(casos_de_prueba)} pruebas totales.")
     print("=" * 70)
+
+def probar_validar_telefono():
+    casos = [
+        ("+56 9 1234 5678", True, "Teléfono chileno con prefijo"),
+        ("912345678", True, "Teléfono 9 dígitos"),
+        ("1234", False, "Teléfono muy corto"),
+        ("", False, "Teléfono vacío"),
+    ]
+    print("\n" + "=" * 70)
+    print(" 🧪 PRUEBAS UNITARIAS: Método validarTelefono() de la clase Persona")
+    print("=" * 70)
+    for tel, esp, desc in casos:
+        p = Persona("12.345.678-5", "Juan", "Pérez", "Gómez", tel, "juan@email.com")
+        res = p.validarTelefono()
+        estado = "✅ PASÓ" if res == esp else "❌ FALLÓ"
+        print(f"{estado} | Teléfono: {tel:<15} | Esperado: {str(esp):<5} | Obtenido: {str(res):<5} | ({desc})")
+
+def probar_validar_correo():
+    casos = [
+        ("juan.perez@example.com", True, "Correo válido estándar"),
+        ("contacto@powerfit.cl", True, "Correo válido dominio corto"),
+        ("correo_invalido.com", False, "Correo sin arroba"),
+        ("juan@", False, "Correo sin dominio"),
+        ("", False, "Correo vacío"),
+    ]
+    print("\n" + "=" * 70)
+    print(" 🧪 PRUEBAS UNITARIAS: Método validarCorreoElectronico() de la clase Persona")
+    print("=" * 70)
+    for correo, esp, desc in casos:
+        p = Persona("12.345.678-5", "Juan", "Pérez", "Gómez", "912345678", correo)
+        res = p.validarCorreoElectronico()
+        estado = "✅ PASÓ" if res == esp else "❌ FALLÓ"
+        print(f"{estado} | Correo: {correo:<25} | Esperado: {str(esp):<5} | Obtenido: {str(res):<5} | ({desc})")
 
 if __name__ == "__main__":
     probar_validar_rut()
+    probar_validar_telefono()
+    probar_validar_correo()

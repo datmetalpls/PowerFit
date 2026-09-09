@@ -1,3 +1,5 @@
+import re
+
 # Clase Persona: Plantilla base para representar a las personas dentro del sistema PowerFit.
 class Persona:
     # Atributos de clase según la especificación del diagrama UML
@@ -156,9 +158,12 @@ class Persona:
     def validarTelefono(self) -> bool:
         """
         Valida que el número telefónico de la persona sea válido.
-        Retorna True si es válido, False en caso contrario.
+        Retorna True si es válido (entre 8 y 15 dígitos), False en caso contrario.
         """
-        pass
+        if not self._telefono or not isinstance(self._telefono, str):
+            return False
+        digitos = re.sub(r"[^0-9]", "", self._telefono)
+        return 8 <= len(digitos) <= 15
 
     # Método para validar el formato de la dirección de correo electrónico según el diagrama UML
     def validarCorreoElectronico(self) -> bool:
@@ -166,6 +171,7 @@ class Persona:
         Valida que la dirección de correo electrónico de la persona tenga un formato correcto.
         Retorna True si es válido, False en caso contrario.
         """
-        pass
-
-
+        if not self._correoElectronico or not isinstance(self._correoElectronico, str):
+            return False
+        patron = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
+        return bool(re.match(patron, self._correoElectronico))
