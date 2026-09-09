@@ -103,6 +103,38 @@ Las pruebas cubren 19 escenarios en total:
 
 ---
 
+## 🚀 Ejecución y Activación de la API REST (`FastAPI`)
+
+El proyecto incluye un servidor de API REST desarrollado con **FastAPI** ubicado en la carpeta `prueba de api/api.py`.
+
+### 📦 Requisitos Previos
+Asegúrate de tener instaladas las dependencias necesarias:
+```bash
+pip install fastapi uvicorn pydantic
+```
+
+### ⚡ Iniciar el Servidor de la API
+Para levantar el servidor en modo de desarrollo con recarga automática:
+
+```bash
+cd "prueba de api"
+uvicorn api:app --reload --port 8000
+```
+
+### 🌐 Documentación Interactiva (Swagger / ReDoc)
+Una vez iniciado el servidor, accede desde tu navegador web a:
+- **Documentación Swagger UI (Interactive)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **Documentación ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
+
+### 📌 Endpoints Principales Disponibles
+- `POST /socios`: Registrar un nuevo socio.
+- `GET /socios/{rut}`: Obtener detalles de un socio por RUT.
+- `POST /clases`: Crear una nueva clase dirigida (`yoga`, `spinning`, `crossfit`).
+- `POST /clases/{codigo}/inscripcion`: Inscribir socio a una clase con validación de cupos.
+- `POST /ventas`: Registrar venta de suplementos y productos.
+
+---
+
 ## 📝 Historial de Cambios Realizados
 
 A continuación se detallan las modificaciones realizadas paso a paso sobre el proyecto:
