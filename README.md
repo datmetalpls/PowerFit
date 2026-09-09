@@ -105,7 +105,7 @@ Las pruebas cubren 19 escenarios en total:
 
 ## 🚀 Ejecución y Activación de la API REST (`FastAPI`)
 
-El proyecto incluye un servidor de API REST desarrollado con **FastAPI** ubicado en la carpeta `prueba de api/api.py`.
+El proyecto incluye un servidor de API REST desarrollado con **FastAPI** ubicado en la carpeta `api/api.py`.
 
 ### 📦 Requisitos Previos
 Asegúrate de tener instaladas las dependencias necesarias:
@@ -117,7 +117,7 @@ pip install fastapi uvicorn pydantic
 Para levantar el servidor en modo de desarrollo con recarga automática:
 
 ```bash
-cd "prueba de api"
+cd api
 uvicorn api:app --reload --port 8000
 ```
 
@@ -173,8 +173,8 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
    - Se creó el archivo formal de registro de versiones [`CHANGELOG.md`](./CHANGELOG.md) bajo el estándar Keep a Changelog.
    - Se auditó y sincronizó la rama `rama1.0` con la rama principal `main`.
 
-9. **Refactorización, Limpieza de Duplicados e Integración de Validaciones Regex:**
-   - Se eliminó el subdirectorio redundante `prueba de api/PowerFit/`.
+9. **Refactorización, Limpieza de Duplicados y Estructuración de la API:**
+   - Se renombró la carpeta `prueba de api/` a `api/` para darle un nombre estándar e independiente.
    - Se implementaron las validaciones con expresiones regulares para `validarTelefono()` y `validarCorreoElectronico()` en `Persona`.
    - Se amplió `test.py` a 19 pruebas unitarias automatizadas cubriendo los 3 métodos de validación.
 
