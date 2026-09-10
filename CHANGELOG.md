@@ -14,7 +14,19 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 - Definición de roles (`Instructor`, `Recepcionista`, `Administrador`).
 - Implementación de los métodos pendientes de validación en `Persona`: `validarTelefono()` y `validarCorreoElectronico()`.
 
+## [0.2.0] - 2026-09-10
+
+### 🔄 Refactorización & Arquitectura
+- Reorganización de la raíz en estructura modular por capas (`src/models/`, `tests/`, `docs/`, `scratch/`).
+- Migración de `persona.py`, `comuna.py` y `direccion.py` a `src/models/`.
+- Reubicación de la suite de pruebas unitarias a `tests/test_persona.py` con resolución automática de `sys.path`.
+- Centralización de requerimientos, diagramas UML e infografía del Roadmap en `docs/`.
+
+### 📚 Documentación
+- Creado documento y gráfico de comparativa de frameworks GUI en Python (`docs/requirements/Comparativa-GUI-Tkinter-PySide-PyQt.md` e imagen infográfica).
+
 ---
+
 
 ## [0.1.0] - 2026-09-09
 

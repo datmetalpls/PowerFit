@@ -6,7 +6,7 @@ Sistema desarrollado en Python bajo el paradigma de **Programación Orientada a 
 
 ## 🗺️ Roadmap de Desarrollo del Proyecto
 
-![Roadmap del Proyecto PowerFit](roadmap_powerfit.jpg)
+![Roadmap del Proyecto PowerFit](docs/roadmap_powerfit.jpg)
 
 El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas en el modelo de clases UML y el levantamiento de requerimientos:
 
@@ -222,14 +222,21 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
    - Se implementaron las validaciones con expresiones regulares para `validarTelefono()` y `validarCorreoElectronico()` en `Persona`.
    - Se amplió `test.py` a 19 pruebas unitarias automatizadas cubriendo los 3 métodos de validación.
 
+10. **Reorganización Profesional del Proyecto en Arquitectura por Capas (POO):**
+    - Se estructuraron los modelos del dominio en `src/models/` (`persona.py`, `comuna.py`, `direccion.py`).
+    - Se centralizaron las pruebas unitarias automatizadas en `tests/test_persona.py`.
+    - Se reunió la documentación, diagramas UML y requerimientos en `docs/` (`docs/requirements/`, `docs/uml/`).
+    - Se mantuvieron scripts experimentales en `scratch/`.
+    - Se simplificó `main.py` como punto de entrada único invocando los modelos de `src.models`.
+
 ---
 
 ## 📁 Estructura del Repositorio
 
-- `persona.py`: Implementación de la clase base `Persona` (RUT Módulo 11, validación regex de teléfono y correo).
-- `direccion.py`: Implementación de la clase `Direccion` con validación de tipo de vivienda.
-- `test.py`: Suite de 19 pruebas unitarias automatizadas para validar `Persona`.
+- `src/models/`: Clases del dominio POO (`persona.py`, `comuna.py`, `direccion.py`).
+- `tests/`: Suite de pruebas unitarias automatizadas (`test_persona.py`).
+- `docs/`: Documentación del proyecto, diagramas UML y estudio comparativo de GUIs (`Comparativa-GUI-Tkinter-PySide-PyQt.md`).
+- `scratch/`: Scripts temporales y ejemplos demostrativos.
+- `main.py`: Punto de entrada principal para ejecutar la aplicación.
 - `CHANGELOG.md`: Registro formal de cambios y control de versiones del proyecto.
-- `roadmap_powerfit.jpg`: Infografía visual del Roadmap y fases de desarrollo del proyecto.
-- `UML/ProyectGym.drawio`: Diagrama UML de clases oficial del proyecto.
-- `Requirements/`: Documentación del levantamiento de requerimientos y auditoría del diseño UML.
+

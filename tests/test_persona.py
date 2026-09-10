@@ -1,4 +1,8 @@
-from persona import Persona
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from src.models import Persona
 
 def probar_validar_rut():
     casos_de_prueba = [
