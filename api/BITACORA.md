@@ -2,7 +2,7 @@
 
 ## Fecha
 
-9 de septiembre de 2026
+10 de septiembre de 2026
 
 ## 1. Modelado de clases del UML
 
