@@ -2,7 +2,7 @@
 
 ## Fecha
 
-10 de septiembre de 2026
+9 de septiembre de 2026
 
 ## 1. Modelado de clases del UML
 
@@ -130,7 +130,9 @@ Para socios, las rutas usan `rut` en lugar de `codigo_socio`.
 - Todavia se pueden agregar pruebas automaticas con pytest.
 - La API y el dominio podrian separarse en carpetas para facilitar el mantenimiento.
 
-## 9. Mejoras confirmadas
+## Actualizaciones - 10 de septiembre de 2026
+
+### Mejoras confirmadas
 
 Comprobe que se corrigieron varios problemas de la auditoria anterior:
 
