@@ -93,8 +93,17 @@ Se cuenta con una suite de pruebas unitarias ([`test.py`](./test.py)) para valid
 ### Ejecución de Pruebas
 Para ejecutar las pruebas en la consola:
 ```bash
-python3 test.py
+python3 main.py
 ```
+
+### Ejecución de la Interfaz Gráfica (PySide6)
+La aplicación cuenta con una interfaz gráfica basada en **PySide6**. Para abrir la ventana de registro:
+```bash
+python main.py
+```
+*(Asegúrate de tener instalado `PySide6` ejecutando `pip install PySide6`)*.
+
+---
 
 Las pruebas cubren 19 escenarios en total:
 - **RUT (10 casos)**: RUTs válidos con formato completo (`12.345.678-5`), sin puntos/guiones (`123456785`), DV `'K'`/`'k'`, repetitivos, incorrectos, con letras, vacíos o demasiado cortos.
@@ -228,6 +237,11 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
     - Se reunió la documentación, diagramas UML y requerimientos en `docs/` (`docs/requirements/`, `docs/uml/`).
     - Se mantuvieron scripts experimentales en `scratch/`.
     - Se simplificó `main.py` como punto de entrada único invocando los modelos de `src.models`.
+
+11. **Inicio de la Interfaz Gráfica con PySide6 (`main.py`):**
+    - Se implementó la clase `VentanaRegistro` heredando de `QWidget` en `main.py`.
+    - Se diseñó el layout vertical (`QVBoxLayout`) con controles de entrada (`QLabel`, `QLineEdit`, `QPushButton`).
+    - Se integró el bucle principal de eventos de `QApplication` y la respuesta visual interactiva con `QMessageBox.information`.
 
 ---
 
