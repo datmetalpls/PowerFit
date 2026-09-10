@@ -22,7 +22,7 @@ class Crossfit(ClaseDirigida):
     def calcularCuposDisponibles(self) -> int:
         # Función: calcular cupos considerando capacidad y estaciones.
         # Razón: evita sobrecargar el espacio de entrenamiento.
-        return min(super().calcularCuposDisponibles(), self.estacionesDisponibles)
+        return max(0, min(self.cupoMaximo, self.estacionesDisponibles) - len(self.socios))
 
     def capacidadExtraDisponible(self) -> int:
         return self.calcularCuposDisponibles()

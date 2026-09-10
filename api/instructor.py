@@ -41,10 +41,14 @@ class Instructor(Trabajador):
         # Razón: deja trazabilidad de quién dirige la actividad.
         clase.instructor = self
 
-    def marcarAsistencia(self, socio) -> None:
+    def marcarAsistencia(self, socio, clase) -> None:
         # Función: registrar la asistencia de un socio.
         # Razón: permite controlar participación y seguimiento.
         if not hasattr(self, "asistencias"):
             self.asistencias = []
-        if socio not in self.asistencias:
-            self.asistencias.append(socio)
+        if not hasattr(clase, "asistencias"):
+            clase.asistencias = []
+        if socio not in clase.asistencias:
+            clase.asistencias.append(socio)
+        if (clase, socio) not in self.asistencias:
+            self.asistencias.append((clase, socio))

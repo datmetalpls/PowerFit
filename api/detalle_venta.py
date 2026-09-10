@@ -6,15 +6,24 @@ from decimal import Decimal
 class DetalleVenta:
     """Calcula cantidad, precio unitario y subtotal de un ítem."""
 
-    def __init__(self, cantidad: int, precioUnitarioCLP: Decimal, stock: int | None = None):
+    def __init__(
+        self,
+        codigoProducto: int,
+        cantidad: int,
+        precioUnitarioCLP: Decimal,
+        stock: int | None = None,
+    ):
         # Función: guardar los valores necesarios para el cálculo del ítem.
         # Razón: cada línea debe poder auditarse y comprobar su disponibilidad.
+        if codigoProducto <= 0:
+            raise ValueError("El código del producto debe ser mayor que cero.")
         if cantidad <= 0:
             raise ValueError("La cantidad debe ser mayor que cero.")
         if Decimal(precioUnitarioCLP) < 0:
             raise ValueError("El precio no puede ser negativo.")
         if stock is not None and stock < 0:
             raise ValueError("El stock no puede ser negativo.")
+        self.codigoProducto = codigoProducto
         self.cantidad = cantidad
         self.precioUnitarioCLP = Decimal(precioUnitarioCLP)
         self.stock = stock

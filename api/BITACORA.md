@@ -129,3 +129,21 @@ Para socios, las rutas usan `rut` en lugar de `codigo_socio`.
 - La contrasena se guarda como hash SHA-256; para produccion conviene usar bcrypt o Argon2.
 - Todavia se pueden agregar pruebas automaticas con pytest.
 - La API y el dominio podrian separarse en carpetas para facilitar el mantenimiento.
+
+## 9. Mejoras confirmadas
+
+Comprobe que se corrigieron varios problemas de la auditoria anterior:
+
+- Spinning ya respeta el numero de bicicletas.
+- CrossFit ya respeta el numero de estaciones.
+- Probe una clase con dos bicicletas: acepto dos socios y rechazo al tercero correctamente.
+- `DetalleVenta` ahora conserva `codigoProducto`.
+- La respuesta de una venta muestra el codigo del producto.
+- El RUT se normaliza al registrar socios y trabajadores.
+- La asistencia ahora se relaciona con una clase concreta.
+- Se verifica que el instructor sea quien dicta la clase.
+- Se verifica que el socio este inscrito y tenga membresia vigente.
+- Se impide inscribir personas en una clase ya realizada.
+- El cobro de mensualidad ahora intenta renovar la membresia.
+
+Las correcciones principales estan en [api.py](C:/Users/jarri/Desktop/PowerFit/api/api.py), [spinning.py](C:/Users/jarri/Desktop/PowerFit/api/spinning.py), [crossfit.py](C:/Users/jarri/Desktop/PowerFit/api/crossfit.py) y [detalle_venta.py](C:/Users/jarri/Desktop/PowerFit/api/detalle_venta.py).

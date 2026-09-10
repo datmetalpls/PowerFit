@@ -47,6 +47,9 @@ class Recepcionista(Trabajador):
         # Razón: deja un punto de integración con el sistema de pagos.
         if not socio.estadoActivo:
             raise ValueError("No se puede cobrar a un socio inactivo.")
+        if not socio.membresias:
+            raise ValueError("El socio no tiene una membresía para renovar.")
+        socio.membresias[-1].renovar()
         socio.mensualidadCobrada = True
 
     def registrarVenta(self, venta) -> bool:

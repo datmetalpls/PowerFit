@@ -49,9 +49,9 @@ def __init__(self, rut: str, nombres: str, apellidoPaterno: str, apellidoMaterno
 - **Setters (modificación)**: `setTelefono(telefono)`, `setCorreoElectronico(correoElectronico)` (los atributos de identidad se conservan protegidos e inmutables).
 
 #### Métodos de Validación (UML)
-- **`validarRut() -> bool`**: Valida la autenticidad del RUT y su dígito verificador mediante el **Algoritmo Módulo 11** (soporta puntos, guión, espacios y dígito verificador 'K').
-- **`validarTelefono() -> bool`**: Valida que el formato telefónico sea válido.
-- **`validarCorreoElectronico() -> bool`**: Valida el formato del correo electrónico de la persona.
+- **`validarRut() -> bool`**: Valida la autenticidad del RUT y su dígito verificador mediante el **Algoritmo Módulo 11** (soporta puntos, guión, espacios y dígito verificador 'K'/'k').
+- **`validarTelefono() -> bool`**: Valida que el formato telefónico contenga entre 8 y 15 dígitos utilizando expresiones regulares.
+- **`validarCorreoElectronico() -> bool`**: Valida el formato de la dirección de correo electrónico mediante expresiones regulares (`r"^[^\s@]+@[^\s@]+\.[^\s@]+$"`).
 
 ---
 
@@ -88,7 +88,7 @@ def __init__(self, idDireccion: int, tipoDireccion: str, calle: str, numero: str
 
 ## 🧪 Pruebas Unitarias (`test.py`)
 
-Se cuenta con un script de pruebas unitarias ([`test.py`](./test.py)) para validar el comportamiento del método `validarRut()` ante múltiples casos reales.
+Se cuenta con una suite de pruebas unitarias ([`test.py`](./test.py)) para validar el comportamiento de los métodos de validación de `Persona` (`validarRut()`, `validarTelefono()`, `validarCorreoElectronico()`).
 
 ### Ejecución de Pruebas
 Para ejecutar las pruebas en la consola:
@@ -96,12 +96,86 @@ Para ejecutar las pruebas en la consola:
 python3 test.py
 ```
 
-Las pruebas cubren los siguientes escenarios:
-- RUTs válidos con formato completo (`12.345.678-5`).
-- RUTs válidos sin puntos ni guiones (`123456785`).
-- RUTs válidos finalizados en dígito verificador `'K'` o `'k'` (`14.805.293-K`).
-- RUTs con dígitos verificadores o cuerpo incorrectos / caracteres no numéricos.
-- Casos borde como cadenas vacías o longitudes insuficientes.
+Las pruebas cubren 19 escenarios en total:
+- **RUT (10 casos)**: RUTs válidos con formato completo (`12.345.678-5`), sin puntos/guiones (`123456785`), DV `'K'`/`'k'`, repetitivos, incorrectos, con letras, vacíos o demasiado cortos.
+- **Teléfono (4 casos)**: Formato chileno con prefijo (`+56 9...`), 9 dígitos, cadenas cortas y cadenas vacías.
+- **Correo Electrónico (5 casos)**: Formato estándar, dominios cortos, correos sin `@`, sin dominio y vacíos.
+
+---
+
+## 🚀 Ejecución y Activación de la API REST (`FastAPI`)
+
+El proyecto incluye un servidor de API REST desarrollado con **FastAPI** ubicado en la carpeta [`api/api.py`](./api/api.py).
+
+A continuación se detallan las instrucciones para crear el entorno virtual, instalar dependencias e iniciar el servidor según tu sistema operativo:
+
+### 🍏 macOS & 🐧 Linux
+
+1. Abrir la terminal y navegar a la carpeta de la API:
+   ```bash
+   cd api
+   ```
+2. Crear el entorno virtual e instalar dependencias:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+3. Iniciar el servidor de la API:
+   ```bash
+   uvicorn api:app --reload --port 8000
+   ```
+
+---
+
+### 🪟 Windows (PowerShell / CMD)
+
+#### Usando PowerShell:
+1. Navegar a la carpeta de la API:
+   ```powershell
+   cd api
+   ```
+2. Crear y activar el entorno virtual:
+   ```powershell
+   python -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   pip install -r requirements.txt
+   ```
+   *(Nota: Si PowerShell bloquea los scripts por políticas de ejecución, ejecuta antes `Set-ExecutionPolicy Unrestricted -Scope Process`)*.
+3. Iniciar el servidor de la API:
+   ```powershell
+   uvicorn api:app --reload --port 8000
+   ```
+
+#### Usando Símbolo del Sistema (CMD):
+1. Navegar a la carpeta de la API:
+   ```cmd
+   cd api
+   ```
+2. Crear y activar el entorno virtual:
+   ```cmd
+   python -m venv .venv
+   .venv\Scripts\activate.bat
+   pip install -r requirements.txt
+   ```
+3. Iniciar el servidor de la API:
+   ```cmd
+   uvicorn api:app --reload --port 8000
+   ```
+
+---
+
+### 🌐 Documentación Interactiva (Swagger / ReDoc)
+Una vez iniciado el servidor, accede desde cualquier navegador a:
+- **Documentación Swagger UI (Interactiva)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **Documentación ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
+
+### 📌 Endpoints Principales Disponibles
+- `POST /socios`: Registrar un nuevo socio.
+- `GET /socios/{rut}`: Obtener detalles de un socio por RUT.
+- `POST /clases`: Crear una nueva clase dirigida (`yoga`, `spinning`, `crossfit`).
+- `POST /clases/{codigo}/inscripcion`: Inscribir socio a una clase con validación de cupos.
+- `POST /ventas`: Registrar venta de suplementos y productos.
 
 ---
 
@@ -138,17 +212,24 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
 7. **Incorporación de Infografía del Roadmap y Actualización de Pruebas:**
    - Se integró la infografía visual de arquitectura y fases del proyecto (`roadmap_powerfit.jpg`).
    - Se incorporó la sección del Roadmap estructurado en 5 fases en el `README.md`.
-   - Se añadió un caso de prueba adicional en `test.py` para RUT con DV 'K'.
+
+8. **Creación del Historial de Cambios (`CHANGELOG.md`) y Sincronización de Ramas:**
+   - Se creó el archivo formal de registro de versiones [`CHANGELOG.md`](./CHANGELOG.md) bajo el estándar Keep a Changelog.
+   - Se auditó y sincronizó la rama `rama1.0` con la rama principal `main`.
+
+9. **Refactorización, Limpieza de Duplicados y Estructuración de la API:**
+   - Se renombró la carpeta `prueba de api/` a `api/` para darle un nombre estándar e independiente.
+   - Se implementaron las validaciones con expresiones regulares para `validarTelefono()` y `validarCorreoElectronico()` en `Persona`.
+   - Se amplió `test.py` a 19 pruebas unitarias automatizadas cubriendo los 3 métodos de validación.
 
 ---
 
 ## 📁 Estructura del Repositorio
 
-- `persona.py`: Implementación de la clase `Persona`.
+- `persona.py`: Implementación de la clase base `Persona` (RUT Módulo 11, validación regex de teléfono y correo).
 - `direccion.py`: Implementación de la clase `Direccion` con validación de tipo de vivienda.
-- `test.py`: Suite de pruebas unitarias automatizadas para validar el comportamiento de los métodos de `Persona`.
+- `test.py`: Suite de 19 pruebas unitarias automatizadas para validar `Persona`.
+- `CHANGELOG.md`: Registro formal de cambios y control de versiones del proyecto.
 - `roadmap_powerfit.jpg`: Infografía visual del Roadmap y fases de desarrollo del proyecto.
 - `UML/ProyectGym.drawio`: Diagrama UML de clases oficial del proyecto.
 - `Requirements/`: Documentación del levantamiento de requerimientos y auditoría del diseño UML.
-
-

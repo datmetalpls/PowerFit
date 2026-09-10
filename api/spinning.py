@@ -22,7 +22,7 @@ class Spinning(ClaseDirigida):
     def calcularCuposDisponibles(self) -> int:
         # Función: limitar los cupos por bicicletas y capacidad general.
         # Razón: no se deben aceptar más alumnos que equipos disponibles.
-        return min(super().calcularCuposDisponibles(), self.bicicletasDisponibles)
+        return max(0, min(self.cupoMaximo, self.bicicletasDisponibles) - len(self.socios))
 
     def capacidadExtraDisponible(self) -> int:
         return self.calcularCuposDisponibles()

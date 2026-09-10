@@ -4,6 +4,7 @@ from datetime import date
 from datetime import timedelta
 from decimal import Decimal
 import hashlib
+import re
 from typing import Dict, List, Literal
 
 from fastapi import FastAPI, HTTPException, Query, status
@@ -141,6 +142,11 @@ class VentaEntrada(BaseModel):
     )
 
 
+def normalizar_rut(rut: str) -> str:
+    """Devuelve el RUT en una forma única para almacenar y buscar."""
+    return re.sub(r"[.\-\s]", "", rut).upper()
+
+
 def convertir_socio_a_respuesta(socio: Socio) -> dict:
     """Convierte un socio del dominio a un diccionario JSON."""
     direccion = socio.getDireccion()
@@ -239,7 +245,8 @@ def estado_api() -> dict:
 @app.post("/socios", status_code=status.HTTP_201_CREATED, tags=["Socios"])
 def crear_socio(datos: SocioEntrada) -> dict:
     """Registra un socio y le crea una membresía inicial de 30 días."""
-    if datos.rut in socios:
+    rut = normalizar_rut(datos.rut)
+    if rut in socios:
         raise HTTPException(status_code=409, detail="El socio ya está registrado.")
 
     direccion = Direccion(
@@ -251,7 +258,7 @@ def crear_socio(datos: SocioEntrada) -> dict:
     )
     socio = Socio(
         estadoActivo=True,
-        rut=datos.rut,
+        rut=rut,
         edad=datos.edad,
         nombres=datos.nombres,
         apellidoPaterno=datos.apellido_paterno,
@@ -278,7 +285,7 @@ def listar_socios() -> list[dict]:
 @app.get("/socios/{rut}", tags=["Socios"])
 def obtener_socio(rut: str) -> dict:
     """Devuelve un socio usando su RUT."""
-    socio = socios.get(rut)
+    socio = socios.get(normalizar_rut(rut))
     if socio is None:
         raise HTTPException(status_code=404, detail="Socio no encontrado.")
     return convertir_socio_a_respuesta(socio)
@@ -299,7 +306,8 @@ def crear_trabajador(datos: TrabajadorEntrada) -> dict:
     """Registra un instructor o recepcionista con contraseña protegida."""
     if datos.codigo_trabajador in trabajadores:
         raise HTTPException(status_code=409, detail="El trabajador ya existe.")
-    if any(trabajador.getRut() == datos.rut for trabajador in trabajadores.values()):
+    rut = normalizar_rut(datos.rut)
+    if any(trabajador.getRut() == rut for trabajador in trabajadores.values()):
         raise HTTPException(status_code=409, detail="El rut del trabajador ya está registrado.")
 
     direccion = Direccion(
@@ -312,7 +320,7 @@ def crear_trabajador(datos: TrabajadorEntrada) -> dict:
     datos_persona = {
         "idTrabajador": datos.codigo_trabajador,
         "passHash": crear_hash(datos.pass_),
-        "rut": datos.rut,
+        "rut": rut,
         "edad": datos.edad,
         "nombres": datos.nombres,
         "apellidoPaterno": datos.apellido_paterno,
@@ -361,22 +369,35 @@ def asignar_clase(
     return convertir_clase_a_respuesta(clase)
 
 
-@app.post("/instructores/{codigo_trabajador}/asistencias/{rut}", tags=["Instructores"])
+@app.post(
+    "/instructores/{codigo_trabajador}/asistencias/{codigo_clase}/{rut}",
+    tags=["Instructores"],
+)
 def marcar_asistencia(
     codigo_trabajador: int,
+    codigo_clase: int,
     rut: str,
     pass_: str = Query(..., alias="pass", min_length=1),
 ) -> dict:
-    """Registra asistencia usando la contraseña del instructor."""
+    """Registra asistencia en una clase concreta usando la contraseña del instructor."""
     trabajador = obtener_trabajador_autorizado(codigo_trabajador, pass_)
     exigir_rol(trabajador, Instructor)
-    if trabajador.idTrabajador != codigo_trabajador:
-        raise HTTPException(status_code=403, detail="Solo puede operar su propio usuario.")
-    socio = socios.get(rut)
+    clase = clases.get(codigo_clase)
+    if clase is None:
+        raise HTTPException(status_code=404, detail="Clase no encontrada.")
+    if getattr(clase, "instructor", None) is not trabajador:
+        raise HTTPException(status_code=403, detail="El instructor no dicta esta clase.")
+    if clase.realizada:
+        raise HTTPException(status_code=409, detail="La clase ya fue realizada.")
+    socio = socios.get(normalizar_rut(rut))
     if socio is None:
         raise HTTPException(status_code=404, detail="Socio no encontrado.")
-    trabajador.marcarAsistencia(socio)
-    return {"mensaje": "Asistencia registrada.", "rut": rut}
+    if socio not in clase.socios:
+        raise HTTPException(status_code=409, detail="El socio no está inscrito en esta clase.")
+    if not socio.tieneMembresiaVigente():
+        raise HTTPException(status_code=403, detail="El socio no tiene una membresía vigente.")
+    trabajador.marcarAsistencia(socio, clase)
+    return {"mensaje": "Asistencia registrada.", "rut": socio.getRut(), "codigo_clase": codigo_clase}
 
 
 @app.post("/recepcionistas/{codigo_trabajador}/socios/{rut}/activar", tags=["Recepcionistas"])
@@ -496,6 +517,7 @@ def registrar_venta(
         producto = productos.get(entrada.codigo_producto)
         precio_clp = producto.calcularPrecioCLP(datos.valor_dolar_clp)
         detalle = DetalleVenta(
+            codigoProducto=producto.codigo,
             cantidad=entrada.cantidad,
             precioUnitarioCLP=precio_clp,
             stock=producto.stock,
@@ -519,6 +541,7 @@ def registrar_venta(
         "total_clp": venta.totalCLP,
         "detalles": [
             {
+                "codigo_producto": detalle.codigoProducto,
                 "cantidad": detalle.cantidad,
                 "precio_unitario_clp": detalle.precioUnitarioCLP,
                 "subtotal_clp": detalle.subtotalCLP,
@@ -599,6 +622,8 @@ def inscribir_socio(codigo_clase: int, rut: str) -> dict:
         raise HTTPException(status_code=404, detail="Socio no encontrado.")
     if not socio.estadoActivo:
         raise HTTPException(status_code=403, detail="El socio está inactivo.")
+    if clase.realizada:
+        raise HTTPException(status_code=409, detail="No se puede inscribir en una clase ya realizada.")
     if not socio.tieneMembresiaVigente():
         raise HTTPException(status_code=403, detail="El socio no tiene una membresía vigente.")
     if not clase.inscribirSocio(socio):
