@@ -1,13 +1,16 @@
 """API REST para gestionar socios y clases de PowerFit."""
 
-from datetime import date
-from datetime import timedelta
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 import hashlib
+import hmac
+import os
 import re
+import secrets
 from typing import Dict, List, Literal
 
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 from clase_dirigida import ClaseDirigida
@@ -38,6 +41,12 @@ trabajadores: Dict[int, Trabajador] = {}
 productos: Dict[int, Suplemento] = {}
 inventarios: Dict[int, Inventario] = {}
 ventas: Dict[int, Venta] = {}
+sesiones: Dict[str, dict] = {}
+
+seguridad_bearer = HTTPBearer(auto_error=False)
+ADMIN_USUARIO = os.getenv("POWERFIT_ADMIN_USUARIO", "").strip()
+ADMIN_PASSWORD = os.getenv("POWERFIT_ADMIN_PASSWORD", "")
+DURACION_SESION = timedelta(hours=8)
 
 
 class DireccionEntrada(BaseModel):
@@ -142,6 +151,14 @@ class VentaEntrada(BaseModel):
     )
 
 
+class LoginEntrada(BaseModel):
+    """Credenciales para iniciar una sesión protegida."""
+
+    tipo_usuario: Literal["administrador", "trabajador"]
+    usuario: str = Field(min_length=1, description="Usuario administrador o código del trabajador.")
+    password: str = Field(min_length=6, description="Contraseña de acceso.")
+
+
 def normalizar_rut(rut: str) -> str:
     """Devuelve el RUT en una forma única para almacenar y buscar."""
     return re.sub(r"[.\-\s]", "", rut).upper()
@@ -205,8 +222,28 @@ def convertir_trabajador_a_respuesta(trabajador: Trabajador) -> dict:
 
 
 def crear_hash(password: str) -> str:
-    """Convierte una contraseña en un hash antes de guardarla."""
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+    """Protege una contraseña con PBKDF2, sal aleatoria y múltiples iteraciones."""
+    iteraciones = 600_000
+    sal = secrets.token_bytes(16)
+    resumen = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), sal, iteraciones)
+    return f"pbkdf2_sha256${iteraciones}${sal.hex()}${resumen.hex()}"
+
+
+def verificar_password(password: str, hash_guardado: str) -> bool:
+    """Comprueba una contraseña sin realizar comparaciones vulnerables a temporización."""
+    try:
+        algoritmo, iteraciones, sal, resumen = hash_guardado.split("$", 3)
+        if algoritmo != "pbkdf2_sha256":
+            return False
+        calculado = hashlib.pbkdf2_hmac(
+            "sha256",
+            password.encode("utf-8"),
+            bytes.fromhex(sal),
+            int(iteraciones),
+        ).hex()
+        return hmac.compare_digest(calculado, resumen)
+    except (TypeError, ValueError):
+        return False
 
 
 def validar_datos_persona(persona: Socio | Trabajador) -> None:
@@ -222,18 +259,52 @@ def validar_datos_persona(persona: Socio | Trabajador) -> None:
         )
 
 
-def obtener_trabajador_autorizado(idTrabajador: int, pass_: str) -> Trabajador:
-    """Busca un trabajador por código y comprueba su contraseña."""
-    trabajador = trabajadores.get(idTrabajador)
-    if trabajador is None or not trabajador.autenticar(crear_hash(pass_)):
-        raise HTTPException(status_code=401, detail="ID o contraseña incorrectos.")
-    return trabajador
-
-
 def exigir_rol(trabajador: Trabajador, rol: type) -> None:
     """Rechaza el acceso cuando el trabajador no tiene el rol requerido."""
     if not isinstance(trabajador, rol):
         raise HTTPException(status_code=403, detail="El trabajador no tiene este permiso.")
+
+
+def crear_sesion(rol: str, codigo_trabajador: int | None = None) -> tuple[str, datetime]:
+    """Crea un token opaco temporal y guarda únicamente sus datos de autorización."""
+    token = secrets.token_urlsafe(32)
+    expira = datetime.now(timezone.utc) + DURACION_SESION
+    sesiones[token] = {
+        "rol": rol,
+        "codigo_trabajador": codigo_trabajador,
+        "expira": expira,
+    }
+    return token, expira
+
+
+def obtener_sesion_actual(
+    credenciales: HTTPAuthorizationCredentials | None = Depends(seguridad_bearer),
+) -> dict:
+    """Valida el token Bearer recibido en la cabecera Authorization."""
+    if credenciales is None:
+        raise HTTPException(status_code=401, detail="Se requiere autenticación.")
+    sesion = sesiones.get(credenciales.credentials)
+    if sesion is None or sesion["expira"] <= datetime.now(timezone.utc):
+        sesiones.pop(credenciales.credentials, None)
+        raise HTTPException(status_code=401, detail="La sesión no existe o expiró.")
+    return sesion
+
+
+def exigir_roles(*roles_permitidos: str):
+    """Construye una dependencia que limita una ruta a determinados roles."""
+
+    def validar(sesion: dict = Depends(obtener_sesion_actual)) -> dict:
+        if sesion["rol"] not in roles_permitidos:
+            raise HTTPException(status_code=403, detail="No tiene permiso para esta operación.")
+        return sesion
+
+    return validar
+
+
+def exigir_identidad_trabajador(sesion: dict, codigo_trabajador: int) -> None:
+    """Impide que un trabajador opere usando el código de otro trabajador."""
+    if sesion["rol"] != "administrador" and sesion["codigo_trabajador"] != codigo_trabajador:
+        raise HTTPException(status_code=403, detail="No puede operar con otro usuario.")
 
 
 @app.get("/", tags=["Estado"])
@@ -242,8 +313,54 @@ def estado_api() -> dict:
     return {"mensaje": "PowerFit API funcionando"}
 
 
+@app.post("/auth/login", tags=["Autenticación"])
+def iniciar_sesion(datos: LoginEntrada) -> dict:
+    """Autentica al administrador o a un trabajador y entrega un token temporal."""
+    if datos.tipo_usuario == "administrador":
+        if not ADMIN_USUARIO or not ADMIN_PASSWORD:
+            raise HTTPException(
+                status_code=503,
+                detail="El administrador inicial no está configurado en el servidor.",
+            )
+        credenciales_validas = hmac.compare_digest(
+            datos.usuario, ADMIN_USUARIO
+        ) and hmac.compare_digest(datos.password, ADMIN_PASSWORD)
+        if not credenciales_validas:
+            raise HTTPException(status_code=401, detail="Credenciales incorrectas.")
+        token, expira = crear_sesion("administrador")
+    else:
+        try:
+            codigo_trabajador = int(datos.usuario)
+        except ValueError as error:
+            raise HTTPException(status_code=401, detail="Credenciales incorrectas.") from error
+        trabajador = trabajadores.get(codigo_trabajador)
+        if trabajador is None or not verificar_password(datos.password, trabajador.passHash):
+            raise HTTPException(status_code=401, detail="Credenciales incorrectas.")
+        rol = "instructor" if isinstance(trabajador, Instructor) else "recepcionista"
+        token, expira = crear_sesion(rol, trabajador.idTrabajador)
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "expira": expira,
+    }
+
+
+@app.post("/auth/logout", tags=["Autenticación"])
+def cerrar_sesion(
+    credenciales: HTTPAuthorizationCredentials = Depends(seguridad_bearer),
+    _: dict = Depends(obtener_sesion_actual),
+) -> dict:
+    """Invalida el token utilizado en la solicitud."""
+    sesiones.pop(credenciales.credentials, None)
+    return {"mensaje": "Sesión cerrada."}
+
+
 @app.post("/socios", status_code=status.HTTP_201_CREATED, tags=["Socios"])
-def crear_socio(datos: SocioEntrada) -> dict:
+def crear_socio(
+    datos: SocioEntrada,
+    _: dict = Depends(exigir_roles("administrador", "recepcionista")),
+) -> dict:
     """Registra un socio y le crea una membresía inicial de 30 días."""
     rut = normalizar_rut(datos.rut)
     if rut in socios:
@@ -277,13 +394,18 @@ def crear_socio(datos: SocioEntrada) -> dict:
 
 
 @app.get("/socios", response_model=List[dict], tags=["Socios"])
-def listar_socios() -> list[dict]:
+def listar_socios(
+    _: dict = Depends(exigir_roles("administrador", "recepcionista")),
+) -> list[dict]:
     """Devuelve todos los socios registrados."""
     return [convertir_socio_a_respuesta(socio) for socio in socios.values()]
 
 
 @app.get("/socios/{rut}", tags=["Socios"])
-def obtener_socio(rut: str) -> dict:
+def obtener_socio(
+    rut: str,
+    _: dict = Depends(exigir_roles("administrador", "recepcionista")),
+) -> dict:
     """Devuelve un socio usando su RUT."""
     socio = socios.get(normalizar_rut(rut))
     if socio is None:
@@ -292,9 +414,12 @@ def obtener_socio(rut: str) -> dict:
 
 
 @app.post("/socios/{rut}/ficha", tags=["Socios"])
-def crear_ficha_socio(rut: str) -> dict:
+def crear_ficha_socio(
+    rut: str,
+    _: dict = Depends(exigir_roles("administrador", "recepcionista")),
+) -> dict:
     """Crea la ficha de seguimiento de un socio."""
-    socio = socios.get(rut)
+    socio = socios.get(normalizar_rut(rut))
     if socio is None:
         raise HTTPException(status_code=404, detail="No existe un socio con ese rut.")
     socio.crearFicha()
@@ -302,7 +427,10 @@ def crear_ficha_socio(rut: str) -> dict:
 
 
 @app.post("/trabajadores", status_code=status.HTTP_201_CREATED, tags=["Trabajadores"])
-def crear_trabajador(datos: TrabajadorEntrada) -> dict:
+def crear_trabajador(
+    datos: TrabajadorEntrada,
+    _: dict = Depends(exigir_roles("administrador")),
+) -> dict:
     """Registra un instructor o recepcionista con contraseña protegida."""
     if datos.codigo_trabajador in trabajadores:
         raise HTTPException(status_code=409, detail="El trabajador ya existe.")
@@ -348,7 +476,9 @@ def crear_trabajador(datos: TrabajadorEntrada) -> dict:
 
 
 @app.get("/trabajadores", response_model=List[dict], tags=["Trabajadores"])
-def listar_trabajadores() -> list[dict]:
+def listar_trabajadores(
+    _: dict = Depends(exigir_roles("administrador")),
+) -> list[dict]:
     """Devuelve trabajadores sin incluir sus contraseñas."""
     return [convertir_trabajador_a_respuesta(trabajador) for trabajador in trabajadores.values()]
 
@@ -357,10 +487,12 @@ def listar_trabajadores() -> list[dict]:
 def asignar_clase(
     codigo_trabajador: int,
     codigo_clase: int,
-    pass_: str = Query(..., alias="pass", min_length=1),
+    _: dict = Depends(exigir_roles("administrador")),
 ) -> dict:
-    """Asigna una clase usando la contraseña del instructor."""
-    trabajador = obtener_trabajador_autorizado(codigo_trabajador, pass_)
+    """Permite al administrador asignar una clase a un instructor."""
+    trabajador = trabajadores.get(codigo_trabajador)
+    if trabajador is None:
+        raise HTTPException(status_code=404, detail="Trabajador no encontrado.")
     exigir_rol(trabajador, Instructor)
     clase = clases.get(codigo_clase)
     if clase is None:
@@ -377,10 +509,13 @@ def marcar_asistencia(
     codigo_trabajador: int,
     codigo_clase: int,
     rut: str,
-    pass_: str = Query(..., alias="pass", min_length=1),
+    sesion: dict = Depends(exigir_roles("instructor")),
 ) -> dict:
-    """Registra asistencia en una clase concreta usando la contraseña del instructor."""
-    trabajador = obtener_trabajador_autorizado(codigo_trabajador, pass_)
+    """Registra asistencia usando la sesión del instructor responsable."""
+    exigir_identidad_trabajador(sesion, codigo_trabajador)
+    trabajador = trabajadores.get(codigo_trabajador)
+    if trabajador is None:
+        raise HTTPException(status_code=404, detail="Trabajador no encontrado.")
     exigir_rol(trabajador, Instructor)
     clase = clases.get(codigo_clase)
     if clase is None:
@@ -404,12 +539,15 @@ def marcar_asistencia(
 def activar_socio(
     codigo_trabajador: int,
     rut: str,
-    pass_: str = Query(..., alias="pass", min_length=1),
+    sesion: dict = Depends(exigir_roles("administrador", "recepcionista")),
 ) -> dict:
-    """Activa un socio usando la contraseña del recepcionista."""
-    trabajador = obtener_trabajador_autorizado(codigo_trabajador, pass_)
+    """Activa un socio usando una sesión autorizada."""
+    exigir_identidad_trabajador(sesion, codigo_trabajador)
+    trabajador = trabajadores.get(codigo_trabajador)
+    if trabajador is None:
+        raise HTTPException(status_code=404, detail="Trabajador no encontrado.")
     exigir_rol(trabajador, Recepcionista)
-    socio = socios.get(rut)
+    socio = socios.get(normalizar_rut(rut))
     if socio is None:
         raise HTTPException(status_code=404, detail="Socio no encontrado.")
     trabajador.registrarSocio(socio)
@@ -420,20 +558,29 @@ def activar_socio(
 def cobrar_mensualidad(
     codigo_trabajador: int,
     rut: str,
-    pass_: str = Query(..., alias="pass", min_length=1),
+    sesion: dict = Depends(exigir_roles("administrador", "recepcionista")),
 ) -> dict:
-    """Registra un cobro usando la contraseña del recepcionista."""
-    trabajador = obtener_trabajador_autorizado(codigo_trabajador, pass_)
+    """Registra un cobro usando una sesión autorizada."""
+    exigir_identidad_trabajador(sesion, codigo_trabajador)
+    trabajador = trabajadores.get(codigo_trabajador)
+    if trabajador is None:
+        raise HTTPException(status_code=404, detail="Trabajador no encontrado.")
     exigir_rol(trabajador, Recepcionista)
-    socio = socios.get(rut)
+    socio = socios.get(normalizar_rut(rut))
     if socio is None:
         raise HTTPException(status_code=404, detail="Socio no encontrado.")
-    trabajador.cobrarMensualidad(socio)
-    return {"mensaje": "Mensualidad cobrada.", "rut": rut}
+    try:
+        trabajador.cobrarMensualidad(socio)
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    return {"mensaje": "Mensualidad cobrada.", "rut": socio.getRut()}
 
 
 @app.post("/productos", status_code=status.HTTP_201_CREATED, tags=["Inventario"])
-def crear_producto(datos: ProductoEntrada) -> dict:
+def crear_producto(
+    datos: ProductoEntrada,
+    _: dict = Depends(exigir_roles("administrador", "recepcionista")),
+) -> dict:
     """Registra un suplemento y crea su control de inventario."""
     if datos.codigo_producto in productos:
         raise HTTPException(
@@ -462,7 +609,9 @@ def crear_producto(datos: ProductoEntrada) -> dict:
 
 
 @app.get("/inventario", tags=["Inventario"])
-def listar_inventario() -> list[dict]:
+def listar_inventario(
+    _: dict = Depends(exigir_roles("administrador", "recepcionista")),
+) -> list[dict]:
     """Devuelve existencias y alertas de todos los productos."""
     return [
         {
@@ -479,14 +628,17 @@ def listar_inventario() -> list[dict]:
 @app.post("/ventas", status_code=status.HTTP_201_CREATED, tags=["Ventas"])
 def registrar_venta(
     datos: VentaEntrada,
-    codigo_trabajador: int = Query(..., description="Código del recepcionista."),
-    pass_: str = Query(..., alias="pass", min_length=1),
+    codigo_trabajador: int,
+    sesion: dict = Depends(exigir_roles("administrador", "recepcionista")),
 ) -> dict:
     """Registra una venta, valida stock y descuenta las unidades vendidas."""
     if datos.codigo_venta in ventas:
         raise HTTPException(status_code=409, detail="El codigo_venta ya está registrado.")
 
-    trabajador = obtener_trabajador_autorizado(codigo_trabajador, pass_)
+    exigir_identidad_trabajador(sesion, codigo_trabajador)
+    trabajador = trabajadores.get(codigo_trabajador)
+    if trabajador is None:
+        raise HTTPException(status_code=404, detail="Trabajador no encontrado.")
     exigir_rol(trabajador, Recepcionista)
     venta = Venta(numero=datos.codigo_venta, fecha=date.today())
 
@@ -552,7 +704,10 @@ def registrar_venta(
 
 
 @app.post("/clases", status_code=status.HTTP_201_CREATED, tags=["Clases"])
-def crear_clase(datos: ClaseEntrada) -> dict:
+def crear_clase(
+    datos: ClaseEntrada,
+    _: dict = Depends(exigir_roles("administrador")),
+) -> dict:
     """Crea una clase de Yoga, Spinning o Crossfit."""
     if datos.codigo_clase in clases:
         raise HTTPException(status_code=409, detail="El código de clase ya existe.")
@@ -593,17 +748,26 @@ def crear_clase(datos: ClaseEntrada) -> dict:
 
 
 @app.get("/clases", response_model=List[dict], tags=["Clases"])
-def listar_clases() -> list[dict]:
+def listar_clases(
+    _: dict = Depends(exigir_roles("administrador", "recepcionista", "instructor")),
+) -> list[dict]:
     """Devuelve todas las clases creadas."""
     return [convertir_clase_a_respuesta(clase) for clase in clases.values()]
 
 
 @app.post("/clases/{codigo_clase}/realizar", tags=["Clases"])
-def realizar_clase(codigo_clase: int) -> dict:
+def realizar_clase(
+    codigo_clase: int,
+    sesion: dict = Depends(exigir_roles("administrador", "instructor")),
+) -> dict:
     """Marca una clase como realizada si tiene socios inscritos."""
     clase = clases.get(codigo_clase)
     if clase is None:
         raise HTTPException(status_code=404, detail="No existe una clase con ese codigo_clase.")
+    if sesion["rol"] == "instructor":
+        instructor = getattr(clase, "instructor", None)
+        if instructor is None or instructor.idTrabajador != sesion["codigo_trabajador"]:
+            raise HTTPException(status_code=403, detail="El instructor no dicta esta clase.")
     try:
         clase.realizarClase()
     except ValueError as error:
@@ -612,10 +776,14 @@ def realizar_clase(codigo_clase: int) -> dict:
 
 
 @app.post("/clases/{codigo_clase}/inscripciones/{rut}", tags=["Clases"])
-def inscribir_socio(codigo_clase: int, rut: str) -> dict:
+def inscribir_socio(
+    codigo_clase: int,
+    rut: str,
+    _: dict = Depends(exigir_roles("administrador", "recepcionista")),
+) -> dict:
     """Inscribe un socio activo con membresía vigente en una clase."""
     clase = clases.get(codigo_clase)
-    socio = socios.get(rut)
+    socio = socios.get(normalizar_rut(rut))
     if clase is None:
         raise HTTPException(status_code=404, detail="Clase no encontrada.")
     if socio is None:

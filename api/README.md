@@ -1,106 +1,79 @@
-# PowerFit
+# PowerFit API 2
 
-## API
+Esta versión protege las operaciones del gimnasio mediante sesiones y permisos por rol.
+La carpeta `api` original no se modifica.
 
-La API REST está en `api.py` y utiliza FastAPI. Para instalar sus dependencias:
+## Instalación
 
 ```powershell
 python -m pip install -r requirements.txt
 ```
 
-Para iniciar el servidor:
+## Configurar al dueño o administrador inicial
+
+Antes de iniciar la API, define un usuario y una contraseña en variables de entorno.
+No escribas estas credenciales dentro de `api.py`.
 
 ```powershell
+$env:POWERFIT_ADMIN_USUARIO = "dueno"
+$env:POWERFIT_ADMIN_PASSWORD = "Usa-una-clave-larga-y-unica"
 python -m uvicorn api:app --reload
 ```
 
-La documentación interactiva queda disponible en:
+La documentación interactiva estará en `http://127.0.0.1:8000/docs`.
+
+## Iniciar sesión
+
+El dueño o administrador llama a `POST /auth/login`:
+
+```json
+{
+  "tipo_usuario": "administrador",
+  "usuario": "dueno",
+  "password": "Usa-una-clave-larga-y-unica"
+}
+```
+
+Un trabajador registrado utiliza su código:
+
+```json
+{
+  "tipo_usuario": "trabajador",
+  "usuario": "10",
+  "password": "clave-del-trabajador"
+}
+```
+
+La respuesta contiene `access_token`. En las siguientes solicitudes se envía así:
 
 ```text
-http://127.0.0.1:8000/docs
+Authorization: Bearer <access_token>
 ```
 
-Endpoints principales:
+En Swagger, pulsa **Authorize** e introduce el token. Las sesiones duran ocho horas y
+se eliminan cuando se reinicia el servidor. `POST /auth/logout` invalida la sesión actual.
 
-- `POST /socios`: registrar un socio.
-- `GET /socios`: listar socios.
-- `GET /socios/{rut}`: consultar un socio usando su RUT.
-- `POST /socios/{rut}/ficha`: crear la ficha de seguimiento del socio.
-- `POST /clases`: crear una clase de Yoga, Spinning o Crossfit.
-- `GET /clases`: listar clases.
-- `POST /clases/{codigo_clase}/realizar`: marcar una clase como realizada.
-- `POST /clases/{codigo_clase}/inscripciones/{rut}`: inscribir un socio.
-- `POST /trabajadores`: registrar un instructor o recepcionista.
-- `GET /trabajadores`: listar trabajadores sin contraseñas.
-- `POST /instructores/{codigo_trabajador}/clases/{codigo_clase}?pass=...`: asignar una clase.
-- `POST /instructores/{codigo_trabajador}/asistencias/{rut}?pass=...`: marcar asistencia.
-- `POST /recepcionistas/{codigo_trabajador}/socios/{rut}/activar?pass=...`: activar un socio.
-- `POST /recepcionistas/{codigo_trabajador}/socios/{rut}/cobrar?pass=...`: registrar un cobro.
-- `POST /productos`: registrar un suplemento.
-- `GET /inventario`: consultar existencias y alertas.
-- `POST /ventas?codigo_trabajador=1&pass=...`: registrar una venta y descontar stock.
+## Permisos
 
-Los endpoints de trabajadores reciben la contraseña directamente mediante el parámetro `pass`.
+| Operación | Administrador | Recepcionista | Instructor |
+|---|:---:|:---:|:---:|
+| Crear y listar trabajadores | Sí | No | No |
+| Crear y asignar clases | Sí | No | No |
+| Registrar y consultar socios | Sí | Sí | No |
+| Inscribir socios | Sí | Sí | No |
+| Cobrar y activar socios | Sí | Sí | No |
+| Productos, inventario y ventas | Sí | Sí | No |
+| Consultar clases | Sí | Sí | Sí |
+| Marcar asistencia | No | No | Solo sus clases |
+| Realizar una clase | Sí | No | Solo sus clases |
 
-Las contraseñas se almacenan como hash y no se devuelven en las respuestas.
+El administrador debe crear primero los trabajadores mediante `POST /trabajadores`.
+Después cada trabajador puede iniciar sesión con su `codigo_trabajador`.
 
-Ejemplo de datos para `POST /clases`:
+## Consideraciones
 
-```json
-{
-	"tipo_clase": "yoga",
-	"codigo_clase": 101,
-	"nombre_clase": "Yoga inicial",
-	"cupo_maximo": 15,
-	"duracion_minutos": 60,
-	"nivel": "Inicial"
-}
-```
-
-Ejemplo de datos para `POST /socios`:
-
-```json
-{
-	"rut": "12.345.678-5",
-	"edad": 25,
-	"nombres": "Ana",
-	"apellido_paterno": "Perez",
-	"apellido_materno": "Lopez",
-	"telefono": "987654321",
-	"correo_electronico": "ana@example.com",
-	"direccion": {
-		"codigo_direccion": 1,
-		"tipo_direccion": "casa",
-		"calle": "Avenida Uno",
-		"numero_direccion": "123",
-		"referencia": "Centro"
-	}
-}
-```
-
-Para `POST /trabajadores`, usa `codigo_trabajador` para identificar al trabajador:
-
-```json
-{
-	"tipo_trabajador": "instructor",
-	"codigo_trabajador": 1,
-	"rut": "11.111.111-1",
-	"pass": "clave123",
-	"edad": 30,
-	"nombres": "Carlos",
-	"apellido_paterno": "Gomez",
-	"apellido_materno": "Soto",
-	"telefono": "912345678",
-	"correo_electronico": "carlos@example.com",
-	"especialidad": "Yoga",
-	"direccion": {
-		"codigo_direccion": 2,
-		"tipo_direccion": "casa",
-		"calle": "Avenida Dos",
-		"numero_direccion": "456",
-		"referencia": "Norte"
-	}
-}
-```
-
-Los datos se almacenan en memoria y se pierden al reiniciar el servidor.
+- Las contraseñas de trabajadores se guardan con PBKDF2 y una sal aleatoria.
+- Las contraseñas ya no se envían como parámetros `?pass=`.
+- Solo `/`, `/docs` y `/auth/login` son públicos.
+- Los datos y las sesiones continúan almacenados en memoria y se pierden al reiniciar.
+- Para producción se debe usar una base de datos, HTTPS y un gestor seguro de secretos.

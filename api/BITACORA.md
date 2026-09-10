@@ -126,7 +126,8 @@ Para socios, las rutas usan `rut` en lugar de `codigo_socio`.
 
 - Los datos se almacenan en memoria y se pierden al reiniciar la API.
 - La API todavia deberia usar una base de datos como SQLite o PostgreSQL.
-- La contrasena se guarda como hash SHA-256; para produccion conviene usar bcrypt o Argon2.
+- En `api2`, las contraseñas de trabajadores se protegen con PBKDF2 y sal aleatoria;
+  para producción se recomienda migrar a Argon2id.
 - Todavia se pueden agregar pruebas automaticas con pytest.
 - La API y el dominio podrian separarse en carpetas para facilitar el mantenimiento.
 
@@ -149,3 +150,58 @@ Comprobe que se corrigieron varios problemas de la auditoria anterior:
 - El cobro de mensualidad ahora intenta renovar la membresia.
 
 Las correcciones principales estan en [api.py](C:/Users/jarri/Desktop/PowerFit/api/api.py), [spinning.py](C:/Users/jarri/Desktop/PowerFit/api/spinning.py), [crossfit.py](C:/Users/jarri/Desktop/PowerFit/api/crossfit.py) y [detalle_venta.py](C:/Users/jarri/Desktop/PowerFit/api/detalle_venta.py).
+
+## API 2 - Control de acceso
+
+**Fecha:** 10 de septiembre de 2026  
+**Hora:** 14:31:53  
+**Zona horaria:** America/Santiago (UTC-03:00)
+
+### Objetivo del cambio
+
+Impedir que personas sin autenticación puedan registrar socios, crear trabajadores,
+crear clases o ejecutar otras operaciones internas de PowerFit.
+
+### Cambios realizados
+
+Se creó una copia independiente del proyecto llamada `api2`. En esta versión:
+
+- El dueño o administrador inicial se configura mediante `POWERFIT_ADMIN_USUARIO` y
+  `POWERFIT_ADMIN_PASSWORD`.
+- `POST /auth/login` entrega un token temporal y `POST /auth/logout` lo invalida.
+- Las operaciones privadas requieren `Authorization: Bearer <token>`.
+- Solo el administrador puede registrar y listar trabajadores, crear clases y asignar
+  instructores.
+- La recepcionista puede registrar socios, gestionar inscripciones y cobros, consultar
+  inventario y registrar ventas.
+- El instructor puede consultar clases y operar solamente las clases que tiene asignadas.
+- Las contraseñas dejaron de viajar en parámetros de URL.
+- Las contraseñas de trabajadores se protegen con PBKDF2, sal aleatoria y comparación
+  segura.
+- Se normaliza el RUT en todas las rutas de búsqueda de socios.
+
+### Comprobaciones realizadas
+
+- La aplicación FastAPI se importó correctamente y expuso 24 rutas.
+- Se verificaron 18 operaciones protegidas mediante autenticación Bearer.
+- Las únicas operaciones de negocio públicas son el estado de la API y el inicio de sesión.
+- Una solicitud anónima para crear socios, trabajadores o clases devuelve HTTP `401`.
+- El administrador puede iniciar sesión y registrar una recepcionista.
+- La recepcionista registrada puede iniciar sesión y registrar un socio.
+- Una recepcionista que intenta crear trabajadores o clases recibe HTTP `403`.
+- La consulta anónima del listado de socios devuelve HTTP `401`.
+- La búsqueda de un socio funciona aunque el RUT se escriba con puntos y guion.
+- Se comprobó la sintaxis de los 21 archivos Python.
+
+### Archivos actualizados
+
+- `api2/api.py`
+- `api2/README.md`
+- `api2/BITACORA.md`
+
+### Limitaciones que permanecen
+
+- Los usuarios, datos y tokens continúan almacenados en memoria.
+- Las sesiones expiran después de ocho horas y desaparecen al reiniciar el servidor.
+- Para producción todavía se requiere base de datos, HTTPS, gestión externa de secretos
+  y un registro persistente de auditoría.
