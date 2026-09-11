@@ -1,21 +1,24 @@
 """API REST para gestionar socios y clases de PowerFit."""
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, timedelta
 from decimal import Decimal
+import base64
 import hashlib
 import hmac
-import os
 import re
 import secrets
 from typing import Dict, List, Literal
 
-from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security.utils import get_authorization_scheme_param
 from pydantic import BaseModel, Field
 
 from clase_dirigida import ClaseDirigida
 from crossfit import Crossfit
 from direccion import Direccion
+from admin import Admin
 from membresia_mensual import MembresiaMensual
 from instructor import Instructor
 from inventario import Inventario
@@ -41,12 +44,8 @@ trabajadores: Dict[int, Trabajador] = {}
 productos: Dict[int, Suplemento] = {}
 inventarios: Dict[int, Inventario] = {}
 ventas: Dict[int, Venta] = {}
-sesiones: Dict[str, dict] = {}
-
-seguridad_bearer = HTTPBearer(auto_error=False)
-ADMIN_USUARIO = os.getenv("POWERFIT_ADMIN_USUARIO", "").strip()
-ADMIN_PASSWORD = os.getenv("POWERFIT_ADMIN_PASSWORD", "")
-DURACION_SESION = timedelta(hours=8)
+administrador = Admin()
+seguridad_basica = HTTPBasic(auto_error=False)
 
 
 class DireccionEntrada(BaseModel):
@@ -149,14 +148,6 @@ class VentaEntrada(BaseModel):
     detalles: list[DetalleVentaEntrada] = Field(
         min_length=1, description="Productos incluidos en la venta."
     )
-
-
-class LoginEntrada(BaseModel):
-    """Credenciales para iniciar una sesión protegida."""
-
-    tipo_usuario: Literal["administrador", "trabajador"]
-    usuario: str = Field(min_length=1, description="Usuario administrador o código del trabajador.")
-    password: str = Field(min_length=6, description="Contraseña de acceso.")
 
 
 def normalizar_rut(rut: str) -> str:
@@ -265,35 +256,65 @@ def exigir_rol(trabajador: Trabajador, rol: type) -> None:
         raise HTTPException(status_code=403, detail="El trabajador no tiene este permiso.")
 
 
-def crear_sesion(rol: str, codigo_trabajador: int | None = None) -> tuple[str, datetime]:
-    """Crea un token opaco temporal y guarda únicamente sus datos de autorización."""
-    token = secrets.token_urlsafe(32)
-    expira = datetime.now(timezone.utc) + DURACION_SESION
-    sesiones[token] = {
-        "rol": rol,
-        "codigo_trabajador": codigo_trabajador,
-        "expira": expira,
-    }
-    return token, expira
-
-
-def obtener_sesion_actual(
-    credenciales: HTTPAuthorizationCredentials | None = Depends(seguridad_bearer),
+def obtener_usuario_actual(
+    credenciales: HTTPBasicCredentials | None = Depends(seguridad_basica),
 ) -> dict:
-    """Valida el token Bearer recibido en la cabecera Authorization."""
+    """Autentica las credenciales Basic recibidas en cada solicitud."""
     if credenciales is None:
-        raise HTTPException(status_code=401, detail="Se requiere autenticación.")
-    sesion = sesiones.get(credenciales.credentials)
-    if sesion is None or sesion["expira"] <= datetime.now(timezone.utc):
-        sesiones.pop(credenciales.credentials, None)
-        raise HTTPException(status_code=401, detail="La sesión no existe o expiró.")
-    return sesion
+        raise HTTPException(
+            status_code=401,
+            detail="Se requieren credenciales.",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+    if credenciales.username == administrador.ID and administrador.autenticar(credenciales.password):
+        return {"rol": "administrador", "codigo_trabajador": None}
+
+    try:
+        codigo_trabajador = int(credenciales.username)
+    except ValueError as error:
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas.") from error
+
+    trabajador = trabajadores.get(codigo_trabajador)
+    if trabajador is None or not verificar_password(credenciales.password, trabajador.passHash):
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas.")
+    rol = "instructor" if isinstance(trabajador, Instructor) else "recepcionista"
+    return {"rol": rol, "codigo_trabajador": trabajador.idTrabajador}
+
+
+@app.middleware("http")
+async def proteger_api(request: Request, call_next):
+    """Exige Basic Auth incluso para el estado y la documentación de la API."""
+    esquema, valor = get_authorization_scheme_param(request.headers.get("Authorization"))
+    if esquema.lower() != "basic":
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "Se requieren credenciales HTTP Basic."},
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+    try:
+        usuario_password = base64.b64decode(valor, validate=True).decode("utf-8")
+        usuario, password = usuario_password.split(":", 1)
+        obtener_usuario_actual(HTTPBasicCredentials(username=usuario, password=password))
+    except (ValueError, UnicodeDecodeError, HTTPException) as error:
+        if isinstance(error, HTTPException):
+            detalle = error.detail
+        else:
+            detalle = "Credenciales incorrectas."
+        return JSONResponse(
+            status_code=401,
+            content={"detail": detalle},
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+    return await call_next(request)
 
 
 def exigir_roles(*roles_permitidos: str):
     """Construye una dependencia que limita una ruta a determinados roles."""
 
-    def validar(sesion: dict = Depends(obtener_sesion_actual)) -> dict:
+    def validar(sesion: dict = Depends(obtener_usuario_actual)) -> dict:
         if sesion["rol"] not in roles_permitidos:
             raise HTTPException(status_code=403, detail="No tiene permiso para esta operación.")
         return sesion
@@ -313,53 +334,10 @@ def estado_api() -> dict:
     return {"mensaje": "PowerFit API funcionando"}
 
 
-@app.post("/auth/login", tags=["Autenticación"])
-def iniciar_sesion(datos: LoginEntrada) -> dict:
-    """Autentica al administrador o a un trabajador y entrega un token temporal."""
-    if datos.tipo_usuario == "administrador":
-        if not ADMIN_USUARIO or not ADMIN_PASSWORD:
-            raise HTTPException(
-                status_code=503,
-                detail="El administrador inicial no está configurado en el servidor.",
-            )
-        credenciales_validas = hmac.compare_digest(
-            datos.usuario, ADMIN_USUARIO
-        ) and hmac.compare_digest(datos.password, ADMIN_PASSWORD)
-        if not credenciales_validas:
-            raise HTTPException(status_code=401, detail="Credenciales incorrectas.")
-        token, expira = crear_sesion("administrador")
-    else:
-        try:
-            codigo_trabajador = int(datos.usuario)
-        except ValueError as error:
-            raise HTTPException(status_code=401, detail="Credenciales incorrectas.") from error
-        trabajador = trabajadores.get(codigo_trabajador)
-        if trabajador is None or not verificar_password(datos.password, trabajador.passHash):
-            raise HTTPException(status_code=401, detail="Credenciales incorrectas.")
-        rol = "instructor" if isinstance(trabajador, Instructor) else "recepcionista"
-        token, expira = crear_sesion(rol, trabajador.idTrabajador)
-
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "expira": expira,
-    }
-
-
-@app.post("/auth/logout", tags=["Autenticación"])
-def cerrar_sesion(
-    credenciales: HTTPAuthorizationCredentials = Depends(seguridad_bearer),
-    _: dict = Depends(obtener_sesion_actual),
-) -> dict:
-    """Invalida el token utilizado en la solicitud."""
-    sesiones.pop(credenciales.credentials, None)
-    return {"mensaje": "Sesión cerrada."}
-
-
 @app.post("/socios", status_code=status.HTTP_201_CREATED, tags=["Socios"])
 def crear_socio(
     datos: SocioEntrada,
-    _: dict = Depends(exigir_roles("administrador", "recepcionista")),
+    _: dict = Depends(exigir_roles("recepcionista")),
 ) -> dict:
     """Registra un socio y le crea una membresía inicial de 30 días."""
     rut = normalizar_rut(datos.rut)
@@ -629,7 +607,7 @@ def listar_inventario(
 def registrar_venta(
     datos: VentaEntrada,
     codigo_trabajador: int,
-    sesion: dict = Depends(exigir_roles("administrador", "recepcionista")),
+    sesion: dict = Depends(exigir_roles("recepcionista")),
 ) -> dict:
     """Registra una venta, valida stock y descuenta las unidades vendidas."""
     if datos.codigo_venta in ventas:
@@ -779,9 +757,9 @@ def realizar_clase(
 def inscribir_socio(
     codigo_clase: int,
     rut: str,
-    _: dict = Depends(exigir_roles("administrador", "recepcionista")),
+    _: dict = Depends(exigir_roles("instructor")),
 ) -> dict:
-    """Inscribe un socio activo con membresía vigente en una clase."""
+    """Permite a un instructor inscribir un socio activo en una clase."""
     clase = clases.get(codigo_clase)
     socio = socios.get(normalizar_rut(rut))
     if clase is None:

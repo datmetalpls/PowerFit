@@ -166,15 +166,16 @@ crear clases o ejecutar otras operaciones internas de PowerFit.
 
 Se creó una copia independiente del proyecto llamada `api2`. En esta versión:
 
-- El dueño o administrador inicial se configura mediante `POWERFIT_ADMIN_USUARIO` y
-  `POWERFIT_ADMIN_PASSWORD`.
-- `POST /auth/login` entrega un token temporal y `POST /auth/logout` lo invalida.
-- Las operaciones privadas requieren `Authorization: Bearer <token>`.
+- El administrador inicial usa el identificador fijo `17310447-2` y una contraseña PBKDF2
+  con hash fijo almacenado en la clase `Admin`.
+- No existen endpoints de login/logout ni tokens.
+- Las operaciones privadas requieren credenciales HTTP Basic en cada solicitud.
 - Solo el administrador puede registrar y listar trabajadores, crear clases y asignar
   instructores.
-- La recepcionista puede registrar socios, gestionar inscripciones y cobros, consultar
-  inventario y registrar ventas.
-- El instructor puede consultar clases y operar solamente las clases que tiene asignadas.
+- La recepcionista puede registrar socios, gestionar cobros, consultar inventario y registrar
+  ventas.
+- El instructor puede inscribir socios, marcar asistencia y operar solamente las clases que
+  tiene asignadas.
 - Las contraseñas dejaron de viajar en parámetros de URL.
 - Las contraseñas de trabajadores se protegen con PBKDF2, sal aleatoria y comparación
   segura.
@@ -183,11 +184,11 @@ Se creó una copia independiente del proyecto llamada `api2`. En esta versión:
 ### Comprobaciones realizadas
 
 - La aplicación FastAPI se importó correctamente y expuso 24 rutas.
-- Se verificaron 18 operaciones protegidas mediante autenticación Bearer.
-- Las únicas operaciones de negocio públicas son el estado de la API y el inicio de sesión.
+- Se verificaron operaciones protegidas mediante autenticación Basic por solicitud.
+- La única operación de negocio pública es el estado de la API.
 - Una solicitud anónima para crear socios, trabajadores o clases devuelve HTTP `401`.
-- El administrador puede iniciar sesión y registrar una recepcionista.
-- La recepcionista registrada puede iniciar sesión y registrar un socio.
+- El administrador puede autenticarse y registrar una recepcionista.
+- La recepcionista registrada puede autenticarse y registrar un socio.
 - Una recepcionista que intenta crear trabajadores o clases recibe HTTP `403`.
 - La consulta anónima del listado de socios devuelve HTTP `401`.
 - La búsqueda de un socio funciona aunque el RUT se escriba con puntos y guion.
@@ -201,7 +202,55 @@ Se creó una copia independiente del proyecto llamada `api2`. En esta versión:
 
 ### Limitaciones que permanecen
 
-- Los usuarios, datos y tokens continúan almacenados en memoria.
-- Las sesiones expiran después de ocho horas y desaparecen al reiniciar el servidor.
+- Los usuarios y datos continúan almacenados en memoria y desaparecen al reiniciar el servidor.
 - Para producción todavía se requiere base de datos, HTTPS, gestión externa de secretos
   y un registro persistente de auditoría.
+
+## Actualizaciones - 11 de septiembre de 2026
+
+### Autenticación y administrador
+
+- Se creó `admin.py` con la clase `Admin`.
+- Se estableció el identificador fijo del administrador: `17310447-2`.
+- La contraseña administrativa `pelusita00` no se guarda en texto plano; se valida contra
+  un hash PBKDF2 con sal fija.
+- Se eliminaron los endpoints de login y logout.
+- Se eliminaron los tokens Bearer y el almacenamiento de sesiones temporales.
+- Se implementó autenticación HTTP Basic por solicitud para administrador y trabajadores.
+- El trabajador se autentica usando su `codigo_trabajador` y la contraseña asignada por
+  el administrador al registrarlo.
+
+### Bloqueo global de la API
+
+- Se agregó un middleware que exige credenciales HTTP Basic antes de procesar cualquier
+  solicitud.
+- También quedan protegidos el estado de la API, Swagger, ReDoc y el esquema OpenAPI.
+- Las solicitudes sin credenciales reciben HTTP `401`.
+- Las credenciales válidas pero sin el rol requerido reciben HTTP `403`.
+
+### Permisos por rol
+
+- El administrador puede crear y listar trabajadores, crear clases y asignar instructores.
+- La recepcionista puede registrar socios, activar socios, cobrar mensualidades, consultar
+  inventario y registrar ventas.
+- El instructor puede inscribir socios, marcar asistencia y realizar sus clases asignadas.
+- El administrador ya no puede registrar socios directamente.
+- El instructor ya no puede registrar socios ni realizar ventas.
+- La inscripción de socios a clases quedó restringida al rol instructor.
+- El registro de ventas quedó restringido al rol recepcionista.
+
+### Corrección y comprobaciones
+
+- Se corrigió el import de `get_authorization_scheme_param` para compatibilidad con la
+  versión instalada de FastAPI.
+- Se comprobó la autenticación correcta e incorrecta del administrador.
+- Se comprobó que no existen rutas `/auth/login` ni `/auth/logout`.
+- Se comprobó la compilación de todos los módulos con `python -m compileall`.
+- Se revisó el archivo `api.py` con los diagnósticos del editor y no quedaron errores.
+- Se inició Uvicorn correctamente en `http://127.0.0.1:8001`.
+
+### Documentación actualizada
+
+- Se actualizó `README.md` con el uso de HTTP Basic, las credenciales iniciales y la
+  matriz de permisos por rol.
+- Se actualizó esta bitácora para reflejar la implementación actual en `api/`.
