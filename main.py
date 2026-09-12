@@ -4,69 +4,61 @@ import sys
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
+    QMainWindow,
     QLabel,
     QLineEdit,
     QVBoxLayout,
     QPushButton,
     QMessageBox,
+    QHBoxLayout,
 )
 from src.models import Persona, Direccion, cargar_comunas_ine
+from PySide6.QtCore import Qt
 import uuid
 
-# Clase de la ventana heredando de QWidget
-class VentanaRegistro(QWidget):
-    def __init__(self):
-        super().__init__()
-        # Configuración básica de la ventana
-        self.setWindowTitle("PowerFit - Registro de Persona")
-        self.resize(350, 250)
+class VentanaPrincipalPowerFit(QMainWindow):
+        def __init__(self):
+             super().__init__()
 
-        # Layout principal (organiza elementos de forma vertical)
-        layout = QVBoxLayout()
+             #1. Configuración del Marco (título y tamaño)
+             self.setWindowTitle("Powerfit - Sistema de gestión de Gimnasio")
+             self.resize(800,600)
 
-        # Componentes de la interfaz
-        self.lbl_titulo = QLabel("Ingrese los datos de la persona:")
-        self.input_rut = QLineEdit()
-        self.input_rut.setPlaceholderText("Ej: 12345678-9")
+             #2 Crear el contenedor central y su organizador (layout)
+             contenedor_central = QWidget()
+             self.setCentralWidget(contenedor_central)
 
-        self.input_nombre = QLineEdit()
-        self.input_nombre.setPlaceholderText("Nombre Completo")
+             layout_principal=QVBoxLayout()
+             contenedor_central.setLayout(layout_principal)
 
-        self.btn_guardar = QPushButton("Guardar Registro")
-        # Conectar el botón a un método (evento click)
-        self.btn_guardar.clicked.connect(self.guardar_datos)
+             #3. Agregar un título de bienvenido
+             lbl_bienvenida=QLabel("Bienvenido a Powerfit")
+             lbl_bienvenida.setStyleSheet("font-size: 24px; font-weight: bold; color: $2C3E50")
+             lbl_bienvenida.setAlignment(Qt.AlignCenter)
+             layout_principal.addWidget(lbl_bienvenida)
 
-        # Agregar los componentes al layout
-        layout.addWidget(self.lbl_titulo)
-        layout.addWidget(self.input_rut)
-        layout.addWidget(self.input_nombre)
-        layout.addWidget(self.btn_guardar)
+             #4. Crear un organizador Horizontal para los botones del menú. 
+             layout_botones = QHBoxLayout()
 
-        # Asignar el layout a la ventana
-        self.setLayout(layout)
+             #Crear los tres botones principales
+             self.btn_socios = QPushButton("🏋️ Gestión de Socios") 
+             self.btn_clases = QPushButton("🧘 Clases Dirigidas")
+             self.btn_ventas = QPushButton("🛒 Ventas e Inventario")
 
-    # Método de la clase
-    def guardar_datos(self):
-        rut = self.input_rut.text()
-        nombre = self.input_nombre.text()
-        
-        # Imprime en la consola/terminal
-        print(f"Datos Ingresados -> RUT: {rut}, Nombre: {nombre}")
-        
-        # Muestra una ventana emergente gráfica
-        QMessageBox.information(
-            self,
-            "Registro Exitoso",
-            f"Persona registrada correctamente:\nRUT: {rut}\nNombre: {nombre}"
-        )
+             #se agregan al layout
+             layout_botones.addWidget(self.btn_socios)
+             layout_botones.addWidget(self.btn_clases)
+             layout_botones.addWidget(self.btn_ventas)
+
+             # Finalmente meter toda la fila de botones DENTRO del layout principal vertical 
+             layout_principal.addLayout(layout_botones)
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)  # 1. Crear la app
-    ventana = VentanaRegistro()   # 2. Crear tu ventana POO
+    ventana = VentanaPrincipalPowerFit()   # 2. Crear tu ventana POO
     ventana.show()                # 3. Mostrarla en pantalla
     sys.exit(app.exec())          # 4. Iniciar bucle de eventos
-
 
 
 
