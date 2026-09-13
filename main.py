@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QMessageBox,
     QHBoxLayout,
+    QStackedWidget,
 )
 from src.models import Persona, Direccion, cargar_comunas_ine
 from PySide6.QtCore import Qt
@@ -33,7 +34,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
              #3. Agregar un título de bienvenido
              lbl_bienvenida=QLabel("Bienvenido a Powerfit")
-             lbl_bienvenida.setStyleSheet("font-size: 24px; font-weight: bold; color: $2C3E50")
+             lbl_bienvenida.setStyleSheet("font-size: 24px; font-weight: bold; color: #2C3E50")
              lbl_bienvenida.setAlignment(Qt.AlignCenter)
              layout_principal.addWidget(lbl_bienvenida)
 
@@ -52,6 +53,51 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
              # Finalmente meter toda la fila de botones DENTRO del layout principal vertical 
              layout_principal.addLayout(layout_botones)
+
+             #5 crear la barra de estado inferior
+             self.statusBar().showMessage("Sistema PowerFit iniciado correctamente")             
+             estilo_botones= """
+                QPushButton {
+                background-color: #34495E;
+                color: White;
+                font-size: 14px;
+                padding: 10px;
+                border-radius: 5px;
+                }
+
+                QPushButton:hover{
+                background-color: #298089}
+             """
+
+             self.btn_socios.setStyleSheet(estilo_botones)
+             self.btn_clases.setStyleSheet(estilo_botones)
+             self.btn_ventas.setStyleSheet(estilo_botones)
+
+             #crear el contenedor apilado en pantallas (QStackedWidget)
+             self.pantallas = QStackedWidget()
+
+             #crear 3 vistas temporales simples (widgets)
+             self.vista_socios = QLabel("🏋️ Pantalla de Gestión de Socios")
+             self.vista_socios.setAlignment(Qt.AlignCenter)
+
+             self.vista_clases = QLabel("🧘 Pantalla de Clases Dirigidas")
+             self.vista_clases.setAlignment(Qt.AlignCenter)
+
+             self.vista_ventas = QLabel ("🛒 Pantalla de Ventas e Inventario")
+             self.vista_ventas.setAlignment(Qt.AlignCenter)
+
+             #Agregar las 3 vistas a la pila de pantallas (índices.0 1 y 2)
+             self.pantallas.addWidget(self.vista_socios) #index 0
+             self.pantallas.addWidget(self.vista_clases) #index 1
+             self.pantallas.addWidget(self.vista_clases) #index 2
+
+             #agregar el QStacked Widget al layout principal
+             layout_principal.addWidget(self.pantallas)
+
+             #7 conecta los clics de los botones con el cabio de pantalla
+             self.btn_socios.clicked.connect(lambda: self.pantallas.setCurrentIndex(0))
+             self.btn_clases.clicked.connect(lambda: self.pantallas.setCurrentIndex(1))
+             self.btn_ventas.clicked.connect(lambda: self.pantallas.setCurrentIndex(2))
 
 
 if __name__ == "__main__":
