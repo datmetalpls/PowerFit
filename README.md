@@ -20,6 +20,21 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 
 ---
 
+## 🎨 Roadmap de Interfaz Gráfica GUI (PySide6)
+
+![Roadmap GUI PowerFit](docs/roadmap_gui_powerfit.jpg)
+
+| Hito | Módulo Visual | Estado | Descripción clave |
+| :--- | :--- | :---: | :--- |
+| **Hito 1** | **Marco Principal & Navegación** | 🟢 Completada | `QMainWindow` (800x600), menú horizontal `QHBoxLayout`, botones con CSS y `QStackedWidget`. |
+| **Hito 2** | **Módulo de Gestión de Socios** | 🟡 En Progreso | Formulario `QFormLayout`, combobox de comunas, validación de RUT y tabla `QTableWidget`. |
+| **Hito 3** | **Módulo de Clases Dirigidas** | ⚪ Pendiente | Tarjetas de disciplinas, indicador de cupos (`QProgressBar`) e inscripción de socios. |
+| **Hito 4** | **Punto de Venta & Inventario** | ⚪ Pendiente | Catálogo de suplementos, carrito de compras y alertas de stock crítico. |
+| **Hito 5** | **Integración POO & API REST** | ⚪ Pendiente | Vinculación final con la lógica de negocio y backend. |
+
+
+---
+
 ## 📌 Estado de la Clase `Persona` (`persona.py`)
 
 La clase `Persona` actúa como la plantilla base (clase abstracta padre) para representar a todos los individuos del sistema (Socios, Trabajadores, Instructores, Recepcionistas, etc.).
