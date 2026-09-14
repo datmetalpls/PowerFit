@@ -48,7 +48,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
                  f"¡Socio registrado con éxito!\n\n"
                  f"RUT: {rut}\n"
                  f"Nombre: {nombres} {apellidos}\n"
+                 f"Teléfono:  {telefono} | correo: {correo}\n"
                  f"Direccion: {calle}  {numero}  {tipo_direccion} ({comuna})"
+                 f"Referencia: {referencia}"
             )
 
             #actualziar el mensaje de la barra de estado 
@@ -144,7 +146,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
              #---Campos de direccion
              self.combo_tipo_direccion = QComboBox()
-             self.combo_tipo_direccion.addItems (["Casa", "Departamento", "Block"])
+             self.combo_tipo_direccion.addItems (["casa", "dpto", "block"])
 
              self.input_calle = QLineEdit()
              self.input_calle.setPlaceholderText("Nombre de la calle: ")
@@ -198,7 +200,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
              #Agregar las 3 vistas a la pila de pantallas (índices.0 1 y 2)
              self.pantallas.addWidget(self.vista_socios) #index 0
              self.pantallas.addWidget(self.vista_clases) #index 1
-             self.pantallas.addWidget(self.vista_clases) #index 2
+             self.pantallas.addWidget(self.vista_ventas) #index 2
 
              #agregar el QStacked Widget al layout principal
              layout_principal.addWidget(self.pantallas)
@@ -220,7 +222,7 @@ if __name__ == "__main__":
 
 
 
-
+"""
 Usuario=Persona("2111111-K", "César", "Guerrero", "Acevedo", "+56333434342", "correo@notiene.cl")
 comu_ine=cargar_comunas_ine()
 
@@ -231,3 +233,4 @@ id_autogenerado=str(uuid.uuid4())
 domicilio=Direccion(id_autogenerado, "Casa", "Ramon Venegas", 3116, "El parque")
 
 print("ID: ", domicilio.getIdDireccion(), "\n", "Calle:", domicilio.getCalle(), "\n", "Número: ", domicilio.getNumero(), "\n", "Calle Referencia: ", domicilio.getReferencia(), "\n", "Comuna: ", comu_ine.get(13101).nombre)
+"""
