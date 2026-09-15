@@ -1,5 +1,6 @@
 """PowerFit - Punto de entrada principal."""
-
+import json
+import urllib.request
 import sys
 from PySide6.QtWidgets import (
     QApplication,
@@ -55,7 +56,70 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
             #actualziar el mensaje de la barra de estado 
             self.statusBar().showMessage(f"Último socio registrado: {nombres} {apellidos} ({rut})")
+        def guardar_clase(self):
+             #extrar datos de lai interfaz
 
+             disciplina = self.combo_tipo_clase.currentText()
+             nombre = self.input_nombre_clase.text().strip()
+             cupo = self.input_cupo_maximo.text().strip()
+             duracion=self.input_duracion.text().strip()
+             detalle = self.input_especifico_clase.text().strip()
+
+             #validar campos vacíos :V
+             if not nombre or not cupo or not duracion: 
+                  QMessageBox.warning(self, "Campos Incompletos", "Por favor completa Nombre, Cupo y Duración.")
+                  return
+
+             #ventana emergente de confirmación 
+             QMessageBox.information(
+                  self,
+                  "Clase Creada", 
+                  f"¡Clase Dirigida creada con éxito! \n \n"
+                  f"Disciplina: {disciplina}\n"
+                  f"Nombre: {nombre}\n"
+                  f"Cupo Máximo: {cupo} socios \n"
+                  f"Duración: {duracion} min \n"
+                  f"Detalle: {detalle}"
+             )
+
+             #4. Actualizar la barra de estado 
+             self.statusBar().showMessage(f"Últma clase registrada: {nombre} ({disciplina})")
+        def guardar_venta(self):
+             producto = self.combo_producto.currentText()
+             cantidad = self.input_cantidad.text().strip()
+             valor_dolar = self.input_valor_dolar.text().strip()
+
+             if not cantidad or not valor_dolar: 
+                  QMessageBox.warning(self, "Campos incomletos", "Por favor ingresa Cantidad y Valor del Dólar.")
+                  return
+             
+             QMessageBox.information (
+                 self, 
+                 "Venta procesada",
+                 f"?Venta registrda con éxito! \n \n"
+                 f"Producto: {producto} \n"
+                 f"Cantidad: {cantidad}\n"
+                 f"Tasa Dólar: ${valor_dolar} CLP "
+
+            )
+             self.statusBar().showMessage(f"última venta relizada: {cantidad} x {producto}")
+
+
+        def cargar_dolar_api(self):
+             self.statusBar().showMessage("Consultando API de mindicador.cl....")
+             url= "https://mindicador.cl/api/dolar"
+             try: 
+                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urllib.request.urlopen(req, timeout=5) as responde:
+                    datos = json.loads(responde.read().decode())
+                    valor = datos["serie"][0]["valor"]
+                    self.input_valor_dolar.setText(str(valor))
+                    self.statusBar().showMessage(f"Dólar oficial en vivo: ${valor} CLP")
+                    QMessageBox.information(self, "API Dólar Oficial", f"¡Dólar del día cargado exitosamente! \nValor oficial: ${valor} CLP")
+             except Exception as err:
+               self.statusBar().showMessage("Error al consultar API del dólar")
+               QMessageBox.warning(self,"Error de conexión", f"No se pudo consultar la API. Ingresa el valor manualmente. \nError: {err}")
+             
         def __init__(self):
              super().__init__()
 
@@ -191,11 +255,94 @@ class VentanaPrincipalPowerFit(QMainWindow):
              self.btn_guardar_socio.clicked.connect(self.guardar_socio)
          
 
-             self.vista_clases = QLabel("🧘 Pantalla de Clases Dirigidas")
-             self.vista_clases.setAlignment(Qt.AlignCenter)
+             
 
-             self.vista_ventas = QLabel ("🛒 Pantalla de Ventas e Inventario")
-             self.vista_ventas.setAlignment(Qt.AlignCenter)
+             #----Pantalla 2: Clases dirigidas--
+             self.vista_clases=QWidget()
+             layout_clases = QVBoxLayout()
+             self.vista_clases.setLayout(layout_clases)
+
+             #subtitulo de la sección
+             lbl_titulo_clases = QLabel ("🧘 Registro y Gestión de Clases Dirigidas")
+             lbl_titulo_clases.setStyleSheet ("font-size: 18px; font-weight: bold; color: #2C3E50;")
+             layout_clases.addWidget(lbl_titulo_clases)
+
+             #Formulario de la clase
+             form_clases = QFormLayout()
+
+             self.combo_tipo_clase = QComboBox()
+             self.combo_tipo_clase.addItems (["Yoga", "Spinning", "Crossfit"])
+
+             self.input_nombre_clase = QLineEdit()
+             self.input_nombre_clase.setPlaceholderText("Ej: Yoga Matinal")
+
+             self.input_cupo_maximo = QLineEdit()
+             self.input_cupo_maximo.setPlaceholderText("Ej: 15")
+
+             self.input_duracion = QLineEdit()
+             self.input_duracion.setPlaceholderText("Duración en minutos (Ej: 60)")
+
+             self.input_especifico_clase = QLineEdit()
+             self.input_especifico_clase.setPlaceholderText("Nivel (Inicial/Intermedio/Avanzado)")
+
+             form_clases.addRow("Disciplina:", self.combo_tipo_clase)
+             form_clases.addRow("Nombre Clase:", self.input_nombre_clase)
+             form_clases.addRow("Cupo Máximo: ", self.input_cupo_maximo)
+             form_clases.addRow("Duración (min): ", self.input_duracion)
+             form_clases.addRow("Detalle Específico", self.input_especifico_clase)
+
+             layout_clases.addLayout(form_clases)
+
+             #Botón para crear claseeeee
+             self.btn_guardar_clase = QPushButton("💾 Crear Clase Dirigida")
+             self.btn_guardar_clase.setStyleSheet("background-color: #8E44AD; color: white; padding: 8px; font-weight: bold;")
+
+             layout_clases.addWidget(self.btn_guardar_clase)
+             self.btn_guardar_clase.clicked.connect(self.guardar_clase)
+
+
+             #-----Pantalla 3 
+             self.vista_ventas = QWidget()
+             layout_ventas = QVBoxLayout()
+             self.vista_ventas.setLayout(layout_ventas)
+
+             self.btn_obtener_dolar = QPushButton("🌐 Cargar Dólar Oficial en Vivo")
+             self.btn_obtener_dolar.setStyleSheet("backgroud-color: #16A095; color: white; padding: 5px")
+             self.btn_obtener_dolar.clicked.connect(self.cargar_dolar_api)
+
+            
+             #Subtitulo de la sección
+             lbl_titulo_ventas = QLabel ("🛒 Punto de Venta y Gestión de Inventario")
+             lbl_titulo_ventas.setStyleSheet("font-size: 18px; font-weight: bold; color: #2C3E50;")
+             layout_ventas.addWidget(lbl_titulo_ventas)
+
+             #formulario de ventas
+             form_ventas = QFormLayout()
+             
+             self.combo_producto = QComboBox()
+             self.combo_producto.addItems(["Proteína Whey 1kg", "Creatina Monohidratada 300g", "BCAA 500g", "Pre-Workout 300g"])
+
+    
+             self.input_cantidad = QLineEdit()
+             self.input_cantidad.setPlaceholderText("Ej: 2")
+
+             self.input_valor_dolar = QLineEdit()
+             self.input_valor_dolar.setPlaceholderText("Ej: 950 (Valor CLP del dólar)")   
+
+             form_ventas.addRow("Producto Suplemento: ", self.combo_producto)
+             form_ventas.addRow("Cantidad a vender: ", self.input_cantidad)
+             form_ventas.addRow("Valor dólar (CLP): ", self.input_valor_dolar)
+             form_ventas.addRow("Consultar API: ", self.btn_obtener_dolar)
+
+            
+             layout_ventas.addLayout(form_ventas)
+
+             #Botón de procesar venta
+             self.btn_guardar_venta = QPushButton("💳 Procesar Venta")
+             self.btn_guardar_venta.setStyleSheet("background-color: #2980B9; color:white; padding: 8px; font-weight: bold;")
+
+             layout_ventas.addWidget(self.btn_guardar_venta)
+             self.btn_guardar_venta.clicked.connect(self.guardar_venta)
 
              #Agregar las 3 vistas a la pila de pantallas (índices.0 1 y 2)
              self.pantallas.addWidget(self.vista_socios) #index 0
