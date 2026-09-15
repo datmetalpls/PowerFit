@@ -15,6 +15,8 @@ from PySide6.QtWidgets import (
     QStackedWidget,
     QFormLayout,
     QComboBox,
+    QTableWidget,
+    QTableWidgetItem,
 )
 from src.models import Persona, Direccion, cargar_comunas_ine
 from PySide6.QtCore import Qt
@@ -56,6 +58,15 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
             #actualziar el mensaje de la barra de estado 
             self.statusBar().showMessage(f"Último socio registrado: {nombres} {apellidos} ({rut})")
+            #agregar uan nueva fila a la tabla visual de socios
+            fila=self.tabla_socios.rowCount()
+            self.tabla_socios.insertRow(fila)
+            self.tabla_socios.setItem(fila, 0,QTableWidgetItem(rut))
+            self.tabla_socios.setItem(fila, 1,QTableWidgetItem(f"{nombres} {apellidos}"))
+            self.tabla_socios.setItem(fila, 2,QTableWidgetItem(telefono))
+            self.tabla_socios.setItem(fila, 3,QTableWidgetItem(comuna))
+            self.tabla_socios.setItem(fila, 4,QTableWidgetItem(tipo_direccion))
+
         def guardar_clase(self):
              #extrar datos de lai interfaz
 
@@ -84,6 +95,15 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
              #4. Actualizar la barra de estado 
              self.statusBar().showMessage(f"Últma clase registrada: {nombre} ({disciplina})")
+
+             fila=self.tabla_clases.rowCount()
+             self.tabla_clases.insertRow(fila)
+             self.tabla_clases.setItem(fila, 0, QTableWidgetItem(disciplina))
+             self.tabla_clases.setItem(fila, 1, QTableWidgetItem(nombre))
+             self.tabla_clases.setItem(fila, 2, QTableWidgetItem(cupo))
+             self.tabla_clases.setItem(fila, 3, QTableWidgetItem(duracion))
+             self.tabla_clases.setItem(fila, 4, QTableWidgetItem(detalle))
+
         def guardar_venta(self):
              producto = self.combo_producto.currentText()
              cantidad = self.input_cantidad.text().strip()
@@ -103,6 +123,22 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
             )
              self.statusBar().showMessage(f"última venta relizada: {cantidad} x {producto}")
+
+             #Calcular estimado en CLP
+             try: 
+                  total_clp = int (cantidad) * float(valor_dolar)
+                  texto_total = f"${total_clp:,.0f} CLP"
+             except ValueError:
+                texto_total = "N/A"
+
+            #Agregar fila a la tabla de ventas
+             fila = self.tabla_ventas.rowCount()
+             self.tabla_ventas.insertRow(fila)
+             self.tabla_ventas.setItem(fila, 0, QTableWidgetItem(producto))
+             self.tabla_ventas.setItem(fila, 1, QTableWidgetItem(cantidad))
+             self.tabla_ventas.setItem(fila, 2, QTableWidgetItem(f"${valor_dolar} CLP"))
+             self.tabla_ventas.setItem(fila, 3, QTableWidgetItem(texto_total))
+        
 
 
         def cargar_dolar_api(self):
@@ -253,9 +289,14 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
              layout_socios.addWidget(self.btn_guardar_socio)
              self.btn_guardar_socio.clicked.connect(self.guardar_socio)
-         
 
-             
+            #--- Tabla de socios registrados -- 
+             self.tabla_socios = QTableWidget()
+             self.tabla_socios.setColumnCount(5)
+             self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombre completo", "Teléfono", "Comuna", "Tipo Vivienda"])
+
+            #agregar la tabla al layout de socios
+             layout_socios.addWidget(self.tabla_socios)
 
              #----Pantalla 2: Clases dirigidas--
              self.vista_clases=QWidget()
@@ -299,6 +340,13 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
              layout_clases.addWidget(self.btn_guardar_clase)
              self.btn_guardar_clase.clicked.connect(self.guardar_clase)
+
+            #Tabla de clases dirigidas
+             self.tabla_clases = QTableWidget()
+             self.tabla_clases.setColumnCount(5)
+             self.tabla_clases.setHorizontalHeaderLabels(["Disciplina", "Nombre Clase", "Cupo Máximo", "Duración (min)", "Detalle Específico"])
+
+             layout_clases.addWidget(self.tabla_clases)
 
 
              #-----Pantalla 3 
@@ -344,6 +392,13 @@ class VentanaPrincipalPowerFit(QMainWindow):
              layout_ventas.addWidget(self.btn_guardar_venta)
              self.btn_guardar_venta.clicked.connect(self.guardar_venta)
 
+             #Tabla historialis de ventis
+             self.tabla_ventas = QTableWidget()
+             self.tabla_ventas.setColumnCount(4)
+             self.tabla_ventas.setHorizontalHeaderLabels(["Producto", "Cantidad", "Valor Dólar", "Total Estimado (CLP)"])
+
+             layout_ventas.addWidget(self.tabla_ventas)
+             
              #Agregar las 3 vistas a la pila de pantallas (índices.0 1 y 2)
              self.pantallas.addWidget(self.vista_socios) #index 0
              self.pantallas.addWidget(self.vista_clases) #index 1
@@ -365,19 +420,3 @@ if __name__ == "__main__":
     ventana = VentanaPrincipalPowerFit()   # 2. Crear tu ventana POO
     ventana.show()                # 3. Mostrarla en pantalla
     sys.exit(app.exec())          # 4. Iniciar bucle de eventos
-
-
-
-
-"""
-Usuario=Persona("2111111-K", "César", "Guerrero", "Acevedo", "+56333434342", "correo@notiene.cl")
-comu_ine=cargar_comunas_ine()
-
-print(Usuario.getRut())
-print(Usuario.getNombres())
-
-id_autogenerado=str(uuid.uuid4())
-domicilio=Direccion(id_autogenerado, "Casa", "Ramon Venegas", 3116, "El parque")
-
-print("ID: ", domicilio.getIdDireccion(), "\n", "Calle:", domicilio.getCalle(), "\n", "Número: ", domicilio.getNumero(), "\n", "Calle Referencia: ", domicilio.getReferencia(), "\n", "Comuna: ", comu_ine.get(13101).nombre)
-"""
