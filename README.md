@@ -31,6 +31,8 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | **Hito 3** | **Módulo de Clases Dirigidas** | 🟢 Completada | Formulario para Yoga, Spinning y Crossfit, parámetros de cupos y confirmaciones `QMessageBox`. |
 | **Hito 4** | **Punto de Venta & API Dólar en Vivo** | 🟢 Completada | Catálogo de suplementos y consulta en tiempo real a API `mindicador.cl` autocompletando CLP. |
 | **Hito 5** | **Tablas `QTableWidget` & Conexión POO** | 🟡 En Progreso | Integración de tablas visuales de listado e instanciación de objetos POO. |
+| **Hito 6** | **Perfilamiento, Roles & Autenticación** | ⚪ Pendiente | Pantalla de Login y control de acceso por perfil (Admin, Recepcionista, Instructor). |
+
 
 
 ---
