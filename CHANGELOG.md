@@ -8,10 +8,11 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
-### 💡 Próximos pasos (Hito 5 GUI & Conexión Backend)
-- Integración de tablas `QTableWidget` para listar Socios, Clases y Ventas en pantalla.
-- Instanciación de objetos del modelo POO (`Socio`, `Direccion`, `Yoga`, `Venta`).
-- Pantalla de Login y autenticación por perfiles.
+### 💡 Próximos pasos (Hito 6 GUI - Perfilamiento & Autenticación)
+- Pantalla de inicio de sesión (Login) por usuario y contraseña.
+- Control de acceso por rol (Administrador, Recepcionista, Instructor).
+- Integración de credenciales con la API del backend (`api/admin.py`).
+- Refactorización modular de `main.py` hacia la carpeta `gui/`.
 
 ## [0.3.0] - 2026-09-15
 
@@ -25,13 +26,19 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
   - Formulario estructurado con `QFormLayout`.
   - Campos completos de datos personales y atributos UML de `Direccion` (`casa`, `dpto`, `block`, calle, número, referencia).
   - Desplegable `QComboBox` cargando dinámicamente las 346 comunas de Chile (`cargar_comunas_ine()`).
+  - **Tabla `QTableWidget` de Socios**: Inserción en tiempo real de filas con RUT, Nombre, Teléfono, Comuna y Tipo de vivienda.
   - Validación de campos y alertas interactivas `QMessageBox`.
 - **Módulo de Clases Dirigidas**:
   - Formulario para registro de disciplinas (`Yoga`, `Spinning`, `Crossfit`).
   - Campos de cupo máximo, duración y detalles específicos por disciplina.
+  - **Tabla `QTableWidget` de Clases**: Listado interactivo en vivo con Disciplina, Nombre, Cupos, Duración y Detalle Específico.
 - **Módulo de Ventas & Integración API Dólar**:
   - Punto de venta de suplementos deportivos.
-  - Integración en tiempo real con la **API de `mindicador.cl`** para consulta en vivo de la tasa del dólar observado autocompletando el valor en CLP.
+  - Integración en tiempo real con la **API de `mindicador.cl`** mediante botón **`🌐 Cargar Dólar Oficial en Vivo`** autocompletando la tasa oficial del día en CLP.
+  - **Tabla `QTableWidget` de Historial de Ventas**: Listado dinámico con Producto, Cantidad, Valor Dólar y Total Estimado en CLP.
+- **Documentación & Recursos Visuales**:
+  - Infografía visual del Roadmap GUI v2.0 (`docs/roadmap_gui_powerfit.jpg`).
+
 
 
 ## [0.2.0] - 2026-09-10
