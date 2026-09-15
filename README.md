@@ -27,13 +27,14 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | Hito | Módulo Visual | Estado | Descripción clave |
 | :--- | :--- | :---: | :--- |
 | **Hito 1** | **Marco Principal & Navegación** | 🟢 Completada | `QMainWindow` (800x600), menú horizontal `QHBoxLayout`, botones con CSS y `QStackedWidget`. |
-| **Hito 2** | **Módulo de Gestión de Socios** | 🟡 En Progreso | Formulario `QFormLayout`, combobox de comunas, validación de RUT y tabla `QTableWidget`. |
-| **Hito 3** | **Módulo de Clases Dirigidas** | ⚪ Pendiente | Tarjetas de disciplinas, indicador de cupos (`QProgressBar`) e inscripción de socios. |
-| **Hito 4** | **Punto de Venta & Inventario** | ⚪ Pendiente | Catálogo de suplementos, carrito de compras y alertas de stock crítico. |
-| **Hito 5** | **Integración POO & API REST** | ⚪ Pendiente | Vinculación final con la lógica de negocio y backend. |
+| **Hito 2** | **Módulo de Gestión de Socios** | 🟢 Completada | Formulario `QFormLayout`, combobox con 346 comunas de Chile, campos UML de dirección y alertas. |
+| **Hito 3** | **Módulo de Clases Dirigidas** | 🟢 Completada | Formulario para Yoga, Spinning y Crossfit, parámetros de cupos y confirmaciones `QMessageBox`. |
+| **Hito 4** | **Punto de Venta & API Dólar en Vivo** | 🟢 Completada | Catálogo de suplementos y consulta en tiempo real a API `mindicador.cl` autocompletando CLP. |
+| **Hito 5** | **Tablas `QTableWidget` & Conexión POO** | 🟡 En Progreso | Integración de tablas visuales de listado e instanciación de objetos POO. |
 
 
 ---
+
 
 ## 📌 Estado de la Clase `Persona` (`persona.py`)
 

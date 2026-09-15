@@ -8,11 +8,31 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
-### 💡 Próximos pasos (Fase 2 - Jerarquía de Usuarios & Roles)
-- Implementación de la clase `Socio` heredando de `Persona`.
-- Implementación de la clase `Trabajador` heredando de `Persona`.
-- Definición de roles (`Instructor`, `Recepcionista`, `Administrador`).
-- Implementación de los métodos pendientes de validación en `Persona`: `validarTelefono()` y `validarCorreoElectronico()`.
+### 💡 Próximos pasos (Hito 5 GUI & Conexión Backend)
+- Integración de tablas `QTableWidget` para listar Socios, Clases y Ventas en pantalla.
+- Instanciación de objetos del modelo POO (`Socio`, `Direccion`, `Yoga`, `Venta`).
+- Pantalla de Login y autenticación por perfiles.
+
+## [0.3.0] - 2026-09-15
+
+### 🎨 Interfaz Gráfica (PySide6)
+- **Marco Principal (`QMainWindow`)**:
+  - Ventana de 800x600 px con título personalizado y estilos CSS.
+  - Menú navegable con botones animados (`QPushButton:hover`).
+  - Navegación multitarea fluida en tiempo real usando `QStackedWidget`.
+  - Barra de estado inferior (`statusBar()`) para mensajes del sistema.
+- **Módulo de Gestión de Socios**:
+  - Formulario estructurado con `QFormLayout`.
+  - Campos completos de datos personales y atributos UML de `Direccion` (`casa`, `dpto`, `block`, calle, número, referencia).
+  - Desplegable `QComboBox` cargando dinámicamente las 346 comunas de Chile (`cargar_comunas_ine()`).
+  - Validación de campos y alertas interactivas `QMessageBox`.
+- **Módulo de Clases Dirigidas**:
+  - Formulario para registro de disciplinas (`Yoga`, `Spinning`, `Crossfit`).
+  - Campos de cupo máximo, duración y detalles específicos por disciplina.
+- **Módulo de Ventas & Integración API Dólar**:
+  - Punto de venta de suplementos deportivos.
+  - Integración en tiempo real con la **API de `mindicador.cl`** para consulta en vivo de la tasa del dólar observado autocompletando el valor en CLP.
+
 
 ## [0.2.0] - 2026-09-10
 
