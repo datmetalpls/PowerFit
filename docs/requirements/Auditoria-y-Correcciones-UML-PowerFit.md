@@ -111,6 +111,12 @@ Para alinear el diagrama UML al 100% con los requerimientos entregados por la as
 
 ---
 
+## 🖼️ Visualización Infográfica del Perfilamiento y Matriz RBAC
+
+![Perfilamiento de Usuarios y Matriz RBAC PowerFit](../powerfit_rbac_profiles.jpg)
+
+---
+
 ## 5. ✅ Lista de Chequeo (Checklist) para la Entrega Final
 
 - [ ] ¿Se eliminaron las clases `Direccion`, `Comuna` y `ContactoEmergencia`?

@@ -8,6 +8,11 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
+### 🎨 Documentación Visual & Perfilamiento (Hito 6)
+- **Infografía de Perfilamiento RBAC (`docs/powerfit_rbac_profiles.jpg`)**:
+  - Matriz visual de permisos y roles (Administrador, Recepcionista, Instructor).
+  - Integración del diagrama visual en `README.md` y `docs/requirements/Auditoria-y-Correcciones-UML-PowerFit.md`.
+
 ### 💡 Próximos pasos (Hito 6 GUI - Perfilamiento & Autenticación)
 - Pantalla de inicio de sesión (Login) por usuario y contraseña.
 - Control de acceso por rol (Administrador, Recepcionista, Instructor).

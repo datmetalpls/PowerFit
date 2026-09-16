@@ -36,6 +36,12 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 
 ---
 
+## 🔐 Matriz de Perfilamiento y Control de Acceso por Roles (RBAC)
+
+![Matriz de Roles y Permisos RBAC PowerFit](docs/powerfit_rbac_profiles.jpg)
+
+---
+
 
 
 ## 📌 Estado de la Clase `Persona` (`persona.py`)
@@ -267,8 +273,7 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
 
 - `src/models/`: Clases del dominio POO (`persona.py`, `comuna.py`, `direccion.py`).
 - `tests/`: Suite de pruebas unitarias automatizadas (`test_persona.py`).
-- `docs/`: Documentación del proyecto, diagramas UML y estudio comparativo de GUIs (`Comparativa-GUI-Tkinter-PySide-PyQt.md`).
+- `docs/`: Documentación del proyecto, diagramas UML, estudio comparativo de GUIs (`Comparativa-GUI-Tkinter-PySide-PyQt.md`) e infografías (`docs/powerfit_rbac_profiles.jpg`).
 - `scratch/`: Scripts temporales y ejemplos demostrativos.
 - `main.py`: Punto de entrada principal para ejecutar la aplicación.
 - `CHANGELOG.md`: Registro formal de cambios y control de versiones del proyecto.
-
