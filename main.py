@@ -1,7 +1,16 @@
 """PowerFit - Punto de entrada principal."""
+import os
+import sys
+import PySide6
+
+# Asegurar la ruta de plugins de Qt (soluciona error cocoa en macOS/entornos virtuales)
+pyside_dir = os.path.dirname(PySide6.__file__)
+plugins_dir = os.path.join(pyside_dir, "Qt", "plugins")
+if os.path.exists(plugins_dir):
+    os.environ["QT_PLUGIN_PATH"] = plugins_dir
+
 import json
 import urllib.request
-import sys
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
