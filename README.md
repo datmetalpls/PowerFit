@@ -121,11 +121,17 @@ python3 main.py
 ```
 
 ### Ejecución de la Interfaz Gráfica (PySide6)
+
+> [!IMPORTANT]
+> **Versión de Python Requerida:** Python **3.10**, **3.11** o **a lo más Python 3.12** (Estable).
+> **NO utilizar versiones experimentales o de bleeding-edge como Python 3.14**, ya que carecen de soporte binario C++ de la plataforma Qt/PySide6 en macOS y ocasionan fallos de inicialización `cocoa`.
+
 La aplicación cuenta con una interfaz gráfica basada en **PySide6**. Para abrir la ventana de registro:
 ```bash
+source .venv/bin/activate
 python main.py
 ```
-*(Asegúrate de tener instalado `PySide6` ejecutando `pip install PySide6`)*.
+*(Asegúrate de tener instalado `PySide6` ejecutando `pip install PySide6` dentro del `.venv` de Python 3.12)*.
 
 ---
 

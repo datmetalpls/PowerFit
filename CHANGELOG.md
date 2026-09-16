@@ -8,6 +8,12 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
+### ⚙️ Entorno & Compatibilidad de Python
+- **Estandarización de Versión de Python (Python <= 3.12)**:
+  - Se estableció **Python 3.12** como la versión máxima recomendada y estable para el proyecto.
+  - Se restringió el uso de versiones experimentales o *bleeding-edge* (como **Python 3.14**) debido a la falta de soporte de binarios C++ para el plugin de plataforma `cocoa` de Qt / PySide6 en macOS.
+  - Reconfiguración del entorno virtual `.venv` alineado con Python 3.12.
+
 ### 🎨 Documentación Visual & Perfilamiento (Hito 6)
 - **Infografía de Perfilamiento RBAC (`docs/powerfit_rbac_profiles.jpg`)**:
   - Matriz visual de permisos y roles (Administrador, Recepcionista, Instructor).
