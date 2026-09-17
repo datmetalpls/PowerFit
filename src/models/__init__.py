@@ -6,6 +6,7 @@ from .trabajador import Trabajador
 from .instructor import Instructor
 from .recepcionista import Recepcionista
 from .socio import Socio
+from .administrador import Administrador
 
 __all__ = [
     "Persona",
@@ -15,4 +16,5 @@ __all__ = [
     "Instructor",
     "Recepcionista",
     "Socio",
+    "Administrador",
 ]
