@@ -287,25 +287,30 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
 
 ---
 
-## ⚡ Instalación y Ejecución de la Interfaz Gráfica (GUI)
+## ⚡ Instalación y Ejecución por Sistema Operativo
 
-### 1. Requisitos previos
-- **Python 3.12** instalado en el sistema.
+### 🍎 En macOS (Apple Silicon / Intel)
+Debido a las políticas de seguridad de librerías dinámicas (`dyld`) en macOS para plugins C++ de Qt, se recomienda instalar y ejecutar directamente con Python 3.12 del sistema:
 
-### 2. Configurar entorno virtual y dependencias
 ```bash
-# Crear el entorno virtual con Python 3.12
-python3.12 -m venv .venv
+# Instalar dependencias globales del sistema
+python3 -m pip install -r requirements.txt
 
-# Activar el entorno (opcional)
-source .venv/bin/activate
+# Iniciar la interfaz gráfica GUI
+python3 main.py
+```
 
-# Instalar dependencias
+### 🪟 En Windows
+En Windows los entornos virtuales `.venv` funcionan sin restricciones de seguridad de plugins Qt:
+
+```cmd
+:: Crear e instalar en entorno virtual
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
+
+:: Iniciar la interfaz gráfica GUI
+python main.py
 ```
 
-### 3. Iniciar la Interfaz Gráfica (PySide6)
-```bash
-./.venv/bin/python main.py
-```
 

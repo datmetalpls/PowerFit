@@ -18,6 +18,8 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 - **Reinstalación de Librerías de Interfaz Gráfica (PySide6)**:
   - Reinstalación completa de `PySide6`, `PySide6-Essentials`, `PySide6-Addons` y `shiboken6`.
   - Creación del archivo de requerimientos raíz [requirements.txt](file:///Users/dmp/Desktop/Inacap%20-%20Carrera/poo/PowerFit/requirements.txt) incluyendo todas las dependencias GUI y de la API backend.
+- **Guía de Ejecución Multiplataforma (macOS vs Windows)**:
+  - Documentación diferenciada en `README.md` especificando ejecución nativa `python3 main.py` en macOS (para evitar bloqueos de `dyld` de Qt) y uso de entorno virtual `.venv` en Windows.
 
 ### 🎨 Documentación Visual & Perfilamiento (Hito 6)
 - **Infografía de Perfilamiento RBAC (`docs/powerfit_rbac_profiles.jpg`)**:
