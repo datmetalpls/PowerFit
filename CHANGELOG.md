@@ -8,11 +8,16 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
-### ⚙️ Entorno & Compatibilidad de Python
-- **Estandarización de Versión de Python (Python <= 3.12)**:
-  - Se estableció **Python 3.12** como la versión máxima recomendada y estable para el proyecto.
-  - Se restringió el uso de versiones experimentales o *bleeding-edge* (como **Python 3.14**) debido a la falta de soporte de binarios C++ para el plugin de plataforma `cocoa` de Qt / PySide6 en macOS.
-  - Reconfiguración del entorno virtual `.venv` alineado con Python 3.12.
+### ⚙️ Entorno Virtual (`.venv`), Estructura de Carpetas & GUI
+- **Reparación de `.venv` tras Renombramiento de Carpeta**:
+  - Se corrigieron los errores de ejecutable y shebangs causados por el cambio de nombre del directorio a `poo/PowerFit`.
+  - Reconstrucción limpia del entorno virtual en `.venv` vinculado al interprete Python 3.12 (`/Users/dmp/Desktop/Inacap - Carrera/poo/PowerFit/.venv`).
+- **Eliminación de Versión Inestable de Python (Python 3.14)**:
+  - Se desinstaló `python@3.14` mediante Homebrew por inestabilidad e incompatibilidad con binarios C++ de Qt (`cocoa` QPA plugin).
+  - Se estableció **Python 3.12.14** como el estándar y predeterminado del sistema (`python3`).
+- **Reinstalación de Librerías de Interfaz Gráfica (PySide6)**:
+  - Reinstalación completa de `PySide6`, `PySide6-Essentials`, `PySide6-Addons` y `shiboken6`.
+  - Creación del archivo de requerimientos raíz [requirements.txt](file:///Users/dmp/Desktop/Inacap%20-%20Carrera/poo/PowerFit/requirements.txt) incluyendo todas las dependencias GUI y de la API backend.
 
 ### 🎨 Documentación Visual & Perfilamiento (Hito 6)
 - **Infografía de Perfilamiento RBAC (`docs/powerfit_rbac_profiles.jpg`)**:

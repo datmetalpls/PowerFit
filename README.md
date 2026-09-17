@@ -281,5 +281,31 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
 - `tests/`: Suite de pruebas unitarias automatizadas (`test_persona.py`).
 - `docs/`: Documentación del proyecto, diagramas UML, estudio comparativo de GUIs (`Comparativa-GUI-Tkinter-PySide-PyQt.md`) e infografías (`docs/powerfit_rbac_profiles.jpg`).
 - `scratch/`: Scripts temporales y ejemplos demostrativos.
-- `main.py`: Punto de entrada principal para ejecutar la aplicación.
+- `main.py`: Punto de entrada principal para ejecutar la aplicación GUI.
+- `requirements.txt`: Archivo de dependencias del proyecto (`PySide6`, `FastAPI`, `Uvicorn`, etc.).
 - `CHANGELOG.md`: Registro formal de cambios y control de versiones del proyecto.
+
+---
+
+## ⚡ Instalación y Ejecución de la Interfaz Gráfica (GUI)
+
+### 1. Requisitos previos
+- **Python 3.12** instalado en el sistema.
+
+### 2. Configurar entorno virtual y dependencias
+```bash
+# Crear el entorno virtual con Python 3.12
+python3.12 -m venv .venv
+
+# Activar el entorno (opcional)
+source .venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+```
+
+### 3. Iniciar la Interfaz Gráfica (PySide6)
+```bash
+./.venv/bin/python main.py
+```
+
