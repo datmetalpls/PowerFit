@@ -53,3 +53,7 @@ class Trabajador(Persona):
         if self._rol == "Administrador":
             return True
         return permiso in self._permisos
+
+    def getDetallePerfil(self) -> str:
+        """Implementa el método abstracto de Persona para Trabajadores."""
+        return f"Trabajador: {self._nombres} {self._apellidoPaterno} | Rol: {self._rol} | RUT: {self._rut}"

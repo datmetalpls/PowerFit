@@ -4,6 +4,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.models import Persona
 
+class PersonaPrueba(Persona):
+    def getDetallePerfil(self) -> str:
+        return f"Perfil Prueba: {self._nombres} ({self._rut})"
+
+
 def probar_validar_rut():
     casos_de_prueba = [
         # (RUT, Resultado Esperado, Descripción)
@@ -27,7 +32,7 @@ def probar_validar_rut():
     fallos = 0
 
     for rut, esperado, descripcion in casos_de_prueba:
-        persona = Persona(
+        persona = PersonaPrueba(
             rut=rut,
             nombres="Juan Carlos",
             apellidoPaterno="Pérez",
@@ -63,7 +68,7 @@ def probar_validar_telefono():
     print(" 🧪 PRUEBAS UNITARIAS: Método validarTelefono() de la clase Persona")
     print("=" * 70)
     for tel, esp, desc in casos:
-        p = Persona("12.345.678-5", "Juan", "Pérez", "Gómez", tel, "juan@email.com")
+        p = PersonaPrueba("12.345.678-5", "Juan", "Pérez", "Gómez", tel, "juan@email.com")
         res = p.validarTelefono()
         estado = "✅ PASÓ" if res == esp else "❌ FALLÓ"
         print(f"{estado} | Teléfono: {tel:<15} | Esperado: {str(esp):<5} | Obtenido: {str(res):<5} | ({desc})")
@@ -80,7 +85,7 @@ def probar_validar_correo():
     print(" 🧪 PRUEBAS UNITARIAS: Método validarCorreoElectronico() de la clase Persona")
     print("=" * 70)
     for correo, esp, desc in casos:
-        p = Persona("12.345.678-5", "Juan", "Pérez", "Gómez", "912345678", correo)
+        p = PersonaPrueba("12.345.678-5", "Juan", "Pérez", "Gómez", "912345678", correo)
         res = p.validarCorreoElectronico()
         estado = "✅ PASÓ" if res == esp else "❌ FALLÓ"
         print(f"{estado} | Correo: {correo:<25} | Esperado: {str(esp):<5} | Obtenido: {str(res):<5} | ({desc})")

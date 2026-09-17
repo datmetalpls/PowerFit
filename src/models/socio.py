@@ -52,3 +52,8 @@ class Socio(Persona):
     def setEstadoActivo(self, estado: bool) -> None:
         """Modifica el estado de actividad del socio."""
         self._estadoActivo = estado
+
+    def getDetallePerfil(self) -> str:
+        """Implementa el método abstracto de Persona para Socios."""
+        estado = "Activo" if self._estadoActivo else "Inactivo"
+        return f"Socio #{self._idSocio}: {self._nombres} {self._apellidoPaterno} | Estado: {estado} | RUT: {self._rut}"
