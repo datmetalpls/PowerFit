@@ -142,11 +142,12 @@ COMUNAS_CHILE_DATOS: List[tuple] = [
 ]
 
 
-def cargar_comunas_ine() -> Dict[int, Comuna]:
-    """Crea e instancia todas las comunas de Chile registradas en el INE."""
-    catalogo: Dict[int, Comuna] = {}
-    for id_comuna, nombre in COMUNAS_CHILE_DATOS:
-        catalogo[id_comuna] = Comuna(idComuna=id_comuna, nombre=nombre, activo=True)
+def cargar_comunas_ine() -> Dict[int, str]:
+    """Crea e instancia las 346 comunas de Chile registradas en el INE ordenadas alfabéticamente (A-Z)."""
+    catalogo: Dict[int, str] = {}
+    datos_ordenados = sorted(COMUNAS_CHILE_DATOS, key=lambda x: x[1])
+    for id_comuna, nombre in datos_ordenados:
+        catalogo[id_comuna] = nombre
     return catalogo
 
 
