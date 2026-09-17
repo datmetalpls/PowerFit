@@ -27,7 +27,7 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | Hito | Módulo Visual | Estado | Descripción clave |
 | :--- | :--- | :---: | :--- |
 | **Hito 1** | **Marco Principal & Navegación** | 🟢 Completada | `QMainWindow` (800x600), menú horizontal `QHBoxLayout`, botones con CSS y `QStackedWidget`. |
-| **Hito 2** | **Módulo de Gestión de Socios** | 🟢 Completada | Formulario `QFormLayout`, combobox con 346 comunas de Chile, campos UML de dirección y alertas. |
+| **Hito 2** | **Módulo de Gestión de Socios** | 🟢 Completada | Formulario `QFormLayout`, combobox con las 346 comunas de Chile ordenadas alfabéticamente (A-Z), campos UML de dirección y alertas. |
 | **Hito 3** | **Módulo de Clases Dirigidas** | 🟢 Completada | Formulario para Yoga, Spinning y Crossfit, parámetros de cupos y confirmaciones `QMessageBox`. |
 | **Hito 4** | **Punto de Venta & API Dólar en Vivo** | 🟢 Completada | Catálogo de suplementos y consulta en tiempo real a API `mindicador.cl` autocompletando CLP. |
 | **Hito 5** | **Tablas `QTableWidget` en Tiempo Real** | 🟢 Completada | Tablas dinámicas interactivas agregando registros en vivo en Socios, Clases y Ventas. |
@@ -278,7 +278,7 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
 
 ## 📁 Estructura del Repositorio
 
-- `src/models/`: Clases del dominio POO (`persona.py`, `comuna.py`, `direccion.py`).
+- `src/models/`: Clases del dominio POO (`persona.py`, `comuna.py`, `direccion.py`, `trabajador.py`, `instructor.py`, `recepcionista.py`, `socio.py`, `administrador.py`).
 - `tests/`: Suite de pruebas unitarias automatizadas (`test_persona.py`).
 - `docs/`: Documentación del proyecto, diagramas UML, estudio comparativo de GUIs (`Comparativa-GUI-Tkinter-PySide-PyQt.md`) e infografías (`docs/powerfit_rbac_profiles.jpg`).
 - `scratch/`: Scripts temporales y ejemplos demostrativos.
