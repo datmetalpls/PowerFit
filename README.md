@@ -13,7 +13,7 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | Fase | Módulo / Componente | Estado | Descripción clave |
 | :--- | :--- | :---: | :--- |
 | **Fase 1** | **Fundamentos & Modelos Base** | 🟢 Completada | `Persona` (RUT Módulo 11), `Direccion` (tipos de vivienda) y `test.py`. |
-| **Fase 2** | **Jerarquía de Usuarios & Roles** | 🟡 Próxima | `Socio`, `Trabajador` y roles (`Instructor`, `Recepcionista`, `Administrador`). |
+| **Fase 2** | **Jerarquía de Usuarios & Roles** | 🟢 Completada | `Socio`, `Trabajador` y roles (`Instructor`, `Recepcionista`, `Administrador`). |
 | **Fase 3** | **Motor de Clases & Membresías** | ⚪ Pendiente | `Clase` (`Yoga`, `Spinning`, `Crossfit`), cálculo de cupos, `InscripcionMensual` y `MembresiaMensual`. |
 | **Fase 4** | **Punto de Venta & API Dólar** | ⚪ Pendiente | `Suplemento`, control de stock, `IndicadorDolar` (conversión CLP) y `Venta`. |
 | **Fase 5** | **Interfaz CLI & Entrega Final** | ⚪ Pendiente | Menú interactivo por consola según perfil, QA integral y documentación final. |
@@ -31,7 +31,8 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | **Hito 3** | **Módulo de Clases Dirigidas** | 🟢 Completada | Formulario para Yoga, Spinning y Crossfit, parámetros de cupos y confirmaciones `QMessageBox`. |
 | **Hito 4** | **Punto de Venta & API Dólar en Vivo** | 🟢 Completada | Catálogo de suplementos y consulta en tiempo real a API `mindicador.cl` autocompletando CLP. |
 | **Hito 5** | **Tablas `QTableWidget` en Tiempo Real** | 🟢 Completada | Tablas dinámicas interactivas agregando registros en vivo en Socios, Clases y Ventas. |
-| **Hito 6** | **Perfilamiento, Roles & Autenticación** | 🟡 Próxima | Pantalla de Login y control de acceso por perfil (Admin, Recepcionista, Instructor). |
+| **Hito 6** | **Perfilamiento, Roles & Autenticación** | 🟢 Completada | Pantalla de Login, autenticación y control de acceso dinámico por rol (Admin, Recepción, Instructor). |
+
 
 
 ---

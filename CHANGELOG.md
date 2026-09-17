@@ -8,26 +8,23 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
-### ⚙️ Entorno Virtual (`.venv`), Estructura de Carpetas & GUI
-- **Reparación de `.venv` tras Renombramiento de Carpeta**:
-  - Se corrigieron los errores de ejecutable y shebangs causados por el cambio de nombre del directorio a `poo/PowerFit`.
-  - Reconstrucción limpia del entorno virtual en `.venv` vinculado al interprete Python 3.12 (`/Users/dmp/Desktop/Inacap - Carrera/poo/PowerFit/.venv`).
-- **Eliminación de Versión Inestable de Python (Python 3.14)**:
-  - Se desinstaló `python@3.14` mediante Homebrew por inestabilidad e incompatibilidad con binarios C++ de Qt (`cocoa` QPA plugin).
-  - Se estableció **Python 3.12.14** como el estándar y predeterminado del sistema (`python3`).
-- **Reinstalación de Librerías de Interfaz Gráfica (PySide6)**:
-  - Reinstalación completa de `PySide6`, `PySide6-Essentials`, `PySide6-Addons` y `shiboken6`.
-  - Creación del archivo de requerimientos raíz [requirements.txt](file:///Users/dmp/Desktop/Inacap%20-%20Carrera/poo/PowerFit/requirements.txt) incluyendo todas las dependencias GUI y de la API backend.
-- **Guía de Ejecución Multiplataforma (macOS vs Windows)**:
-  - Documentación diferenciada en `README.md` especificando ejecución nativa `python3 main.py` en macOS (para evitar bloqueos de `dyld` de Qt) y uso de entorno virtual `.venv` en Windows.
+## [0.4.0] - 2026-09-17
 
-### 🎨 Documentación Visual & Perfilamiento (Hito 6)
-- **Infografía de Perfilamiento RBAC (`docs/powerfit_rbac_profiles.jpg`)**:
-  - Matriz visual de permisos y roles (Administrador, Recepcionista, Instructor).
-  - Integración del diagrama visual en `README.md` y `docs/requirements/Auditoria-y-Correcciones-UML-PowerFit.md`.
+### 🔐 Autenticación & Control de Acceso por Roles (RBAC - Hito 6)
+- **Pantalla de Inicio de Sesión (`vista_login`)**:
+  - Diseño de tarjeta flotante en `main.py` con campos de Usuario y Contraseña.
+  - Autenticación dinámica de credenciales mediante el método `.autenticar()`.
+  - Tarjeta de información con cuentas de prueba demo (`admin`, `recepcion`, `instructor`).
+- **Navegación Dinámica según Rol (RBAC)**:
+  - **Administrador** (`admin / admin123`): Acceso completo a Socios, Clases Dirigidas y Punto de Venta.
+  - **Recepcionista** (`recepcion / rec123`): Acceso restrito a Socios y Punto de Venta.
+  - **Instructor** (`instructor / ins123`): Acceso restrito a Clases Dirigidas.
+  - Indicador dinámico del usuario activo y botón **"🔴 Cerrar Sesión"**.
 
-### 💡 Próximos pasos (Hito 6 GUI - Perfilamiento & Autenticación)
-- Pantalla de inicio de sesión (Login) por usuario y contraseña.
+### 🏋️ Jerarquía de Usuarios & Modelos POO (Fase 2)
+- Integración de los modelos `Trabajador`, `Instructor`, `Recepcionista` y `Socio` en `src/models/`.
+- Herencia completa de la clase base `Persona` reutilizando datos personales y encapsulamiento.
+- Exportación centralizada desde `src/models/__init__.py`.
 - Control de acceso por rol (Administrador, Recepcionista, Instructor).
 - Integración de credenciales con la API del backend (`api/admin.py`).
 - Refactorización modular de `main.py` hacia la carpeta `gui/`.
