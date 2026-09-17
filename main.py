@@ -357,7 +357,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
              self.vista_ventas.setLayout(layout_ventas)
 
              self.btn_obtener_dolar = QPushButton("🌐 Cargar Dólar Oficial en Vivo")
-             self.btn_obtener_dolar.setStyleSheet("backgroud-color: #16A095; color: white; padding: 5px")
+             self.btn_obtener_dolar.setStyleSheet("background-color: #16A095; color: white; padding: 5px")
              self.btn_obtener_dolar.clicked.connect(self.cargar_dolar_api)
 
             
