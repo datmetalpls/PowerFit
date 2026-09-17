@@ -18,6 +18,23 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | **Fase 4** | **Punto de Venta & API Dólar** | ⚪ Planeada | `Suplemento`, control de stock, API `mindicador.cl` (conversión CLP) y `Venta`. |
 | **Fase 5** | **Interfaz CLI & QA Final** | ⚪ Planeada | Menú interactivo por consola según perfil, suite pytest e integración final. |
 
+### 📌 Backlog / Próximas Tareas a Implementar (Fase 3 en adelante)
+- [ ] **Modelos de Dominio de Clases Dirigidas (`src/models/`):**
+  - Crear clase base `Clase` con atributos comunes (código, nombre, horario, cupo máximo, instructor asignado).
+  - Implementar subclases especializadas: `Yoga`, `Spinning` y `Crossfit`.
+  - Crear modelo `Membresia` con tipos de planes, vigencia y reglas de acceso.
+- [ ] **Lógica de Negocio y Cupos:**
+  - Control dinámico de inscripción de socios a clases verificando cupos disponibles.
+  - Validación de solapamiento de horarios e instructores.
+- [ ] **Punto de Venta e Inventario (Fase 4):**
+  - Modelo `Suplemento` y registro transaccional `Venta`.
+  - Servicio de conversión de divisas en vivo consumiendo la API de `mindicador.cl`.
+- [ ] **Consola CLI y QA (Fase 5):**
+  - Menú interactivo por consola adaptado según rol RBAC del usuario autenticado.
+  - Ampliación de la suite de pruebas unitarias (`pytest`).
+
+---
+
 ---
 
 ## 🎨 Roadmap de Interfaz Gráfica GUI (PySide6)
