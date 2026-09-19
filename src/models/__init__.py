@@ -1,31 +1,42 @@
-"""Modelos POO del sistema PowerFit."""
-from .persona import Persona
-from .direccion import Direccion
-from .comuna import cargar_comunas_ine
-from .trabajador import Trabajador
-from .instructor import Instructor
-from .recepcionista import Recepcionista
-from .socio import Socio
-from .administrador import Administrador
+"""Paquete de modelos del dominio POO para PowerFit Gym System (UML Oficial)."""
 
-from src.models.clase import (
+from src.models.persona import (
+    Persona,
+    Socio,
+    Trabajador,
+    Instructor,
+    Recepcionista,
     ClaseDirigida,
-    ClaseSpinning,
+    Yoga,
+    Spinning,
+    Crossfit,
     ClaseYoga,
+    ClaseSpinning,
     ClaseCrossfit,
 )
+from src.models.direccion import Direccion
+from src.models.comuna import Comuna, cargar_comunas_ine
+from src.models.inscripcion import InscripcionMensual, DetalleInscripcion
+from src.models.suplemento import Suplemento, IndicadorDolar
 
 __all__ = [
     "Persona",
-    "Direccion",
-    "cargar_comunas_ine",
+    "Socio",
     "Trabajador",
     "Instructor",
     "Recepcionista",
-    "Socio",
-    "Administrador",
     "ClaseDirigida",
-    "ClaseSpinning",
+    "Yoga",
+    "Spinning",
+    "Crossfit",
     "ClaseYoga",
+    "ClaseSpinning",
     "ClaseCrossfit",
+    "Direccion",
+    "Comuna",
+    "cargar_comunas_ine",
+    "InscripcionMensual",
+    "DetalleInscripcion",
+    "Suplemento",
+    "IndicadorDolar",
 ]
