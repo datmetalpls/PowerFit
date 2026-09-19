@@ -20,6 +20,8 @@ from PySide6.QtWidgets import (
     QComboBox,
     QTableWidget,
     QTableWidgetItem,
+    QGridLayout,
+    QGroupBox,
 )
 from PySide6.QtCore import Qt
 
@@ -31,6 +33,9 @@ from src.models import (
     Instructor,
     Recepcionista,
     Socio,
+    ClaseSpinning,
+    ClaseYoga,
+    ClaseCrossfit,
 )
 
 
@@ -83,6 +88,11 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 correoElectronico="instructor@powerfit.cl",
             ),
         }
+
+        # Almacenamiento en memoria de objetos del dominio POO
+        self.socios_registrados = []
+        self.clases_registradas = {}  # dict: {nombre_clase: obj ClaseDirigida}
+        self.clase_seleccionada_actual = None
 
         # Layout Principal
         self.widget_central = QWidget()
@@ -313,68 +323,245 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.tabla_socios.setItem(row, 3, QTableWidgetItem(comuna))
         self.tabla_socios.setItem(row, 4, QTableWidgetItem(tipo_direccion))
 
+        # Crear y guardar objeto Socio en el dominio POO
+        nuevo_socio = Socio(
+            idSocio=len(self.socios_registrados) + 1,
+            rut=rut,
+            nombres=nombres,
+            apellidoPaterno=apellidos,
+            apellidoMaterno="",
+            telefono=telefono,
+            correoElectronico="",
+        )
+        self.socios_registrados.append(nuevo_socio)
+        self.actualizar_combo_socios_inscripcion()
+
         QMessageBox.information(self, "Socio Registrado", f"¡Socio {nombres} {apellidos} registrado exitosamente!")
 
     # =========================================================================
-    # VISTA 2: CLASES DIRIGIDAS
+    # VISTA 2: CLASES DIRIGIDAS & MAPA VISUAL DE SALA
     # =========================================================================
     def construir_vista_clases(self):
         self.vista_clases = QWidget()
-        layout_clases = QVBoxLayout(self.vista_clases)
+        layout_principal_clases = QHBoxLayout(self.vista_clases)
 
-        lbl = QLabel("🏋️ Clases Dirigidas (Yoga, Spinning, Crossfit)")
-        lbl.setStyleSheet("font-size: 18px; font-weight: bold; color: #2C3E50;")
-        layout_clases.addWidget(lbl)
+        # Panel Izquierdo: Formulario de Creación y Selección de Socios
+        panel_izquierdo = QWidget()
+        layout_izquierdo = QVBoxLayout(panel_izquierdo)
+
+        lbl = QLabel("🏋️ Clases Dirigidas (Spinning, Yoga, Crossfit)")
+        lbl.setStyleSheet("font-size: 16px; font-weight: bold; color: #2C3E50;")
+        layout_izquierdo.addWidget(lbl)
 
         form_clases = QFormLayout()
         self.combo_disciplina = QComboBox()
-        self.combo_disciplina.addItems(["Yoga", "Spinning", "Crossfit"])
+        self.combo_disciplina.addItems(["Spinning", "Yoga", "Crossfit"])
 
         self.input_nombre_clase = QLineEdit()
-        self.input_cupo_maximo = QLineEdit()
-        self.input_duracion = QLineEdit()
-        self.input_detalle_especifico = QLineEdit()
+        self.input_cupo_maximo = QLineEdit("12")
+        self.input_duracion = QLineEdit("60")
+        self.input_sala = QLineEdit("Sala 1")
 
         form_clases.addRow("Disciplina: ", self.combo_disciplina)
-        form_clases.addRow("Nombre de la Clase: ", self.input_nombre_clase)
-        form_clases.addRow("Cupo Máximo: ", self.input_cupo_maximo)
+        form_clases.addRow("Nombre Clase: ", self.input_nombre_clase)
+        form_clases.addRow("Cupo Máximo (Puestos): ", self.input_cupo_maximo)
         form_clases.addRow("Duración (minutos): ", self.input_duracion)
-        form_clases.addRow("Detalle Específico: ", self.input_detalle_especifico)
+        form_clases.addRow("Sala: ", self.input_sala)
 
-        layout_clases.addLayout(form_clases)
+        layout_izquierdo.addLayout(form_clases)
 
-        self.btn_guardar_clase = QPushButton("📌 Registrar Clase")
+        self.btn_guardar_clase = QPushButton("📌 Crear Clase y Generar Sala")
         self.btn_guardar_clase.setStyleSheet("background-color: #D35400; color: white; padding: 8px; font-weight: bold;")
         self.btn_guardar_clase.clicked.connect(self.guardar_clase)
-        layout_clases.addWidget(self.btn_guardar_clase)
+        layout_izquierdo.addWidget(self.btn_guardar_clase)
+
+        # Sección para Inscribir Socio
+        box_inscripcion = QGroupBox("✍️ Inscripción de Socio a Puesto")
+        layout_inscripcion = QVBoxLayout(box_inscripcion)
+
+        form_ins = QFormLayout()
+        self.combo_socio_inscripcion = QComboBox()
+        self.actualizar_combo_socios_inscripcion()
+
+        form_ins.addRow("Socio Seleccionado: ", self.combo_socio_inscripcion)
+        layout_inscripcion.addLayout(form_ins)
+
+        lbl_instruccion = QLabel("💡 Selecciona un socio arriba y haz clic en un puesto VERDE (disponible) en el mapa de la derecha para reservarlo.")
+        lbl_instruccion.setWordWrap(True)
+        lbl_instruccion.setStyleSheet("font-size: 11px; color: #555; background-color: #EAECEE; padding: 6px; border-radius: 4px;")
+        layout_inscripcion.addWidget(lbl_instruccion)
+
+        layout_izquierdo.addWidget(box_inscripcion)
 
         self.tabla_clases = QTableWidget()
         self.tabla_clases.setColumnCount(5)
-        self.tabla_clases.setHorizontalHeaderLabels(["Disciplina", "Nombre", "Cupos", "Duración", "Detalle"])
-        layout_clases.addWidget(self.tabla_clases)
+        self.tabla_clases.setHorizontalHeaderLabels(["Disciplina", "Nombre", "Ocupación", "Sala", "Estado"])
+        self.tabla_clases.itemSelectionChanged.connect(self.al_seleccionar_clase_tabla)
+        layout_izquierdo.addWidget(self.tabla_clases)
+
+        layout_principal_clases.addWidget(panel_izquierdo, stretch=1)
+
+        # Panel Derecho: Distribución Visual de la Sala (Grid de Puestos)
+        self.group_mapa_sala = QGroupBox("🗺️ Mapa y Distribución Visual de Sala en Tiempo Real")
+        self.layout_derecho_mapa = QVBoxLayout(self.group_mapa_sala)
+
+        self.lbl_info_sala = QLabel("👈 Crea o selecciona una clase para ver el plano de la sala.")
+        self.lbl_info_sala.setStyleSheet("font-weight: bold; color: #7F8C8D;")
+        self.layout_derecho_mapa.addWidget(self.lbl_info_sala)
+
+        self.grid_puestos_container = QWidget()
+        self.layout_grid_puestos = QGridLayout(self.grid_puestos_container)
+        self.layout_derecho_mapa.addWidget(self.grid_puestos_container)
+
+        self.layout_derecho_mapa.addStretch()
+        layout_principal_clases.addWidget(self.group_mapa_sala, stretch=1)
 
         self.pantallas.addWidget(self.vista_clases)
+
+    def actualizar_combo_socios_inscripcion(self):
+        self.combo_socio_inscripcion.clear()
+        if not self.socios_registrados:
+            self.combo_socio_inscripcion.addItem("No hay socios registrados")
+        else:
+            for s in self.socios_registrados:
+                self.combo_socio_inscripcion.addItem(f"{s.getNombres()} {s.getApellidoPaterno()} ({s.getRut()})")
 
     def guardar_clase(self):
         disc = self.combo_disciplina.currentText()
         nombre = self.input_nombre_clase.text().strip()
-        cupos = self.input_cupo_maximo.text().strip()
-        duracion = self.input_duracion.text().strip()
-        detalle = self.input_detalle_especifico.text().strip()
+        cupos_str = self.input_cupo_maximo.text().strip()
+        duracion_str = self.input_duracion.text().strip()
+        sala = self.input_sala.text().strip()
 
-        if not nombre or not cupos:
+        if not nombre or not cupos_str:
             QMessageBox.warning(self, "Campos Incompletos", "Por favor ingresa Nombre y Cupos de la clase.")
             return
 
+        try:
+            cupos_max = int(cupos_str)
+            duracion = int(duracion_str)
+        except ValueError:
+            QMessageBox.warning(self, "Valor Inválido", "Cupos y Duración deben ser números enteros.")
+            return
+
+        # Instanciar según la disciplina (Patrón Polimórfico POO)
+        codigo = f"CLS-{len(self.clases_registradas)+1:03d}"
+        if disc == "Spinning":
+            obj_clase = ClaseSpinning(codigo, nombre, cupos_max, duracion, sala)
+        elif disc == "Yoga":
+            obj_clase = ClaseYoga(codigo, nombre, cupos_max, duracion, sala)
+        else:
+            obj_clase = ClaseCrossfit(codigo, nombre, cupos_max, duracion, sala)
+
+        self.clases_registradas[nombre] = obj_clase
+        self.clase_seleccionada_actual = obj_clase
+
+        # Insertar en Tabla Visual
         row = self.tabla_clases.rowCount()
         self.tabla_clases.insertRow(row)
-        self.tabla_clases.setItem(row, 0, QTableWidgetItem(disc))
+        self.tabla_clases.setItem(row, 0, QTableWidgetItem(f"{obj_clase.obtener_icono_disciplina()} {disc}"))
         self.tabla_clases.setItem(row, 1, QTableWidgetItem(nombre))
-        self.tabla_clases.setItem(row, 2, QTableWidgetItem(cupos))
-        self.tabla_clases.setItem(row, 3, QTableWidgetItem(f"{duracion} min"))
-        self.tabla_clases.setItem(row, 4, QTableWidgetItem(detalle))
+        self.tabla_clases.setItem(row, 2, QTableWidgetItem(f"0 / {cupos_max} (0%)"))
+        self.tabla_clases.setItem(row, 3, QTableWidgetItem(sala))
+        self.tabla_clases.setItem(row, 4, QTableWidgetItem("🟢 Disponible"))
 
-        QMessageBox.information(self, "Clase Registrada", f"¡Clase '{nombre}' ({disc}) registrada con éxito!")
+        # Renderizar mapa de sala
+        self.renderizar_mapa_sala(obj_clase)
+        QMessageBox.information(self, "Clase Creada", f"¡Clase '{nombre}' ({disc}) creada en {sala} con {cupos_max} puestos!")
+
+    def al_seleccionar_clase_tabla(self):
+        items = self.tabla_clases.selectedItems()
+        if items:
+            row = items[0].row()
+            nombre_clase = self.tabla_clases.item(row, 1).text()
+            if nombre_clase in self.clases_registradas:
+                self.clase_seleccionada_actual = self.clases_registradas[nombre_clase]
+                self.renderizar_mapa_sala(self.clase_seleccionada_actual)
+
+    def renderizar_mapa_sala(self, obj_clase):
+        # Limpiar el grid anterior
+        for i in reversed(range(self.layout_grid_puestos.count())):
+            w = self.layout_grid_puestos.itemAt(i).widget()
+            if w is not None:
+                w.setParent(None)
+
+        icono = obj_clase.obtener_icono_disciplina()
+        self.group_mapa_sala.setTitle(f"🗺️ Mapa Visual de {obj_clase.sala} - {obj_clase.nombre} ({icono})")
+        self.lbl_info_sala.setText(
+            f"<b>Ocupación:</b> {obj_clase.cupos_ocupados}/{obj_clase.cupo_maximo} Puestos "
+            f"({obj_clase.porcentaje_ocupacion:.1f}%) | <b>Disponibles:</b> {obj_clase.cupos_disponibles}"
+        )
+
+        # Dibujar matriz de puestos (4 columnas por fila)
+        columnas = 4
+        for pos in range(obj_clase.cupo_maximo):
+            row = pos // columnas
+            col = pos % columnas
+
+            socio = obj_clase.cupos[pos]
+            btn_puesto = QPushButton()
+
+            if socio is None:
+                # Puesto Libre
+                btn_puesto.setText(f"{icono}\nPuesto {pos+1}\n[Libre]")
+                btn_puesto.setStyleSheet(
+                    "background-color: #2ECC71; color: white; font-weight: bold; border-radius: 6px; padding: 10px;"
+                )
+                btn_puesto.setToolTip(f"Haga clic para inscribir al socio seleccionado en el Puesto {pos+1}")
+                btn_puesto.clicked.connect(lambda checked=False, p=pos: self.hacer_clic_puesto(p, inscribir=True))
+            else:
+                # Puesto Ocupado
+                btn_puesto.setText(f"🔴\nPuesto {pos+1}\n{socio.getNombres()}")
+                btn_puesto.setStyleSheet(
+                    "background-color: #E74C3C; color: white; font-weight: bold; border-radius: 6px; padding: 10px;"
+                )
+                btn_puesto.setToolTip(f"Ocupado por: {socio.getNombres()} ({socio.getRut()})\nHaga clic para liberar puesto.")
+                btn_puesto.clicked.connect(lambda checked=False, p=pos: self.hacer_clic_puesto(p, inscribir=False))
+
+            self.layout_grid_puestos.addWidget(btn_puesto, row, col)
+
+    def hacer_clic_puesto(self, posicion, inscribir=True):
+        if not self.clase_seleccionada_actual:
+            return
+
+        if inscribir:
+            idx_socio = self.combo_socio_inscripcion.currentIndex()
+            if idx_socio < 0 or not self.socios_registrados:
+                QMessageBox.warning(self, "Sin Socios", "Debes registrar al menos un socio en la pestaña de Socios antes de inscribir.")
+                return
+
+            socio = self.socios_registrados[idx_socio]
+            exito = self.clase_seleccionada_actual.inscribir_socio(socio, posicion)
+            if exito:
+                QMessageBox.information(
+                    self,
+                    "Reserva Exitosa",
+                    f"¡{socio.getNombres()} inscrito en el Puesto {posicion+1} para {self.clase_seleccionada_actual.nombre}!"
+                )
+        else:
+            # Liberar puesto
+            respuesta = QMessageBox.question(
+                self,
+                "Liberar Puesto",
+                f"¿Deseas cancelar la reserva del Puesto {posicion+1}?",
+                QMessageBox.Yes | QMessageBox.No
+            )
+            if respuesta == QMessageBox.Yes:
+                self.clase_seleccionada_actual.liberar_posicion(posicion)
+
+        # Actualizar vista y tabla
+        self.actualizar_fila_tabla_clase(self.clase_seleccionada_actual)
+        self.renderizar_mapa_sala(self.clase_seleccionada_actual)
+
+    def actualizar_fila_tabla_clase(self, obj_clase):
+        for row in range(self.tabla_clases.rowCount()):
+            if self.tabla_clases.item(row, 1).text() == obj_clase.nombre:
+                self.tabla_clases.setItem(
+                    row, 2, QTableWidgetItem(f"{obj_clase.cupos_ocupados} / {obj_clase.cupo_maximo} ({obj_clase.porcentaje_ocupacion:.0f}%)")
+                )
+                estado = "🔴 Llena" if obj_clase.cupos_disponibles == 0 else "🟢 Disponible"
+                self.tabla_clases.setItem(row, 4, QTableWidgetItem(estado))
+                break
 
     # =========================================================================
     # VISTA 3: PUNTO DE VENTA & API DÓLAR

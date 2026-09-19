@@ -8,6 +8,13 @@ from .recepcionista import Recepcionista
 from .socio import Socio
 from .administrador import Administrador
 
+from src.models.clase import (
+    ClaseDirigida,
+    ClaseSpinning,
+    ClaseYoga,
+    ClaseCrossfit,
+)
+
 __all__ = [
     "Persona",
     "Direccion",
@@ -17,4 +24,8 @@ __all__ = [
     "Recepcionista",
     "Socio",
     "Administrador",
+    "ClaseDirigida",
+    "ClaseSpinning",
+    "ClaseYoga",
+    "ClaseCrossfit",
 ]
