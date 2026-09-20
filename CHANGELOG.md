@@ -8,6 +8,39 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-19
+
+### 🏛️ Refactorización Arquitectónica POO (Alineación UML Oficial del Profesor)
+- **Alineación 100% con Diagrama UML Oficial (`Powerfit_Oficial_Profesor.drawio`)**:
+  - **Requisito 1 (Polimorfismo en Clases Dirigidas)**:
+    - Sobreescritura explícita de `calcularCuposDisponibles() -> int` en `Yoga`, `Spinning` y `Crossfit`.
+    - Atributos fijos de recursos físicos delimitadores: `colchonetas: int`, `bicicletas: int` y `estacionesTrabajo: int`.
+  - **Requisito 2 (Permisos por Rol de Trabajador)**:
+    - `Trabajador`: Atributo `- idTrabajador: String` y método `tienePermiso(accion: String): boolean`.
+    - `Instructor`: Métodos `dictarClase(clase: ClaseDirigida)` y `marcarAsistencia(socio: Socio, clase: ClaseDirigida)`.
+    - `Recepcionista`: Métodos `registrarSocio(socio: Socio)`, `cobrarMensualidad(socio: Socio, monto: float)` y `crearInscripcion(socio: Socio, mes: int, anio: int)`.
+  - **Requisito 3 (Validación de Datos Identidad)**:
+    - Algoritmo Módulo 11 en `Persona.validarRut() -> bool`.
+  - **Requisito 4 (Transacción Compuesta de Inscripciones)**:
+    - Creados nuevos modelos en `src/models/inscripcion.py`:
+      - `InscripcionMensual` (mes, anio, socio, detalles).
+      - `DetalleInscripcion` (diaSemana, clase, confirmarReserva()).
+  - **Requisito 5 (Reglas de Bloqueo)**:
+    - Bloqueo por cupo lleno: `ClaseDirigida.hayCupo() -> bool`.
+    - Bloqueo por membresía vencida: `Socio.permitirIngreso() -> bool` evaluando `fechaVencimientoMembresia: Date`.
+  - **Requisito 6 (Indicador Externo & Suplemento)**:
+    - Creados nuevos modelos en `src/models/suplemento.py`:
+      - `Suplemento`: Atributos USD y stock, con cálculo de precio `calcularPrecioCLP(valorDolar: float) -> float`.
+      - `IndicadorDolar`: Método `obtenerValorDolar() -> float` consultando API `mindicador.cl`.
+
+### 🎨 Mapa Visual de Salas en GUI PySide6 (`main.py`)
+- **Grid Interactivo de Puestos**:
+  - Representación visual en tiempo real de los puestos/bicicletas/mats según disciplina (🚲, 🧘, 🏋️).
+  - Puestos Verdes 🟢 (Disponibles) y Rojos 🔴 (Ocupados con tooltip del socio).
+  - Cálculo de porcentaje de ocupación en vivo (`X / Y Cupos - Z%`).
+
+---
+
 ## [0.4.0] - 2026-09-17
 
 ### 🔐 Autenticación & Control de Acceso por Roles (RBAC - Hito 6)

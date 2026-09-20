@@ -13,10 +13,10 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | Fase | Módulo / Componente | Estado | Descripción clave |
 | :--- | :--- | :---: | :--- |
 | **Fase 1** | **Fundamentos & Modelos Base** | 🟢 Completada | `Persona` (RUT Módulo 11), `Direccion` y `Comuna` (346 comunas INE ordenadas A-Z). |
-| **Fase 2** | **Jerarquía de Usuarios & Roles** | 🟢 Completada | `Socio`, `Trabajador`, `Instructor`, `Recepcionista` y `Administrador` (ABC/@property). |
-| **Fase 3** | **Motor de Clases & Membresías** | 🟡 En Desarrollo | `Clase` (`Yoga`, `Spinning`, `Crossfit`), cálculo de cupos y horarios. |
-| **Fase 4** | **Punto de Venta & API Dólar** | ⚪ Planeada | `Suplemento`, control de stock, API `mindicador.cl` (conversión CLP) y `Venta`. |
-| **Fase 5** | **Interfaz CLI & QA Final** | ⚪ Planeada | Menú interactivo por consola según perfil, suite pytest e integración final. |
+| **Fase 2** | **Jerarquía de Usuarios & Roles** | 🟢 Completada | `Socio` (`permitirIngreso()`), `Trabajador` (`tienePermiso()`), `Instructor` (`dictarClase()`) y `Recepcionista` (`cobrarMensualidad()`). |
+| **Fase 3** | **Motor de Clases & Membresías** | 🟢 Completada | `ClaseDirigida` (`hayCupo()`), `Yoga` (`colchonetas`), `Spinning` (`bicicletas`), `Crossfit` (`estacionesTrabajo`) y `InscripcionMensual`. |
+| **Fase 4** | **Punto de Venta & API Dólar** | 🟢 Completada | `Suplemento` (`calcularPrecioCLP()`), control de stock y `IndicadorDolar` (API `mindicador.cl`). |
+| **Fase 5** | **Interfaz CLI & QA Final** | 🟡 En Desarrollo | Menú interactivo por consola según perfil, suite pytest e integración final. |
 
 ### 📌 Backlog / Próximas Tareas a Implementar (Fase 3 en adelante)
 - [ ] **Modelos de Dominio de Clases Dirigidas (`src/models/`):**
