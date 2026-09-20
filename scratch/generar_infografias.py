@@ -177,8 +177,86 @@ def generar_infografia_rbac():
     print("✅ Generado docs/powerfit_rbac_profiles.jpg")
 
 
+# -----------------------------------------------------------------------------
+# 4. INFOGRAFÍA 4: ROADMAP SUMATIVA 2 & REQUISITOS DEL PROFESOR (docs/roadmap_sumativa2.jpg)
+# -----------------------------------------------------------------------------
+def generar_roadmap_sumativa2():
+    fig, ax = plt.subplots(figsize=(12, 8.5), dpi=200)
+    fig.patch.set_facecolor("#0D1117")
+    ax.set_facecolor("#0D1117")
+    ax.axis("off")
+
+    plt.text(0.5, 0.94, "📋 PowerFit - Roadmap Sumativa 2: Requisitos de Negocio & Faltantes", 
+             fontsize=17, fontweight="bold", color="#F0F6FC", ha="center")
+    plt.text(0.5, 0.89, "Plan de Trabajo alineado al Enunciado Oficial & Retroalimentación del Docente", 
+             fontsize=11, color="#8B949E", ha="center")
+
+    modulos = [
+        {
+            "num": "Módulo 1", "titulo": "Cobro de Cuota & Vigencia Membresía", "estado": "🟡 EN DESARROLLO",
+            "color": "#F59E0B", "actor": "🛎️ Recepcionista",
+            "desc": "Ejecutar cobrarMensualidad() extendiendo fecha +30 días. Estado visual 'Al Día' / 'Vencido'."
+        },
+        {
+            "num": "Módulo 2", "titulo": "Simulador de Torniquete (Control de Acceso)", "estado": "⚪ PENDIENTE",
+            "color": "#3B82F6", "actor": "🚪 Control Portería",
+            "desc": "Validar RUT con permitirIngreso(). Mostrar alerta verde (Pasa) o bloqueo rojo (Membresía Vencida)."
+        },
+        {
+            "num": "Módulo 3", "titulo": "Control de Stock e Inventario en POS", "estado": "🟡 EN DESARROLLO",
+            "color": "#F59E0B", "actor": "🛒 Punto de Venta",
+            "desc": "Verificar hayStock() antes de cobrar y descontar inventario físico de Suplemento tras cada venta."
+        },
+        {
+            "num": "Módulo 4", "titulo": "Registro de Asistencia a Clases", "estado": "⚪ PENDIENTE",
+            "color": "#8B5CF6", "actor": "🏋️ Instructor",
+            "desc": "Ejecutar marcarAsistencia(socio, clase) desde el mapa interactivo de puestos de la sala."
+        },
+        {
+            "num": "Módulo 5", "titulo": "Agrupación Transaccional de Reservas", "estado": "🟢 MODELADO",
+            "color": "#10B981", "actor": "✍️ Inscripción Mensual",
+            "desc": "Objeto InscripcionMensual conteniendo múltiples DetalleInscripcion (Composición 1 a 1..*)."
+        },
+        {
+            "num": "Módulo 6", "titulo": "Persistencia de Datos con SQLite", "estado": "⚪ FASE FINAL",
+            "color": "#6B7280", "actor": "💾 Base de Datos Local",
+            "desc": "Tablas relacionales en sqlite3: socios, membresias, clases, inscripciones y ventas."
+        }
+    ]
+
+    y_pos = 0.80
+    for item in modulos:
+        rect = patches.FancyBboxPatch((0.07, y_pos - 0.08), 0.86, 0.095, 
+                                     boxstyle="round,pad=0.015", 
+                                     linewidth=2, edgecolor=item["color"], facecolor="#161B22")
+        ax.add_patch(rect)
+
+        # Encabezado
+        plt.text(0.10, y_pos - 0.025, f"{item['num']}: {item['titulo']}", 
+                 fontsize=11.5, fontweight="bold", color="#FFFFFF", va="center")
+        plt.text(0.55, y_pos - 0.025, item["actor"], 
+                 fontsize=10, fontweight="bold", color="#93C5FD", va="center")
+        plt.text(0.90, y_pos - 0.025, item['estado'], 
+                 fontsize=10.5, fontweight="bold", color=item["color"], ha="right", va="center")
+        
+        # Descripción
+        plt.text(0.10, y_pos - 0.055, item['desc'], 
+                 fontsize=9.5, color="#C9D1D9", va="center")
+
+        y_pos -= 0.115
+
+    plt.text(0.5, 0.03, "PowerFit Gym - Roadmap Técnico Sumativa 2 | POO Seguro INACAP", 
+             fontsize=9, color="#8B949E", ha="center")
+
+    plt.tight_layout()
+    plt.savefig("docs/roadmap_sumativa2.jpg", bbox_inches="tight", facecolor=fig.get_facecolor())
+    plt.close()
+    print("✅ Generado docs/roadmap_sumativa2.jpg")
+
+
 if __name__ == "__main__":
     generar_roadmap_backend()
     generar_roadmap_gui()
     generar_infografia_rbac()
+    generar_roadmap_sumativa2()
     print("🚀 ¡Todas las infografías del proyecto se actualizaron exitosamente!")

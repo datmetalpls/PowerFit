@@ -54,6 +54,23 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 
 ---
 
+## 📋 Roadmap Sumativa 2: Requisitos de Negocio & Tareas Faltantes
+
+![Roadmap Sumativa 2 PowerFit](docs/roadmap_sumativa2.jpg)
+
+Plan de acción basado estrictamente en el modelo oficial del profesor y los flujos operacionales del gimnasio:
+
+| Módulo | Actor / Área | Estado | Descripción clave |
+| :--- | :--- | :---: | :--- |
+| **Módulo 1** | **🛎️ Recepcionista** | 🟡 En Desarrollo | `cobrarMensualidad()` extendiendo la vigencia por +30 días. Estado visual "Al Día" / "Vencida". |
+| **Módulo 2** | **🚪 Control Portería** | ⚪ Pendiente | Simulador de torniquete con `Socio.permitirIngreso()` (Bloqueo si membresía está vencida). |
+| **Módulo 3** | **🛒 Punto de Venta** | 🟡 En Desarrollo | Verificación con `Suplemento.hayStock()` y descuento físico de stock en bodega tras cada venta. |
+| **Módulo 4** | **🏋️ Instructor** | ⚪ Pendiente | Acción de `marcarAsistencia(socio, clase)` interactiva desde el mapa de puestos de la sala. |
+| **Módulo 5** | **✍️ Transacciones** | 🟢 Modelado | Objeto `InscripcionMensual` agrupando múltiples `DetalleInscripcion` (Composición 1 a 1..*). |
+| **Módulo 6** | **💾 Base de Datos** | ⚪ Fase Final | Persistencia relacional en local con `sqlite3` para socios, ventas, clases y membresías. |
+
+---
+
 ## 🔐 Matriz de Perfilamiento y Control de Acceso por Roles (RBAC)
 
 ![Matriz de Roles y Permisos RBAC PowerFit](docs/powerfit_rbac_profiles.jpg)
