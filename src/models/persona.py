@@ -100,6 +100,22 @@ class Persona(ABC):
 
         return dv_ingresado == dv_esperado
 
+    def validarTelefono(self) -> bool:
+        """Valida formato telefónico (entre 8 y 15 dígitos)."""
+        import re
+        if not self._telefono or not isinstance(self._telefono, str):
+            return False
+        digitos = re.sub(r"[^0-9]", "", self._telefono)
+        return 8 <= len(digitos) <= 15
+
+    def validarCorreoElectronico(self) -> bool:
+        """Valida formato de correo electrónico."""
+        import re
+        if not self._correoElectronico or not isinstance(self._correoElectronico, str):
+            return False
+        patron = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
+        return bool(re.match(patron, self._correoElectronico))
+
 
 # =============================================================================
 # 2. SUBCLASE Socio (con regla de bloqueo permitirIngreso)
