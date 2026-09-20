@@ -167,13 +167,16 @@ class Trabajador(Persona, ABC):
         passHash: str = "",
         rol: str = "Trabajador",
         apellidoPaterno: str = "",
+        apellidoMaterno: str = "",
         telefono: str = "",
         correoElectronico: str = "",
+        **kwargs,
     ):
         super().__init__(
             rut=rut,
             nombres=nombres,
             apellidoPaterno=apellidoPaterno,
+            apellidoMaterno=apellidoMaterno,
             telefono=telefono,
             correoElectronico=correoElectronico,
         )
@@ -220,8 +223,10 @@ class Instructor(Trabajador):
         usuario: str = "",
         passHash: str = "",
         apellidoPaterno: str = "",
+        apellidoMaterno: str = "",
         telefono: str = "",
         correoElectronico: str = "",
+        **kwargs,
     ):
         super().__init__(
             idTrabajador=idTrabajador,
@@ -231,6 +236,7 @@ class Instructor(Trabajador):
             passHash=passHash,
             rol="Instructor",
             apellidoPaterno=apellidoPaterno,
+            apellidoMaterno=apellidoMaterno,
             telefono=telefono,
             correoElectronico=correoElectronico,
         )
@@ -268,8 +274,10 @@ class Recepcionista(Trabajador):
         usuario: str = "",
         passHash: str = "",
         apellidoPaterno: str = "",
+        apellidoMaterno: str = "",
         telefono: str = "",
         correoElectronico: str = "",
+        **kwargs,
     ):
         super().__init__(
             idTrabajador=idTrabajador,
@@ -279,6 +287,7 @@ class Recepcionista(Trabajador):
             passHash=passHash,
             rol="Recepcionista",
             apellidoPaterno=apellidoPaterno,
+            apellidoMaterno=apellidoMaterno,
             telefono=telefono,
             correoElectronico=correoElectronico,
         )
