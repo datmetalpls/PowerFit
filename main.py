@@ -447,11 +447,11 @@ class VentanaPrincipalPowerFit(QMainWindow):
         # Instanciar según la disciplina (Patrón Polimórfico POO)
         codigo = f"CLS-{len(self.clases_registradas)+1:03d}"
         if disc == "Spinning":
-            obj_clase = ClaseSpinning(codigo, nombre, cupos_max, duracion, sala)
+            obj_clase = ClaseSpinning(codigo=codigo, nombre=nombre, cupoMaximo=cupos_max, duracionMin=duracion, sala=sala)
         elif disc == "Yoga":
-            obj_clase = ClaseYoga(codigo, nombre, cupos_max, duracion, sala)
+            obj_clase = ClaseYoga(codigo=codigo, nombre=nombre, cupoMaximo=cupos_max, duracionMin=duracion, sala=sala)
         else:
-            obj_clase = ClaseCrossfit(codigo, nombre, cupos_max, duracion, sala)
+            obj_clase = ClaseCrossfit(codigo=codigo, nombre=nombre, cupoMaximo=cupos_max, duracionMin=duracion, sala=sala)
 
         self.clases_registradas[nombre] = obj_clase
         self.clase_seleccionada_actual = obj_clase
