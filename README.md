@@ -45,7 +45,7 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | :--- | :--- | :---: | :--- |
 | **Hito 1** | **Marco Principal & Navegación** | 🟢 Completada | `QMainWindow` (800x600), menú horizontal `QHBoxLayout`, botones con CSS y `QStackedWidget`. |
 | **Hito 2** | **Módulo de Gestión de Socios** | 🟢 Completada | Formulario `QFormLayout`, combobox con las 346 comunas de Chile ordenadas alfabéticamente (A-Z), campos UML de dirección y alertas. |
-| **Hito 3** | **Módulo de Clases Dirigidas** | 🟢 Completada | Formulario para Yoga, Spinning y Crossfit, parámetros de cupos y confirmaciones `QMessageBox`. |
+| **Hito 3** | **Mapa Visual de Salas & Clases Dirigidas** | 🟢 Completada | Formulario para Yoga, Spinning y Crossfit, control de cupos personalizados y **Mapa Interactivo de Puestos en Vivo** (Bicicletas 🚲, Mats 🧘, Estaciones 🏋️). |
 | **Hito 4** | **Punto de Venta & API Dólar en Vivo** | 🟢 Completada | Catálogo de suplementos y consulta en tiempo real a API `mindicador.cl` autocompletando CLP. |
 | **Hito 5** | **Tablas `QTableWidget` en Tiempo Real** | 🟢 Completada | Tablas dinámicas interactivas agregando registros en vivo en Socios, Clases y Ventas. |
 | **Hito 6** | **Perfilamiento, Roles & Autenticación** | 🟢 Completada | Pantalla de Login, autenticación y control de acceso dinámico por rol (Admin, Recepción, Instructor). |
