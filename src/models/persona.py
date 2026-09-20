@@ -462,12 +462,13 @@ class Yoga(ClaseDirigida):
         nombre: str,
         duracionMin: int = 60,
         cupoMaximo: int = 15,
-        colchonetas: int = 15,
         instructor: Optional[Instructor] = None,
         sala: str = "Sala Yoga",
+        colchonetas: Optional[int] = None,
     ):
-        super().__init__(codigo, nombre, duracionMin, min(cupoMaximo, colchonetas), instructor, sala)
-        self._colchonetas = colchonetas
+        colch = colchonetas if colchonetas is not None else cupoMaximo
+        super().__init__(codigo, nombre, duracionMin, min(cupoMaximo, colch), instructor, sala)
+        self._colchonetas = colch
 
     @property
     def colchonetas(self) -> int:
@@ -490,12 +491,13 @@ class Spinning(ClaseDirigida):
         nombre: str,
         duracionMin: int = 45,
         cupoMaximo: int = 20,
-        bicicletas: int = 20,
         instructor: Optional[Instructor] = None,
         sala: str = "Sala Spinning",
+        bicicletas: Optional[int] = None,
     ):
-        super().__init__(codigo, nombre, duracionMin, min(cupoMaximo, bicicletas), instructor, sala)
-        self._bicicletas = bicicletas
+        bici = bicicletas if bicicletas is not None else cupoMaximo
+        super().__init__(codigo, nombre, duracionMin, min(cupoMaximo, bici), instructor, sala)
+        self._bicicletas = bici
 
     @property
     def bicicletas(self) -> int:
@@ -518,12 +520,13 @@ class Crossfit(ClaseDirigida):
         nombre: str,
         duracionMin: int = 60,
         cupoMaximo: int = 12,
-        estacionesTrabajo: int = 12,
         instructor: Optional[Instructor] = None,
         sala: str = "Box Crossfit",
+        estacionesTrabajo: Optional[int] = None,
     ):
-        super().__init__(codigo, nombre, duracionMin, min(cupoMaximo, estacionesTrabajo), instructor, sala)
-        self._estacionesTrabajo = estacionesTrabajo
+        est = estacionesTrabajo if estacionesTrabajo is not None else cupoMaximo
+        super().__init__(codigo, nombre, duracionMin, min(cupoMaximo, est), instructor, sala)
+        self._estacionesTrabajo = est
 
     @property
     def estacionesTrabajo(self) -> int:
