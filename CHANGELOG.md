@@ -8,6 +8,19 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-22
+
+### 🎨 Reestilización GUI & Sistema de Temas Adaptable (macOS & Windows)
+- **Tema Visual Dark Cyber-Gym (Modern UI)**:
+  - Rediseño completo de la interfaz en PySide6 usando hojas de estilos QSS personalizadas.
+  - Paleta de colores en tono Dark Slate (`#0F172A`), contenedores `#1E293B`, bordes `#334155` y acentos Naranja Neón (`#F97316`) con detalles Cian (`#38BDF8`).
+  - Reestilización de controles `QLineEdit`, `QComboBox`, `QTableWidget`, `QGroupBox`, `QHeaderView` y `QStatusBar`.
+- **Sistema Dual-Theme Adaptable (`☀️ Modo Claro` / `🌙 Modo Oscuro`)**:
+  - Implementación de variables dinámicas `QSS_MODO_OSCURO` y `QSS_MODO_CLARO` con soporte multiplataforma para macOS (`-apple-system`) y Windows (`Segoe UI`).
+  - Incorporación de botón conmutador en la barra superior de navegación (`btn_toggle_tema`) que conmuta en tiempo real la paleta de colores sin perder el estado de los formularios ni del usuario en sesión.
+- **Optimización de Navegación & RBAC**:
+  - Resaltado dinámico de la pestaña activa en la barra superior de acuerdo al tema cargado.
+
 ## [0.5.0] - 2026-09-19
 
 ### 🏛️ Refactorización Arquitectónica POO (Alineación UML Oficial del Profesor)

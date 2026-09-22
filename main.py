@@ -43,8 +43,73 @@ class VentanaPrincipalPowerFit(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("PowerFit - Sistema de Gestión de Gimnasio")
-        self.resize(850, 650)
-        self.setStyleSheet("background-color: #F4F6F7;")
+        self.resize(980, 700)
+        
+        # Estado de Tema Visual ("dark" | "light")
+        self.modo_oscuro_activo = True
+
+        # Hojas de estilo QSS para Modo Oscuro y Modo Claro
+        self.QSS_MODO_OSCURO = """
+            QMainWindow { background-color: #0F172A; }
+            QWidget { color: #F8FAFC; font-family: 'Segoe UI', Roboto, -apple-system, Helvetica, Arial, sans-serif; font-size: 13px; }
+            QLabel { color: #F8FAFC; }
+            QLineEdit, QComboBox {
+                background-color: #1E293B; color: #F8FAFC; border: 1px solid #334155;
+                border-radius: 6px; padding: 8px 12px; selection-background-color: #F97316;
+            }
+            QLineEdit:focus, QComboBox:focus { border: 1.5px solid #F97316; background-color: #0F172A; }
+            QPushButton {
+                background-color: #F97316; color: #FFFFFF; border: none;
+                border-radius: 6px; padding: 10px 16px; font-weight: bold;
+            }
+            QPushButton:hover { background-color: #EA580C; }
+            QPushButton:pressed { background-color: #C2410C; }
+            QGroupBox {
+                font-weight: bold; font-size: 13px; color: #38BDF8; border: 1px solid #334155;
+                border-radius: 8px; margin-top: 12px; padding-top: 15px; background-color: #1E293B;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin; subcontrol-position: top left; padding: 2px 8px;
+                background-color: #0F172A; border-radius: 4px; color: #38BDF8;
+            }
+            QTableWidget { background-color: #1E293B; color: #F8FAFC; gridline-color: #334155; border: 1px solid #334155; border-radius: 6px; }
+            QTableWidget::item { padding: 6px; }
+            QTableWidget::item:selected { background-color: #F97316; color: #FFFFFF; }
+            QHeaderView::section { background-color: #0F172A; color: #38BDF8; padding: 8px; font-weight: bold; border: 1px solid #334155; }
+            QStatusBar { background-color: #0F172A; color: #94A3B8; border-top: 1px solid #1E293B; }
+        """
+
+        self.QSS_MODO_CLARO = """
+            QMainWindow { background-color: #F8FAFC; }
+            QWidget { color: #0F172A; font-family: 'Segoe UI', Roboto, -apple-system, Helvetica, Arial, sans-serif; font-size: 13px; }
+            QLabel { color: #0F172A; }
+            QLineEdit, QComboBox {
+                background-color: #FFFFFF; color: #0F172A; border: 1px solid #CBD5E1;
+                border-radius: 6px; padding: 8px 12px; selection-background-color: #F97316;
+            }
+            QLineEdit:focus, QComboBox:focus { border: 1.5px solid #F97316; background-color: #FFFFFF; }
+            QPushButton {
+                background-color: #F97316; color: #FFFFFF; border: none;
+                border-radius: 6px; padding: 10px 16px; font-weight: bold;
+            }
+            QPushButton:hover { background-color: #EA580C; }
+            QPushButton:pressed { background-color: #C2410C; }
+            QGroupBox {
+                font-weight: bold; font-size: 13px; color: #0284C7; border: 1px solid #E2E8F0;
+                border-radius: 8px; margin-top: 12px; padding-top: 15px; background-color: #FFFFFF;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin; subcontrol-position: top left; padding: 2px 8px;
+                background-color: #F1F5F9; border-radius: 4px; color: #0284C7;
+            }
+            QTableWidget { background-color: #FFFFFF; color: #0F172A; gridline-color: #E2E8F0; border: 1px solid #CBD5E1; border-radius: 6px; }
+            QTableWidget::item { padding: 6px; }
+            QTableWidget::item:selected { background-color: #F97316; color: #FFFFFF; }
+            QHeaderView::section { background-color: #F1F5F9; color: #0284C7; padding: 8px; font-weight: bold; border: 1px solid #CBD5E1; }
+            QStatusBar { background-color: #F1F5F9; color: #475569; border-top: 1px solid #E2E8F0; }
+        """
+
+        self.setStyleSheet(self.QSS_MODO_OSCURO)
 
         # Usuario autenticado actualmente
         self.usuario_actual = None
@@ -101,24 +166,31 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         # 1. Barra superior de navegación (inicialmente oculta antes del Login)
         self.barras_navegacion = QWidget()
+        self.barras_navegacion.setObjectName("barras_navegacion")
+        self.barras_navegacion.setStyleSheet("background-color: #1E293B; border-radius: 8px; padding: 4px;")
         layout_nav = QHBoxLayout(self.barras_navegacion)
 
         self.lbl_usuario_status = QLabel("👤 No autenticado")
-        self.lbl_usuario_status.setStyleSheet("font-weight: bold; color: #2C3E50;")
+        self.lbl_usuario_status.setStyleSheet("font-weight: bold; color: #38BDF8; font-size: 13px;")
+
+        self.btn_toggle_tema = QPushButton("☀️ Modo Claro")
+        self.btn_toggle_tema.setStyleSheet("background-color: #0284C7; color: white; padding: 6px 12px; font-weight: bold; border-radius: 6px;")
+        self.btn_toggle_tema.clicked.connect(self.alternar_tema)
 
         self.btn_socios = QPushButton("👤 Gestión de Socios")
         self.btn_clases = QPushButton("🏋️ Clases Dirigidas")
         self.btn_ventas = QPushButton("🛒 Punto de Venta (Dólar)")
         self.btn_logout = QPushButton("🔴 Cerrar Sesión")
 
-        estilo_btn_nav = "background-color: #34495E; color: white; padding: 8px; font-weight: bold;"
+        estilo_btn_nav = "background-color: #334155; color: #F8FAFC; padding: 8px 14px; font-weight: bold; border-radius: 6px;"
         self.btn_socios.setStyleSheet(estilo_btn_nav)
         self.btn_clases.setStyleSheet(estilo_btn_nav)
         self.btn_ventas.setStyleSheet(estilo_btn_nav)
-        self.btn_logout.setStyleSheet("background-color: #C0392B; color: white; padding: 8px; font-weight: bold;")
+        self.btn_logout.setStyleSheet("background-color: #EF4444; color: white; padding: 8px 14px; font-weight: bold; border-radius: 6px;")
 
         layout_nav.addWidget(self.lbl_usuario_status)
         layout_nav.addStretch()
+        layout_nav.addWidget(self.btn_toggle_tema)
         layout_nav.addWidget(self.btn_socios)
         layout_nav.addWidget(self.btn_clases)
         layout_nav.addWidget(self.btn_ventas)
@@ -139,12 +211,50 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.layout_principal.addWidget(self.pantallas)
 
         # Conectar eventos de botones de navegación
-        self.btn_socios.clicked.connect(lambda: self.pantallas.setCurrentIndex(1))
-        self.btn_clases.clicked.connect(lambda: self.pantallas.setCurrentIndex(2))
-        self.btn_ventas.clicked.connect(lambda: self.pantallas.setCurrentIndex(3))
+        self.btn_socios.clicked.connect(lambda: self.ir_a_pantalla(1))
+        self.btn_clases.clicked.connect(lambda: self.ir_a_pantalla(2))
+        self.btn_ventas.clicked.connect(lambda: self.ir_a_pantalla(3))
         self.btn_logout.clicked.connect(self.cerrar_sesion)
 
         self.statusBar().showMessage("🔒 Por favor inicie sesión para acceder al sistema.")
+
+    def alternar_tema(self):
+        self.modo_oscuro_activo = not self.modo_oscuro_activo
+        if self.modo_oscuro_activo:
+            self.setStyleSheet(self.QSS_MODO_OSCURO)
+            self.btn_toggle_tema.setText("☀️ Modo Claro")
+            self.btn_toggle_tema.setStyleSheet("background-color: #0284C7; color: white; padding: 6px 12px; font-weight: bold; border-radius: 6px;")
+            self.barras_navegacion.setStyleSheet("background-color: #1E293B; border-radius: 8px; padding: 4px;")
+            self.lbl_usuario_status.setStyleSheet("font-weight: bold; color: #38BDF8; font-size: 13px;")
+            if hasattr(self, "card_login"):
+                self.card_login.setStyleSheet("background-color: #1E293B; border-radius: 12px; border: 1px solid #334155;")
+            if hasattr(self, "lbl_demo"):
+                self.lbl_demo.setStyleSheet("font-size: 11px; color: #CBD5E1; background-color: #0F172A; padding: 8px; border-radius: 6px; border: 1px solid #334155;")
+        else:
+            self.setStyleSheet(self.QSS_MODO_CLARO)
+            self.btn_toggle_tema.setText("🌙 Modo Oscuro")
+            self.btn_toggle_tema.setStyleSheet("background-color: #475569; color: white; padding: 6px 12px; font-weight: bold; border-radius: 6px;")
+            self.barras_navegacion.setStyleSheet("background-color: #E2E8F0; border-radius: 8px; padding: 4px;")
+            self.lbl_usuario_status.setStyleSheet("font-weight: bold; color: #0284C7; font-size: 13px;")
+            if hasattr(self, "card_login"):
+                self.card_login.setStyleSheet("background-color: #FFFFFF; border-radius: 12px; border: 1px solid #CBD5E1;")
+            if hasattr(self, "lbl_demo"):
+                self.lbl_demo.setStyleSheet("font-size: 11px; color: #334155; background-color: #F1F5F9; padding: 8px; border-radius: 6px; border: 1px solid #CBD5E1;")
+
+        # Re-aplicar resaltado de pestaña activa
+        self.ir_a_pantalla(self.pantallas.currentIndex())
+
+    def ir_a_pantalla(self, idx):
+        self.pantallas.setCurrentIndex(idx)
+        # Resaltar pestaña activa respetando el tema
+        bg_inactive = "#334155" if self.modo_oscuro_activo else "#E2E8F0"
+        fg_inactive = "#F8FAFC" if self.modo_oscuro_activo else "#0F172A"
+        btn_navs = [(1, self.btn_socios), (2, self.btn_clases), (3, self.btn_ventas)]
+        for i, b in btn_navs:
+            if i == idx:
+                b.setStyleSheet("background-color: #F97316; color: white; padding: 8px 14px; font-weight: bold; border-radius: 6px;")
+            else:
+                b.setStyleSheet(f"background-color: {bg_inactive}; color: {fg_inactive}; padding: 8px 14px; font-weight: bold; border-radius: 6px;")
 
     # =========================================================================
     # VISTA 0: LOGIN & AUTENTICACIÓN RBAC
@@ -155,17 +265,17 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout.setAlignment(Qt.AlignCenter)
 
         # Tarjeta de Login
-        card = QWidget()
-        card.setFixedSize(400, 360)
-        card.setStyleSheet("background-color: white; border-radius: 10px; border: 1px solid #BDC3C7;")
-        layout_card = QVBoxLayout(card)
+        self.card_login = QWidget()
+        self.card_login.setFixedSize(420, 380)
+        self.card_login.setStyleSheet("background-color: #1E293B; border-radius: 12px; border: 1px solid #334155;")
+        layout_card = QVBoxLayout(self.card_login)
 
         lbl_titulo = QLabel("🏋️ PowerFit Gym")
         lbl_subtitulo = QLabel("Autenticación & Control de Acceso (RBAC)")
         lbl_titulo.setAlignment(Qt.AlignCenter)
         lbl_subtitulo.setAlignment(Qt.AlignCenter)
-        lbl_titulo.setStyleSheet("font-size: 22px; font-weight: bold; color: #2C3E50;")
-        lbl_subtitulo.setStyleSheet("font-size: 12px; color: #7F8C8D;")
+        lbl_titulo.setStyleSheet("font-size: 24px; font-weight: bold; color: #F97316;")
+        lbl_subtitulo.setStyleSheet("font-size: 12px; color: #94A3B8;")
 
         form = QFormLayout()
         self.input_login_usuario = QLineEdit()
@@ -179,17 +289,17 @@ class VentanaPrincipalPowerFit(QMainWindow):
         form.addRow("Contraseña:", self.input_login_password)
 
         btn_ingresar = QPushButton("🔑 Iniciar Sesión")
-        btn_ingresar.setStyleSheet("background-color: #27AE60; color: white; padding: 10px; font-size: 14px; font-weight: bold;")
+        btn_ingresar.setStyleSheet("background-color: #F97316; color: white; padding: 12px; font-size: 14px; font-weight: bold; border-radius: 6px;")
         btn_ingresar.clicked.connect(self.iniciar_sesion)
 
         # Ayuda de credenciales demo
-        lbl_demo = QLabel(
+        self.lbl_demo = QLabel(
             "💡 <b>Cuentas de Prueba:</b><br>"
             "• Admin: <code>admin</code> / <code>admin123</code><br>"
             "• Recepción: <code>recepcion</code> / <code>rec123</code><br>"
             "• Instructor: <code>instructor</code> / <code>ins123</code>"
         )
-        lbl_demo.setStyleSheet("font-size: 11px; color: #555; background-color: #EAECEE; padding: 6px; border-radius: 5px;")
+        self.lbl_demo.setStyleSheet("font-size: 11px; padding: 8px; border-radius: 6px; border: 1px solid #334155;")
 
         layout_card.addWidget(lbl_titulo)
         layout_card.addWidget(lbl_subtitulo)
@@ -198,9 +308,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout_card.addSpacing(10)
         layout_card.addWidget(btn_ingresar)
         layout_card.addSpacing(10)
-        layout_card.addWidget(lbl_demo)
+        layout_card.addWidget(self.lbl_demo)
 
-        layout.addWidget(card)
+        layout.addWidget(self.card_login)
         self.pantallas.addWidget(self.vista_login)
 
     def iniciar_sesion(self):
@@ -223,17 +333,17 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 self.btn_socios.setVisible(True)
                 self.btn_clases.setVisible(True)
                 self.btn_ventas.setVisible(True)
-                self.pantallas.setCurrentIndex(1)  # Ir a Socios
+                self.ir_a_pantalla(1)  # Ir a Socios
             elif rol == "Recepcionista":
                 self.btn_socios.setVisible(True)
                 self.btn_clases.setVisible(False)
                 self.btn_ventas.setVisible(True)
-                self.pantallas.setCurrentIndex(1)  # Ir a Socios
+                self.ir_a_pantalla(1)  # Ir a Socios
             elif rol == "Instructor":
                 self.btn_socios.setVisible(False)
                 self.btn_clases.setVisible(True)
                 self.btn_ventas.setVisible(False)
-                self.pantallas.setCurrentIndex(2)  # Ir a Clases
+                self.ir_a_pantalla(2)  # Ir a Clases
 
             self.statusBar().showMessage(f"🟢 Sesión iniciada como {self.usuario_actual.getNombres()} ({rol})")
             QMessageBox.information(self, "Acceso Concedido", f"¡Bienvenido/a {self.usuario_actual.getNombres()}!\nRol: {rol}")

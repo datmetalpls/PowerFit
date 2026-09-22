@@ -49,6 +49,7 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | **Hito 4** | **Punto de Venta & API Dólar en Vivo** | 🟢 Completada | Catálogo de suplementos y consulta en tiempo real a API `mindicador.cl` autocompletando CLP. |
 | **Hito 5** | **Tablas `QTableWidget` en Tiempo Real** | 🟢 Completada | Tablas dinámicas interactivas agregando registros en vivo en Socios, Clases y Ventas. |
 | **Hito 6** | **Perfilamiento, Roles & Autenticación** | 🟢 Completada | Pantalla de Login, autenticación y control de acceso dinámico por rol (Admin, Recepción, Instructor). |
+| **Hito 7** | **Diseño Cyber-Gym & Dual-Theme Adaptable** | 🟢 Completada | Rediseño visual QSS estilo Dark Slate/Neon Orange y conmutador en vivo para **Modo Claro** y **Modo Oscuro** (macOS/Windows). |
 
 
 
