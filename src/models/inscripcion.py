@@ -1,6 +1,7 @@
 """PowerFit - Transacciones de Inscripción Mensual (Requisito #4 UML Profesor)."""
 from typing import List
-from src.models.persona import Socio, ClaseDirigida
+from src.models.socio import Socio
+from src.models.clase import ClaseDirigida
 
 
 class DetalleInscripcion:

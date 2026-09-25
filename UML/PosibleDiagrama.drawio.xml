@@ -1,20 +1,13 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0" version="21.0.0">
-  <diagram name="Modelo Definitivo PowerFit" id="gym-powerfit-definitivo-20de10">
-    <mxGraphModel dx="2600" dy="2200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="2000" math="0" shadow="0">
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Página-1" id="R6ieFo0Rzwrx46o8wzqH">
+    <mxGraphModel dx="2189" dy="1487" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="2000" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-
-        <!-- TÍTULO DEL DIAGRAMA -->
         <mxCell id="title" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=20;fontStyle=1;fontColor=#1C2833;" value="🏋️ Gimnasio PowerFit - Diagrama de Clases UML Definitivo (Arquitectura Integral 20/10)&lt;br&gt;&lt;font style=&quot;font-size:13px;font-weight:normal;color:#566573;&quot;&gt;Autores: José Arriagada y César Guerrero | POO Inacap 2026&lt;/font&gt;" vertex="1">
           <mxGeometry height="50" width="1200" x="40" y="20" as="geometry" />
         </mxCell>
-
-        <!-- ========================================== -->
-        <!-- MÓDULO 1: IDENTIDAD Y JERARQUÍA DE ROLES   -->
-        <!-- ========================================== -->
-
-        <!-- CLASE PERSONA (ABSTRACTA) -->
         <mxCell id="persona" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=28;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2980B9;" value="&lt;i&gt;&amp;lt;&amp;lt;Abstract&amp;gt;&amp;gt;&lt;br&gt;Persona&lt;/i&gt;" vertex="1">
           <mxGeometry height="180" width="280" x="400" y="100" as="geometry" />
         </mxCell>
@@ -27,8 +20,6 @@
         <mxCell id="persona_meth" parent="persona" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ validarRut(): boolean&lt;br&gt;+ validarTelefono(): boolean&lt;br&gt;+ validarCorreoElectronico(): boolean" vertex="1">
           <mxGeometry height="56" width="280" y="124" as="geometry" />
         </mxCell>
-
-        <!-- CLASE SOCIO -->
         <mxCell id="socio" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=28;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E8F8F5;strokeColor=#16A085;" value="Socio" vertex="1">
           <mxGeometry height="120" width="280" x="80" y="340" as="geometry" />
         </mxCell>
@@ -41,8 +32,6 @@
         <mxCell id="socio_meth" parent="socio" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ permitirIngreso(): boolean&lt;br&gt;+ renovarMembresia(dias: int): void" vertex="1">
           <mxGeometry height="40" width="280" y="80" as="geometry" />
         </mxCell>
-
-        <!-- CLASE TRABAJADOR (ABSTRACTA) -->
         <mxCell id="trabajador" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=28;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FEF9E7;strokeColor=#F39C12;" value="&lt;i&gt;&amp;lt;&amp;lt;Abstract&amp;gt;&amp;gt;&lt;br&gt;Trabajador&lt;/i&gt;" vertex="1">
           <mxGeometry height="130" width="300" x="650" y="340" as="geometry" />
         </mxCell>
@@ -55,8 +44,6 @@
         <mxCell id="trabajador_meth" parent="trabajador" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ autenticar(password: String): boolean&lt;br&gt;+ tienePermiso(accion: String): boolean" vertex="1">
           <mxGeometry height="50" width="300" y="80" as="geometry" />
         </mxCell>
-
-        <!-- CLASE ADMINISTRADOR -->
         <mxCell id="administrador" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FADBD8;strokeColor=#E74C3C;" value="Administrador" vertex="1">
           <mxGeometry height="145" width="320" x="400" y="530" as="geometry" />
         </mxCell>
@@ -69,8 +56,6 @@
         <mxCell id="admin_meth" parent="administrador" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ crearTrabajador(t: Trabajador): boolean&lt;br&gt;+ crearClase(clase: ClaseDirigida): boolean&lt;br&gt;+ modificarClase(clase: ClaseDirigida): boolean&lt;br&gt;+ reponerStock(sup: Suplemento, cant: int): void" vertex="1">
           <mxGeometry height="85" width="320" y="60" as="geometry" />
         </mxCell>
-
-        <!-- CLASE INSTRUCTOR -->
         <mxCell id="instructor" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E8F8F5;strokeColor=#1ABC9C;" value="Instructor" vertex="1">
           <mxGeometry height="120" width="340" x="760" y="530" as="geometry" />
         </mxCell>
@@ -83,8 +68,6 @@
         <mxCell id="inst_meth" parent="instructor" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ dictarClase(clase: ClaseDirigida): void&lt;br&gt;+ marcarAsistencia(socio: Socio, clase: ClaseDirigida): void" vertex="1">
           <mxGeometry height="60" width="340" y="60" as="geometry" />
         </mxCell>
-
-        <!-- CLASE RECEPCIONISTA -->
         <mxCell id="recepcionista" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#3498DB;" value="Recepcionista" vertex="1">
           <mxGeometry height="140" width="380" x="1140" y="530" as="geometry" />
         </mxCell>
@@ -97,14 +80,8 @@
         <mxCell id="rec_meth" parent="recepcionista" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ registrarSocio(socio: Socio): boolean&lt;br&gt;+ cobrarMensualidad(socio: Socio, monto: double): void&lt;br&gt;+ crearInscripcion(s: Socio, mes: int, anio: int): InscripcionMensual&lt;br&gt;+ registrarVenta(venta: Venta): boolean" vertex="1">
           <mxGeometry height="80" width="380" y="60" as="geometry" />
         </mxCell>
-
-        <!-- ========================================== -->
-        <!-- MÓDULO 2: TRANSACCIÓN DE INSCRIPCIONES     -->
-        <!-- ========================================== -->
-
-        <!-- CLASE INSCRIPCION MENSUAL -->
         <mxCell id="inscripcion" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#F5EEF8;strokeColor=#8E44AD;" value="InscripcionMensual" vertex="1">
-          <mxGeometry height="140" width="360" x="40" y="530" as="geometry" />
+          <mxGeometry height="140" width="360" y="532" as="geometry" />
         </mxCell>
         <mxCell id="insc_attrs" parent="inscripcion" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="- mes: int&lt;br&gt;- anio: int&lt;br&gt;- socio: Socio&lt;br&gt;- detalles: List&amp;lt;DetalleInscripcion&amp;gt;" vertex="1">
           <mxGeometry height="60" width="360" y="26" as="geometry" />
@@ -115,8 +92,6 @@
         <mxCell id="insc_meth" parent="inscripcion" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ agregarClase(clase: ClaseDirigida, dia: String): boolean&lt;br&gt;+ cantidadReservas(): int" vertex="1">
           <mxGeometry height="46" width="360" y="94" as="geometry" />
         </mxCell>
-
-        <!-- CLASE DETALLE INSCRIPCION -->
         <mxCell id="detalle_insc" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#F5EEF8;strokeColor=#8E44AD;" value="DetalleInscripcion" vertex="1">
           <mxGeometry height="110" width="260" x="90" y="770" as="geometry" />
         </mxCell>
@@ -129,14 +104,8 @@
         <mxCell id="det_meth" parent="detalle_insc" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ confirmarReserva(): boolean" vertex="1">
           <mxGeometry height="32" width="260" y="78" as="geometry" />
         </mxCell>
-
-        <!-- ========================================== -->
-        <!-- MÓDULO 3: CLASES DIRIGIDAS & POLIMORFISMO  -->
-        <!-- ========================================== -->
-
-        <!-- CLASE BASE CLASE (GENERALIZACIÓN) -->
         <mxCell id="clase_base" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=28;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2980B9;" value="&lt;i&gt;&amp;lt;&amp;lt;Abstract&amp;gt;&amp;gt;&lt;br&gt;Clase&lt;/i&gt;" vertex="1">
-          <mxGeometry height="110" width="300" x="520" y="730" as="geometry" />
+          <mxGeometry height="110" width="300" x="420" y="720" as="geometry" />
         </mxCell>
         <mxCell id="clase_base_attrs" parent="clase_base" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="# codigo: String&lt;br&gt;# nombre: String&lt;br&gt;# duracionMin: int" vertex="1">
           <mxGeometry height="50" width="300" y="28" as="geometry" />
@@ -147,8 +116,6 @@
         <mxCell id="clase_base_meth" parent="clase_base" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="" vertex="1">
           <mxGeometry height="24" width="300" y="86" as="geometry" />
         </mxCell>
-
-        <!-- SUBCLASE CLASEDIRIGIDA (ESPECIALIZACIÓN ABSTRACTA) -->
         <mxCell id="clase_dirigida" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=28;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2980B9;" value="&lt;i&gt;&amp;lt;&amp;lt;Abstract&amp;gt;&amp;gt;&lt;br&gt;ClaseDirigida&lt;/i&gt;" vertex="1">
           <mxGeometry height="180" width="300" x="520" y="890" as="geometry" />
         </mxCell>
@@ -161,8 +128,6 @@
         <mxCell id="clase_meth" parent="clase_dirigida" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ calcularCuposDisponibles()*: int&lt;br&gt;+ hayCupo(): boolean&lt;br&gt;+ reservarCupo(): boolean" vertex="1">
           <mxGeometry height="90" width="300" y="90" as="geometry" />
         </mxCell>
-
-        <!-- SUBCLASE YOGA -->
         <mxCell id="yoga" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E8F8F5;strokeColor=#16A085;" value="Yoga" vertex="1">
           <mxGeometry height="90" width="220" x="300" y="1140" as="geometry" />
         </mxCell>
@@ -175,8 +140,6 @@
         <mxCell id="yoga_meth" parent="yoga" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ calcularCuposDisponibles(): int" vertex="1">
           <mxGeometry height="30" width="220" y="60" as="geometry" />
         </mxCell>
-
-        <!-- SUBCLASE SPINNING -->
         <mxCell id="spinning" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FEF9E7;strokeColor=#F39C12;" value="Spinning" vertex="1">
           <mxGeometry height="90" width="220" x="560" y="1140" as="geometry" />
         </mxCell>
@@ -189,8 +152,6 @@
         <mxCell id="spin_meth" parent="spinning" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ calcularCuposDisponibles(): int" vertex="1">
           <mxGeometry height="30" width="220" y="60" as="geometry" />
         </mxCell>
-
-        <!-- SUBCLASE CROSSFIT -->
         <mxCell id="crossfit" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FADBD8;strokeColor=#E74C3C;" value="Crossfit" vertex="1">
           <mxGeometry height="90" width="220" x="820" y="1140" as="geometry" />
         </mxCell>
@@ -203,12 +164,6 @@
         <mxCell id="cross_meth" parent="crossfit" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ calcularCuposDisponibles(): int" vertex="1">
           <mxGeometry height="30" width="220" y="60" as="geometry" />
         </mxCell>
-
-        <!-- ========================================== -->
-        <!-- MÓDULO 4: POS, VENTAS, SUPLEMENTO & API    -->
-        <!-- ========================================== -->
-
-        <!-- CLASE VENTA -->
         <mxCell id="venta" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2980B9;" value="Venta" vertex="1">
           <mxGeometry height="130" width="280" x="1200" y="750" as="geometry" />
         </mxCell>
@@ -221,8 +176,6 @@
         <mxCell id="venta_meth" parent="venta" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ agregarDetalle(d: DetalleVenta): boolean&lt;br&gt;+ calcularTotal(): double" vertex="1">
           <mxGeometry height="50" width="280" y="80" as="geometry" />
         </mxCell>
-
-        <!-- CLASE DETALLE VENTA -->
         <mxCell id="detalle_venta" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#EBF5FB;strokeColor=#2980B9;" value="DetalleVenta" vertex="1">
           <mxGeometry height="120" width="260" x="1210" y="960" as="geometry" />
         </mxCell>
@@ -235,8 +188,6 @@
         <mxCell id="detv_meth" parent="detalle_venta" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ calcularSubtotal(): double" vertex="1">
           <mxGeometry height="36" width="260" y="84" as="geometry" />
         </mxCell>
-
-        <!-- CLASE SUPLEMENTO -->
         <mxCell id="suplemento" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#FEF9E7;strokeColor=#F39C12;" value="Suplemento" vertex="1">
           <mxGeometry height="170" width="340" x="1560" y="940" as="geometry" />
         </mxCell>
@@ -249,8 +200,6 @@
         <mxCell id="sup_meth" parent="suplemento" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ calcularPrecioCLP(valorDolar: double): double&lt;br&gt;+ hayStock(cantidad: int): boolean&lt;br&gt;+ descontarStock(cantidad: int): boolean" vertex="1">
           <mxGeometry height="60" width="340" y="110" as="geometry" />
         </mxCell>
-
-        <!-- CLASE INDICADOR DOLAR -->
         <mxCell id="indicador" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=middle;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#E8F8F5;strokeColor=#16A085;" value="IndicadorDolar" vertex="1">
           <mxGeometry height="110" width="240" x="1610" y="1190" as="geometry" />
         </mxCell>
@@ -263,62 +212,34 @@
         <mxCell id="ind_meth" parent="indicador" style="text;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;spacingBottom=4;overflow=hidden;whiteSpace=wrap;html=1;fontSize=11;" value="+ obtenerValorDolar(): double" vertex="1">
           <mxGeometry height="32" width="240" y="78" as="geometry" />
         </mxCell>
-
-        <!-- ========================================== -->
-        <!-- RELACIONES: HERENCIA                       -->
-        <!-- ========================================== -->
-
-        <!-- Socio hereda de Persona -->
-        <mxCell id="h1" edge="1" parent="1" source="socio" target="persona" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;">
+        <mxCell id="h1" edge="1" parent="1" source="socio" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;" target="persona">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- Trabajador hereda de Persona -->
-        <mxCell id="h2" edge="1" parent="1" source="trabajador" target="persona" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;">
+        <mxCell id="h2" edge="1" parent="1" source="trabajador" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;" target="persona">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- Administrador hereda de Trabajador -->
-        <mxCell id="h3" edge="1" parent="1" source="administrador" target="trabajador" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#F39C12;strokeWidth=1.5;">
+        <mxCell id="h3" edge="1" parent="1" source="administrador" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#F39C12;strokeWidth=1.5;" target="trabajador">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- Instructor hereda de Trabajador -->
-        <mxCell id="h4" edge="1" parent="1" source="instructor" target="trabajador" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#F39C12;strokeWidth=1.5;">
+        <mxCell id="h4" edge="1" parent="1" source="instructor" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#F39C12;strokeWidth=1.5;" target="trabajador">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- Recepcionista hereda de Trabajador -->
-        <mxCell id="h5" edge="1" parent="1" source="recepcionista" target="trabajador" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#F39C12;strokeWidth=1.5;">
+        <mxCell id="h5" edge="1" parent="1" source="recepcionista" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#F39C12;strokeWidth=1.5;" target="trabajador">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- ClaseDirigida hereda de Clase (Generalización) -->
-        <mxCell id="h_clase" edge="1" parent="1" source="clase_dirigida" target="clase_base" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;">
+        <mxCell id="h_clase" edge="1" parent="1" source="clase_dirigida" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;" target="clase_base">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- Yoga hereda de ClaseDirigida -->
-        <mxCell id="h6" edge="1" parent="1" source="yoga" target="clase_dirigida" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;">
+        <mxCell id="h6" edge="1" parent="1" source="yoga" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;" target="clase_dirigida">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- Spinning hereda de ClaseDirigida -->
-        <mxCell id="h7" edge="1" parent="1" source="spinning" target="clase_dirigida" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;">
+        <mxCell id="h7" edge="1" parent="1" source="spinning" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;" target="clase_dirigida">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- Crossfit hereda de ClaseDirigida -->
-        <mxCell id="h8" edge="1" parent="1" source="crossfit" target="clase_dirigida" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;">
+        <mxCell id="h8" edge="1" parent="1" source="crossfit" style="endArrow=block;endFill=0;endSize=14;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;" target="clase_dirigida">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- ========================================== -->
-        <!-- RELACIONES: COMPOSICIONES Y ASOCIACIONES   -->
-        <!-- ========================================== -->
-
-        <!-- Socio (1) a (0..*) InscripcionMensual -->
-        <mxCell id="rel_socio_insc" edge="1" parent="1" source="inscripcion" target="socio" style="startArrow=diamondThin;startFill=0;startSize=14;endArrow=none;html=1;rounded=0;strokeColor=#16A085;strokeWidth=1.5;">
+        <mxCell id="rel_socio_insc" edge="1" parent="1" source="inscripcion" style="startArrow=diamondThin;startFill=0;startSize=14;endArrow=none;html=1;rounded=0;strokeColor=#16A085;strokeWidth=1.5;" target="socio">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="lbl_m1" parent="1" style="text;html=1;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="1" vertex="1">
@@ -327,9 +248,7 @@
         <mxCell id="lbl_m2" parent="1" style="text;html=1;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="0..*" vertex="1">
           <mxGeometry height="18" width="30" x="190" y="505" as="geometry" />
         </mxCell>
-
-        <!-- InscripcionMensual (1) COMPONE DetalleInscripcion (1..*) -->
-        <mxCell id="rel_comp_insc" edge="1" parent="1" source="inscripcion" target="detalle_insc" style="startArrow=diamondThin;startFill=1;startSize=14;endArrow=none;html=1;rounded=0;strokeColor=#8E44AD;strokeWidth=1.5;">
+        <mxCell id="rel_comp_insc" edge="1" parent="1" source="inscripcion" style="startArrow=diamondThin;startFill=1;startSize=14;endArrow=none;html=1;rounded=0;strokeColor=#8E44AD;strokeWidth=1.5;" target="detalle_insc">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="lbl_m3" parent="1" style="text;html=1;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="1" vertex="1">
@@ -338,9 +257,7 @@
         <mxCell id="lbl_m4" parent="1" style="text;html=1;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="1..*" vertex="1">
           <mxGeometry height="18" width="30" x="195" y="735" as="geometry" />
         </mxCell>
-
-        <!-- DetalleInscripcion (0..*) a (1) ClaseDirigida -->
-        <mxCell id="rel_det_clase" edge="1" parent="1" source="detalle_insc" target="clase_dirigida" style="startArrow=diamondThin;startFill=0;startSize=14;endArrow=none;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;">
+        <mxCell id="rel_det_clase" edge="1" parent="1" source="detalle_insc" style="startArrow=diamondThin;startFill=0;startSize=14;endArrow=none;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;" target="clase_dirigida">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="lbl_m5" parent="1" style="text;html=1;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="0..*" vertex="1">
@@ -349,9 +266,7 @@
         <mxCell id="lbl_m6" parent="1" style="text;html=1;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="1" vertex="1">
           <mxGeometry height="18" width="30" x="480" y="895" as="geometry" />
         </mxCell>
-
-        <!-- Instructor (1) a (0..*) ClaseDirigida -->
-        <mxCell id="rel_inst_clase" edge="1" parent="1" source="clase_dirigida" target="instructor" style="startArrow=diamondThin;startFill=0;startSize=14;endArrow=none;html=1;rounded=0;strokeColor=#1ABC9C;strokeWidth=1.5;">
+        <mxCell id="rel_inst_clase" edge="1" parent="1" source="clase_dirigida" style="startArrow=diamondThin;startFill=0;startSize=14;endArrow=none;html=1;rounded=0;strokeColor=#1ABC9C;strokeWidth=1.5;" target="instructor">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="lbl_m7" parent="1" style="text;html=1;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="0..*" vertex="1">
@@ -360,17 +275,13 @@
         <mxCell id="lbl_m8" parent="1" style="text;html=1;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="1" vertex="1">
           <mxGeometry height="18" width="30" x="850" y="660" as="geometry" />
         </mxCell>
-
-        <!-- Recepcionista despacha Venta y crea Inscripcion -->
-        <mxCell id="rel_rec_venta" edge="1" parent="1" source="recepcionista" target="venta" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeColor=#3498DB;strokeWidth=1.5;">
+        <mxCell id="rel_rec_venta" edge="1" parent="1" source="recepcionista" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeColor=#3498DB;strokeWidth=1.5;" target="venta">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="lbl_rec_v" parent="1" style="text;html=1;fontSize=10;fontStyle=2;align=center;verticalAlign=middle;" value="&amp;lt;&amp;lt;procesa&amp;gt;&amp;gt;" vertex="1">
           <mxGeometry height="18" width="90" x="1270" y="690" as="geometry" />
         </mxCell>
-
-        <!-- Venta (1) COMPONE DetalleVenta (1..*) -->
-        <mxCell id="rel_comp_venta" edge="1" parent="1" source="venta" target="detalle_venta" style="startArrow=diamondThin;startFill=1;startSize=14;endArrow=none;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;">
+        <mxCell id="rel_comp_venta" edge="1" parent="1" source="venta" style="startArrow=diamondThin;startFill=1;startSize=14;endArrow=none;html=1;rounded=0;strokeColor=#2980B9;strokeWidth=1.5;" target="detalle_venta">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="lbl_m9" parent="1" style="text;html=1;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="1" vertex="1">
@@ -379,9 +290,7 @@
         <mxCell id="lbl_m10" parent="1" style="text;html=1;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="1..*" vertex="1">
           <mxGeometry height="18" width="30" x="1310" y="930" as="geometry" />
         </mxCell>
-
-        <!-- DetalleVenta (0..*) a (1) Suplemento -->
-        <mxCell id="rel_detv_sup" edge="1" parent="1" source="detalle_venta" target="suplemento" style="startArrow=diamondThin;startFill=0;startSize=14;endArrow=none;html=1;rounded=0;strokeColor=#F39C12;strokeWidth=1.5;">
+        <mxCell id="rel_detv_sup" edge="1" parent="1" source="detalle_venta" style="startArrow=diamondThin;startFill=0;startSize=14;endArrow=none;html=1;rounded=0;strokeColor=#F39C12;strokeWidth=1.5;" target="suplemento">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="lbl_m11" parent="1" style="text;html=1;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="0..*" vertex="1">
@@ -390,26 +299,18 @@
         <mxCell id="lbl_m12" parent="1" style="text;html=1;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="1" vertex="1">
           <mxGeometry height="18" width="30" x="1525" y="990" as="geometry" />
         </mxCell>
-
-        <!-- Suplemento DEPENDE <<use>> de IndicadorDolar -->
-        <mxCell id="rel_sup_dolar" edge="1" parent="1" source="suplemento" target="indicador" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeColor=#16A085;strokeWidth=1.5;">
+        <mxCell id="rel_sup_dolar" edge="1" parent="1" source="suplemento" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeColor=#16A085;strokeWidth=1.5;" target="indicador">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="lbl_dolar_use" parent="1" style="text;html=1;fontSize=10;fontStyle=2;align=center;verticalAlign=middle;" value="&amp;lt;&amp;lt;use&amp;gt;&amp;gt; consulta dolar del dia" vertex="1">
           <mxGeometry height="18" width="160" x="1740" y="1130" as="geometry" />
         </mxCell>
-
-        <!-- ========================================== -->
-        <!-- NOTAS EXPLICATIVAS Y DEFENSA DE DISEÑO     -->
-        <!-- ========================================== -->
         <mxCell id="box_requisitos" parent="1" style="text;html=1;align=left;verticalAlign=top;fontStyle=0;fontColor=#1E8449;fontSize=11;strokeColor=#27AE60;fillColor=#E8F8F5;rounded=1;arcSize=6;spacingLeft=10;spacingTop=8;spacingRight=10;spacingBottom=8;whiteSpace=wrap;" value="&lt;b&gt;✅ SEIS REQUISITOS OFICIALES CUMPLIDOS CON RIGOR&lt;/b&gt;&lt;br&gt;1. &lt;b&gt;Polimorfismo:&lt;/b&gt; Clase -&amp;gt; ClaseDirigida -&amp;gt; (Yoga, Spinning, Crossfit sobrescriben calcularCuposDisponibles() con colchonetas, bicicletas, estaciones).&lt;br&gt;2. &lt;b&gt;Roles &amp; Permisos:&lt;/b&gt; Administrador (crea trabajadores y clases), Instructor (dicta y asiste) y Recepcionista (inscribe y cobra).&lt;br&gt;3. &lt;b&gt;Validación Identidad:&lt;/b&gt; Persona.validarRut() con Algoritmo Módulo 11 + validaciones de teléfono y correo.&lt;br&gt;4. &lt;b&gt;Transacción Compuesta:&lt;/b&gt; InscripcionMensual (1) compone DetalleInscripcion (1..*) garantizando una reserva por clase y día.&lt;br&gt;5. &lt;b&gt;Reglas de Bloqueo:&lt;/b&gt; ClaseDirigida.hayCupo() (cupo físico lleno) y Socio.permitirIngreso() (membresía vencida).&lt;br&gt;6. &lt;b&gt;Indicador Externo:&lt;/b&gt; Suplemento.calcularPrecioCLP() usa IndicadorDolar vía dependencia punteada &amp;lt;&amp;lt;use&amp;gt;&amp;gt;." vertex="1">
           <mxGeometry height="180" width="560" x="1100" y="100" as="geometry" />
         </mxCell>
-
-        <mxCell id="box_valor_agregado" parent="1" style="text;html=1;align=left;verticalAlign=top;fontStyle=0;fontColor=#7D6608;fontSize=11;strokeColor=#F1C40F;fillColor=#FEFDE8;rounded=1;arcSize=6;spacingLeft=10;spacingTop=8;spacingRight=10;spacingBottom=8;whiteSpace=wrap;" value="&lt;b&gt;🚀 EL VALOR AGREGADO (EL '20 DE 10')&lt;/b&gt;&lt;br&gt;• &lt;b&gt;Generalización Clase &amp; ClaseDirigida:&lt;/b&gt; Clase define atributos comunes y ClaseDirigida especializa la lógica de cupos e instructores.&lt;br&gt;• &lt;b&gt;Circuito Transaccional de Ventas:&lt;/b&gt; Venta y DetalleVenta integran a Suplemento en el flujo comercial del Recepcionista.&lt;br&gt;• &lt;b&gt;Control de Inventario:&lt;/b&gt; Suplemento cuenta con stock, stockMinimo, hayStock() y descontarStock() garantizando trazabilidad física.&lt;br&gt;• &lt;b&gt;Seguridad y RBAC:&lt;/b&gt; Administrador gestiona el alta de personal con crearTrabajador(t)." vertex="1">
+        <mxCell id="box_valor_agregado" parent="1" style="text;html=1;align=left;verticalAlign=top;fontStyle=0;fontColor=#7D6608;fontSize=11;strokeColor=#F1C40F;fillColor=#FEFDE8;rounded=1;arcSize=6;spacingLeft=10;spacingTop=8;spacingRight=10;spacingBottom=8;whiteSpace=wrap;" value="&lt;b&gt;🚀 EL VALOR AGREGADO (EL &#39;20 DE 10&#39;)&lt;/b&gt;&lt;br&gt;• &lt;b&gt;Generalización Clase &amp; ClaseDirigida:&lt;/b&gt; Clase define atributos comunes y ClaseDirigida especializa la lógica de cupos e instructores.&lt;br&gt;• &lt;b&gt;Circuito Transaccional de Ventas:&lt;/b&gt; Venta y DetalleVenta integran a Suplemento en el flujo comercial del Recepcionista.&lt;br&gt;• &lt;b&gt;Control de Inventario:&lt;/b&gt; Suplemento cuenta con stock, stockMinimo, hayStock() y descontarStock() garantizando trazabilidad física.&lt;br&gt;• &lt;b&gt;Seguridad y RBAC:&lt;/b&gt; Administrador gestiona el alta de personal con crearTrabajador(t)." vertex="1">
           <mxGeometry height="150" width="560" x="1100" y="300" as="geometry" />
         </mxCell>
-
       </root>
     </mxGraphModel>
   </diagram>

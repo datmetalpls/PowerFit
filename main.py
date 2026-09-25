@@ -28,14 +28,21 @@ from PySide6.QtCore import Qt
 from src.models import (
     Persona,
     Direccion,
+    Comuna,
     cargar_comunas_ine,
     Trabajador,
+    Administrador,
     Instructor,
     Recepcionista,
     Socio,
     ClaseSpinning,
     ClaseYoga,
     ClaseCrossfit,
+    Suplemento,
+    IndicadorDolar,
+    Venta,
+    DetalleVenta,
+    InscripcionMensual,
 )
 
 
@@ -116,11 +123,11 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         # Base de datos simulada de usuarios del sistema (RBAC)
         self.usuarios_sistema = {
-            "admin": Trabajador(
+            "admin": Administrador(
+                nivelAcceso="Total/SuperUser",
                 idTrabajador=1,
                 usuario="admin",
                 passHash="admin123",
-                rol="Administrador",
                 rut="11.111.111-1",
                 nombres="Administrador",
                 apellidoPaterno="General",
@@ -180,12 +187,16 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.btn_socios = QPushButton("👤 Gestión de Socios")
         self.btn_clases = QPushButton("🏋️ Clases Dirigidas")
         self.btn_ventas = QPushButton("🛒 Punto de Venta (Dólar)")
+        self.btn_personal = QPushButton("👔 Personal (Admin)")
+        self.btn_torniquete = QPushButton("🚪 Torniquete Portería")
         self.btn_logout = QPushButton("🔴 Cerrar Sesión")
 
         estilo_btn_nav = "background-color: #334155; color: #F8FAFC; padding: 8px 14px; font-weight: bold; border-radius: 6px;"
         self.btn_socios.setStyleSheet(estilo_btn_nav)
         self.btn_clases.setStyleSheet(estilo_btn_nav)
         self.btn_ventas.setStyleSheet(estilo_btn_nav)
+        self.btn_personal.setStyleSheet("background-color: #8E44AD; color: #F8FAFC; padding: 8px 14px; font-weight: bold; border-radius: 6px;")
+        self.btn_torniquete.setStyleSheet("background-color: #27AE60; color: #F8FAFC; padding: 8px 14px; font-weight: bold; border-radius: 6px;")
         self.btn_logout.setStyleSheet("background-color: #EF4444; color: white; padding: 8px 14px; font-weight: bold; border-radius: 6px;")
 
         layout_nav.addWidget(self.lbl_usuario_status)
@@ -194,6 +205,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout_nav.addWidget(self.btn_socios)
         layout_nav.addWidget(self.btn_clases)
         layout_nav.addWidget(self.btn_ventas)
+        layout_nav.addWidget(self.btn_personal)
+        layout_nav.addWidget(self.btn_torniquete)
         layout_nav.addWidget(self.btn_logout)
 
         self.layout_principal.addWidget(self.barras_navegacion)
@@ -203,10 +216,12 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.pantallas = QStackedWidget()
 
         # Vistas de la aplicación
-        self.construir_vista_login()    # Índice 0
-        self.construir_vista_socios()   # Índice 1
-        self.construir_vista_clases()   # Índice 2
-        self.construir_vista_ventas()   # Índice 3
+        self.construir_vista_login()      # Índice 0
+        self.construir_vista_socios()     # Índice 1
+        self.construir_vista_clases()     # Índice 2
+        self.construir_vista_ventas()     # Índice 3
+        self.construir_vista_personal()   # Índice 4
+        self.construir_vista_torniquete()  # Índice 5
 
         self.layout_principal.addWidget(self.pantallas)
 
@@ -214,6 +229,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.btn_socios.clicked.connect(lambda: self.ir_a_pantalla(1))
         self.btn_clases.clicked.connect(lambda: self.ir_a_pantalla(2))
         self.btn_ventas.clicked.connect(lambda: self.ir_a_pantalla(3))
+        self.btn_personal.clicked.connect(lambda: self.ir_a_pantalla(4))
+        self.btn_torniquete.clicked.connect(lambda: self.ir_a_pantalla(5))
         self.btn_logout.clicked.connect(self.cerrar_sesion)
 
         self.statusBar().showMessage("🔒 Por favor inicie sesión para acceder al sistema.")
@@ -333,16 +350,19 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 self.btn_socios.setVisible(True)
                 self.btn_clases.setVisible(True)
                 self.btn_ventas.setVisible(True)
+                self.btn_personal.setVisible(True)
                 self.ir_a_pantalla(1)  # Ir a Socios
             elif rol == "Recepcionista":
                 self.btn_socios.setVisible(True)
                 self.btn_clases.setVisible(False)
                 self.btn_ventas.setVisible(True)
+                self.btn_personal.setVisible(False)
                 self.ir_a_pantalla(1)  # Ir a Socios
             elif rol == "Instructor":
                 self.btn_socios.setVisible(False)
                 self.btn_clases.setVisible(True)
                 self.btn_ventas.setVisible(False)
+                self.btn_personal.setVisible(False)
                 self.ir_a_pantalla(2)  # Ir a Clases
 
             self.statusBar().showMessage(f"🟢 Sesión iniciada como {self.usuario_actual.getNombres()} ({rol})")
@@ -388,11 +408,15 @@ class VentanaPrincipalPowerFit(QMainWindow):
         for id_c, nombre_c in comunas_dict.items():
             self.combo_comunas.addItem(f"{nombre_c} (ID: {id_c})")
 
+        self.combo_estado_inicial = QComboBox()
+        self.combo_estado_inicial.addItems(["🟢 Al Día (Vigente 30 días)", "🔴 Vencida / Impago (Requiere Cobro)", "⚪ Plan Cancelado / Inactivo"])
+
         form_socios.addRow("RUT: ", self.input_rut)
         form_socios.addRow("Nombres: ", self.input_nombres)
         form_socios.addRow("Apellidos: ", self.input_apellidos)
         form_socios.addRow("Teléfono: ", self.input_telefono)
         form_socios.addRow("Correo Electrónico: ", self.input_correo)
+        form_socios.addRow("Estado Inicial Membresía: ", self.combo_estado_inicial)
         form_socios.addRow("Tipo Vivienda: ", self.combo_tipo_direccion)
         form_socios.addRow("Calle: ", self.input_calle)
         form_socios.addRow("Número: ", self.input_numero)
@@ -407,9 +431,23 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout_socios.addWidget(self.btn_guardar_socio)
 
         self.tabla_socios = QTableWidget()
-        self.tabla_socios.setColumnCount(5)
-        self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombre Completo", "Teléfono", "Comuna", "Vivienda"])
+        self.tabla_socios.setColumnCount(6)
+        self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombre Completo", "Teléfono", "Comuna", "Vivienda", "Membresía"])
         layout_socios.addWidget(self.tabla_socios)
+
+        # Botones de Recepción para Cobro y Cancelación
+        layout_acciones_socio = QHBoxLayout()
+        self.btn_renovar_membresia = QPushButton("💵 Cobrar Mensualidad / Renovar (+30d) - Recepción")
+        self.btn_renovar_membresia.setStyleSheet("background-color: #2980B9; color: white; padding: 10px; font-weight: bold;")
+        self.btn_renovar_membresia.clicked.connect(self.renovar_membresia_socio)
+
+        self.btn_cancelar_plan = QPushButton("🚫 Cancelar / Desactivar Plan - Recepción")
+        self.btn_cancelar_plan.setStyleSheet("background-color: #C0392B; color: white; padding: 10px; font-weight: bold;")
+        self.btn_cancelar_plan.clicked.connect(self.cancelar_plan_socio)
+
+        layout_acciones_socio.addWidget(self.btn_renovar_membresia)
+        layout_acciones_socio.addWidget(self.btn_cancelar_plan)
+        layout_socios.addLayout(layout_acciones_socio)
 
         self.pantallas.addWidget(self.vista_socios)
 
@@ -433,20 +471,114 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.tabla_socios.setItem(row, 3, QTableWidgetItem(comuna))
         self.tabla_socios.setItem(row, 4, QTableWidgetItem(tipo_direccion))
 
+        # Crear objetos Comuna y Direccion integrados
+        from src.models import Comuna
+        comuna_str = self.combo_comunas.currentText()
+        nombre_comuna = comuna_str.split(" (ID:")[0]
+        obj_comuna = Comuna(idComuna=13101, nombre=nombre_comuna)
+
+        tipo_dir_mapeo = tipo_direccion.lower()
+        if tipo_dir_mapeo not in ["casa", "dpto", "block"]:
+            tipo_dir_mapeo = "casa"
+
+        obj_direccion = Direccion(
+            idDireccion=len(self.socios_registrados) + 1,
+            tipoDireccion=tipo_dir_mapeo,
+            calle=self.input_calle.text().strip() or "Sin Calle",
+            numero=self.input_numero.text().strip() or "S/N",
+            referencia=self.input_referencia.text().strip(),
+            comuna=obj_comuna,
+        )
+
+        # Evaluar estado inicial seleccionado
+        estado_sel = self.combo_estado_inicial.currentText()
+        from datetime import date, timedelta
+        if "Al Día" in estado_sel:
+            fecha_venc = date.today() + timedelta(days=30)
+            activo = True
+        elif "Vencida" in estado_sel:
+            fecha_venc = date.today() - timedelta(days=1)  # Vencida ayer
+            activo = True
+        else:
+            fecha_venc = date.today()
+            activo = False
+
         # Crear y guardar objeto Socio en el dominio POO
         nuevo_socio = Socio(
             idSocio=len(self.socios_registrados) + 1,
             rut=rut,
             nombres=nombres,
             apellidoPaterno=apellidos,
+            fechaVencimientoMembresia=fecha_venc,
+            estadoActivo=activo,
             apellidoMaterno="",
             telefono=telefono,
-            correoElectronico="",
+            correoElectronico=self.input_correo.text().strip(),
         )
+        # Asociar la direccion completa mejorada al socio
+        nuevo_socio.direccion = obj_direccion
+
+        # Invocar formalmente registrarSocio() del usuario recepcionista/admin en sesión
+        if isinstance(self.usuario_actual, Recepcionista):
+            self.usuario_actual.registrarSocio(nuevo_socio)
+
         self.socios_registrados.append(nuevo_socio)
+        
+        lbl_estado = "🟢 Al Día" if (nuevo_socio.estadoActivo and nuevo_socio.permitirIngreso()) else ("🔴 Vencida / Impago" if nuevo_socio.estadoActivo else "⚪ Plan Cancelado")
+        self.tabla_socios.setItem(row, 5, QTableWidgetItem(lbl_estado))
         self.actualizar_combo_socios_inscripcion()
 
-        QMessageBox.information(self, "Socio Registrado", f"¡Socio {nombres} {apellidos} registrado exitosamente!")
+        QMessageBox.information(
+            self,
+            "Socio Registrado",
+            f"¡Socio {nombres} {apellidos} registrado exitosamente!\n"
+            f"📍 Dirección: {obj_direccion.obtenerDireccionCompleta()}\n"
+            f"🔑 Estado Membresía: {lbl_estado}"
+        )
+
+    def renovar_membresia_socio(self):
+        items = self.tabla_socios.selectedItems()
+        if not items:
+            QMessageBox.warning(self, "Selección Requerida", "Por favor selecciona un socio en la tabla para renovar su membresía.")
+            return
+
+        row = items[0].row()
+        rut_socio = self.tabla_socios.item(row, 0).text()
+        socio = next((s for s in self.socios_registrados if s.getRut() == rut_socio), None)
+
+        if socio:
+            from datetime import date, timedelta
+            # Invocar Recepcionista.cobrarMensualidad
+            if isinstance(self.usuario_actual, Recepcionista):
+                self.usuario_actual.cobrarMensualidad(socio, 35000)
+            
+            socio.renovarMembresia(dias=30)
+            self.tabla_socios.setItem(row, 5, QTableWidgetItem("🟢 Al Día (+30d)"))
+            QMessageBox.information(
+                self,
+                "Membresía Renovada",
+                f"¡Cobro realizado por la Recepcion! La membresía del socio {socio.getNombres()} ha sido renovada hasta {socio.fechaVencimientoMembresia}."
+            )
+
+    def cancelar_plan_socio(self):
+        items = self.tabla_socios.selectedItems()
+        if not items:
+            QMessageBox.warning(self, "Selección Requerida", "Por favor selecciona un socio en la tabla para cancelar su plan.")
+            return
+
+        row = items[0].row()
+        rut_socio = self.tabla_socios.item(row, 0).text()
+        socio = next((s for s in self.socios_registrados if s.getRut() == rut_socio), None)
+
+        if socio:
+            socio.cancelarPlan()
+            self.tabla_socios.setItem(row, 5, QTableWidgetItem("⚪ Plan Cancelado"))
+            QMessageBox.warning(
+                self,
+                "Plan Cancelado",
+                f"El plan del socio {socio.getNombres()} ({socio.getRut()}) ha sido CANCELADO/DESACTIVADO.\n"
+                f"El molinete de portería bloqueará su ingreso hasta un nuevo alta/renovación."
+            )
 
     # =========================================================================
     # VISTA 2: CLASES DIRIGIDAS & MAPA VISUAL DE SALA
@@ -641,6 +773,17 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 return
 
             socio = self.socios_registrados[idx_socio]
+
+            # Regla de Bloqueo #2 (UML): socio.permitirIngreso()
+            if not socio.permitirIngreso():
+                QMessageBox.critical(
+                    self,
+                    "Acceso Denegado (Membresía Vencida)",
+                    f"⛔ El socio {socio.getNombres()} ({socio.getRut()}) tiene la membresía VENCIDA.\n"
+                    f"La Recepcionista debe realizar el pago/cobro de mensualidad antes de otorgar un cupo."
+                )
+                return
+
             exito = self.clase_seleccionada_actual.inscribir_socio(socio, posicion)
             if exito:
                 QMessageBox.information(
@@ -713,12 +856,50 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.btn_guardar_venta.clicked.connect(self.guardar_venta)
         layout_ventas.addWidget(self.btn_guardar_venta)
 
+        # Sección Administrador: Reponer Stock (UML Administrador.reponerStock)
+        box_admin_stock = QGroupBox("📦 Gestión de Inventario & Reposición (Administrador)")
+        layout_stock = QHBoxLayout(box_admin_stock)
+        self.input_reponer_cant = QLineEdit("50")
+        self.input_reponer_cant.setPlaceholderText("Cantidad a reponer")
+        self.btn_reponer_stock = QPushButton("➕ Reponer Stock (Admin)")
+        self.btn_reponer_stock.setStyleSheet("background-color: #8E44AD; color: white; font-weight: bold; padding: 6px;")
+        self.btn_reponer_stock.clicked.connect(self.reponer_stock_admin)
+        layout_stock.addWidget(QLabel("Cantidad:"))
+        layout_stock.addWidget(self.input_reponer_cant)
+        layout_stock.addWidget(self.btn_reponer_stock)
+        layout_ventas.addWidget(box_admin_stock)
+
         self.tabla_ventas = QTableWidget()
         self.tabla_ventas.setColumnCount(4)
         self.tabla_ventas.setHorizontalHeaderLabels(["Producto", "Cantidad", "Valor Dólar", "Total Estimado (CLP)"])
         layout_ventas.addWidget(self.tabla_ventas)
 
         self.pantallas.addWidget(self.vista_ventas)
+
+    def reponer_stock_admin(self):
+        if not isinstance(self.usuario_actual, Administrador):
+            QMessageBox.warning(self, "Acceso Denegado", "Solo el Administrador posee permisos para reponer stock físico.")
+            return
+
+        cant_str = self.input_reponer_cant.text().strip()
+        try:
+            cant = int(cant_str)
+        except ValueError:
+            QMessageBox.warning(self, "Valor Inválido", "La cantidad a reponer debe ser un número entero.")
+            return
+
+        prod_nombre = self.combo_producto.currentText()
+        precio_usd = 45.0 if "Whey" in prod_nombre else (25.0 if "Creatina" in prod_nombre else (30.0 if "Pre-Entreno" in prod_nombre else 20.0))
+        sup = Suplemento("SUP-001", prod_nombre, precio_usd, stock=20)
+
+        # Invocar Administrador.reponerStock(sup, cant)
+        self.usuario_actual.reponerStock(sup, cant)
+        QMessageBox.information(
+            self,
+            "Stock Repuesto",
+            f"¡El Administrador {self.usuario_actual.getNombres()} ha repuesto +{cant} unidades de '{prod_nombre}'!\n"
+            f"Nuevo Stock Total: {sup.stock} unidades."
+        )
 
     def cargar_dolar_api(self):
         try:
@@ -734,24 +915,265 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
     def guardar_venta(self):
         prod = self.combo_producto.currentText()
-        cant = self.input_cantidad.text().strip()
-        dolar_clp = self.input_valor_dolar.text().strip()
+        cant_str = self.input_cantidad.text().strip()
+        dolar_clp_str = self.input_valor_dolar.text().strip()
 
-        if not cant or not dolar_clp:
+        if not cant_str or not dolar_clp_str:
             QMessageBox.warning(self, "Campos Incompletos", "Por favor ingresa cantidad y valor del dólar en CLP.")
             return
 
-        precio_usd = 45 if "Whey" in prod else (25 if "Creatina" in prod else (30 if "Pre-Entreno" in prod else 20))
-        total_clp = float(cant) * precio_usd * float(dolar_clp)
+        try:
+            cant = int(cant_str)
+            valor_dolar = float(dolar_clp_str)
+        except ValueError:
+            QMessageBox.warning(self, "Valor Inválido", "Cantidad debe ser entero y valor dólar numérico.")
+            return
+
+        # 1. Crear Suplemento (UML)
+        precio_usd = 45.0 if "Whey" in prod else (25.0 if "Creatina" in prod else (30.0 if "Pre-Entreno" in prod else 20.0))
+        cod_prod = "SUP-001" if "Whey" in prod else ("SUP-002" if "Creatina" in prod else "SUP-003")
+        obj_suplemento = Suplemento(codigo=cod_prod, nombre=prod, precioUSD=precio_usd, stock=100)
+
+        # 2. Verificar Stock (Regla #6 UML)
+        if not obj_suplemento.hayStock(cant):
+            QMessageBox.warning(self, "Stock Insuficiente", f"No hay stock suficiente para {prod}.")
+            return
+
+        precio_clp = obj_suplemento.calcularPrecioCLP(valor_dolar)
+
+        # 3. Crear DetalleVenta y Venta compuesta (UML)
+        obj_detalle = DetalleVenta(cantidad=cant, precioUnitarioCLP=precio_clp, suplemento=obj_suplemento)
+        obj_venta = Venta(numero=self.tabla_ventas.rowCount() + 1)
+        exito = obj_venta.agregarDetalle(obj_detalle)
+
+        # 4. Invocar Recepcionista.registrarVenta(venta) si corresponde (UML)
+        if isinstance(self.usuario_actual, Recepcionista):
+            self.usuario_actual.registrarVenta(obj_venta)
 
         row = self.tabla_ventas.rowCount()
         self.tabla_ventas.insertRow(row)
         self.tabla_ventas.setItem(row, 0, QTableWidgetItem(prod))
-        self.tabla_ventas.setItem(row, 1, QTableWidgetItem(cant))
-        self.tabla_ventas.setItem(row, 2, QTableWidgetItem(f"${dolar_clp} CLP"))
-        self.tabla_ventas.setItem(row, 3, QTableWidgetItem(f"${total_clp:,.0f} CLP"))
+        self.tabla_ventas.setItem(row, 1, QTableWidgetItem(str(cant)))
+        self.tabla_ventas.setItem(row, 2, QTableWidgetItem(f"${valor_dolar:,.2f} CLP"))
+        self.tabla_ventas.setItem(row, 3, QTableWidgetItem(f"${obj_venta.totalCLP:,.0f} CLP"))
 
-        QMessageBox.information(self, "Venta Procesada", f"¡Venta de '{prod}' procesada por un total de ${total_clp:,.0f} CLP!")
+        QMessageBox.information(
+            self,
+            "Venta Transaccional Procesada",
+            f"¡Venta N° {obj_venta.numero} de '{prod}' procesada con éxito!\n"
+            f"💰 Total CLP: ${obj_venta.totalCLP:,.0f}\n"
+            f"📦 Stock Restante: {obj_suplemento.stock} unidades"
+        )
+
+    # =========================================================================
+    # VISTA 4: GESTIÓN DE PERSONAL / TRABAJADORES (ADMINISTRADOR)
+    # =========================================================================
+    def construir_vista_personal(self):
+        self.vista_personal = QWidget()
+        layout_personal = QVBoxLayout(self.vista_personal)
+
+        lbl = QLabel("👔 Alta y Registro de Personal (Administrador)")
+        lbl.setStyleSheet("font-size: 18px; font-weight: bold; color: #8E44AD;")
+        layout_personal.addWidget(lbl)
+
+        form_personal = QFormLayout()
+        self.input_trab_rut = QLineEdit()
+        self.input_trab_nombres = QLineEdit()
+        self.input_trab_apellidos = QLineEdit()
+        self.input_trab_usuario = QLineEdit()
+        self.input_trab_pass = QLineEdit()
+        self.input_trab_pass.setEchoMode(QLineEdit.Password)
+
+        self.combo_trab_rol = QComboBox()
+        self.combo_trab_rol.addItems(["Recepcionista", "Instructor", "Administrador"])
+
+        form_personal.addRow("Rol a Asignar: ", self.combo_trab_rol)
+        form_personal.addRow("RUT: ", self.input_trab_rut)
+        form_personal.addRow("Nombres: ", self.input_trab_nombres)
+        form_personal.addRow("Apellidos: ", self.input_trab_apellidos)
+        form_personal.addRow("Nombre Usuario: ", self.input_trab_usuario)
+        form_personal.addRow("Contraseña: ", self.input_trab_pass)
+
+        layout_personal.addLayout(form_personal)
+
+        self.btn_guardar_trabajador = QPushButton("➕ Crear Trabajador (Invoca Admin.crearTrabajador)")
+        self.btn_guardar_trabajador.setStyleSheet("background-color: #8E44AD; color: white; padding: 10px; font-weight: bold;")
+        self.btn_guardar_trabajador.clicked.connect(self.guardar_trabajador_admin)
+        layout_personal.addWidget(self.btn_guardar_trabajador)
+
+        self.tabla_personal = QTableWidget()
+        self.tabla_personal.setColumnCount(4)
+        self.tabla_personal.setHorizontalHeaderLabels(["ID", "Usuario", "Nombre Completo", "Rol"])
+        layout_personal.addWidget(self.tabla_personal)
+
+        # Cargar trabajadores por defecto
+        for u in self.usuarios_sistema.values():
+            r = self.tabla_personal.rowCount()
+            self.tabla_personal.insertRow(r)
+            self.tabla_personal.setItem(r, 0, QTableWidgetItem(str(u.idTrabajador)))
+            self.tabla_personal.setItem(r, 1, QTableWidgetItem(u.usuario))
+            self.tabla_personal.setItem(r, 2, QTableWidgetItem(f"{u.nombres} {u.apellidoPaterno}"))
+            self.tabla_personal.setItem(r, 3, QTableWidgetItem(u.getRol()))
+
+        self.pantallas.addWidget(self.vista_personal)
+
+    def guardar_trabajador_admin(self):
+        if not isinstance(self.usuario_actual, Administrador):
+            QMessageBox.warning(self, "Acceso Denegado", "Solo un Administrador posee permisos para crear personal.")
+            return
+
+        rol = self.combo_trab_rol.currentText()
+        rut = self.input_trab_rut.text().strip()
+        nombres = self.input_trab_nombres.text().strip()
+        apellidos = self.input_trab_apellidos.text().strip()
+        usr = self.input_trab_usuario.text().strip()
+        pwd = self.input_trab_pass.text().strip()
+
+        if not rut or not nombres or not usr or not pwd:
+            QMessageBox.warning(self, "Campos Vacíos", "Por favor completa RUT, Nombres, Usuario y Contraseña.")
+            return
+
+        nuevo_id = str(len(self.usuarios_sistema) + 1)
+        if rol == "Recepcionista":
+            nuevo_t = Recepcionista(
+                idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellidos, usuario=usr, passHash=pwd
+            )
+        elif rol == "Instructor":
+            nuevo_t = Instructor(
+                especialidad="Fitness", idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellidos, usuario=usr, passHash=pwd
+            )
+        else:
+            nuevo_t = Administrador(
+                nivelAcceso="General", idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellidos, usuario=usr, passHash=pwd
+            )
+
+        # Invocar formalmente Administrador.crearTrabajador(t)
+        exito = self.usuario_actual.crearTrabajador(nuevo_t)
+        if exito:
+            self.usuarios_sistema[usr] = nuevo_t
+            r = self.tabla_personal.rowCount()
+            self.tabla_personal.insertRow(r)
+            self.tabla_personal.setItem(r, 0, QTableWidgetItem(str(nuevo_t.idTrabajador)))
+            self.tabla_personal.setItem(r, 1, QTableWidgetItem(nuevo_t.usuario))
+            self.tabla_personal.setItem(r, 2, QTableWidgetItem(f"{nuevo_t.nombres} {nuevo_t.apellidoPaterno}"))
+            self.tabla_personal.setItem(r, 3, QTableWidgetItem(nuevo_t.getRol()))
+
+            QMessageBox.information(
+                self,
+                "Trabajador Creado",
+                f"¡El Administrador {self.usuario_actual.getNombres()} ha creado al trabajador {nombres} con rol {rol}!"
+            )
+
+    # =========================================================================
+    # VISTA 5: SIMULADOR DE TORNIQUETE / CONTROL DE PORTERÍA
+    # =========================================================================
+    def construir_vista_torniquete(self):
+        self.vista_torniquete = QWidget()
+        layout_torniquete = QVBoxLayout(self.vista_torniquete)
+
+        lbl = QLabel("🚪 Simulador de Torniquete & Control de Acceso (Portería)")
+        lbl.setStyleSheet("font-size: 18px; font-weight: bold; color: #27AE60;")
+        layout_torniquete.addWidget(lbl)
+
+        # Panel de Lectura de RUT
+        group_lector = QGroupBox("📱 Lector de RUT / Escáner de Credencial")
+        layout_lector = QVBoxLayout(group_lector)
+
+        form_lector = QFormLayout()
+        self.input_rut_torniquete = QLineEdit()
+        self.input_rut_torniquete.setPlaceholderText("Ej: 12.345.678-5")
+        form_lector.addRow("RUT Socio: ", self.input_rut_torniquete)
+
+        btn_simular_paso = QPushButton("🔔 Simular Lectura de Torniquete (Invoca Socio.permitirIngreso)")
+        btn_simular_paso.setStyleSheet("background-color: #27AE60; color: white; padding: 12px; font-weight: bold; font-size: 14px;")
+        btn_simular_paso.clicked.connect(self.simular_torniquete)
+
+        layout_lector.addLayout(form_lector)
+        layout_lector.addWidget(btn_simular_paso)
+        layout_torniquete.addWidget(group_lector)
+
+        # Pantalla Visual del Estado del Molinete
+        self.card_estado_molinete = QWidget()
+        self.card_estado_molinete.setStyleSheet("background-color: #1E293B; border-radius: 10px; border: 2px solid #334155;")
+        layout_molinete = QVBoxLayout(self.card_estado_molinete)
+
+        self.lbl_icono_torniquete = QLabel("🔒")
+        self.lbl_icono_torniquete.setAlignment(Qt.AlignCenter)
+        self.lbl_icono_torniquete.setStyleSheet("font-size: 64px;")
+
+        self.lbl_estado_molinete = QLabel("ESPERANDO LECTURA EN PORTERÍA")
+        self.lbl_estado_molinete.setAlignment(Qt.AlignCenter)
+        self.lbl_estado_molinete.setStyleSheet("font-size: 18px; font-weight: bold; color: #94A3B8;")
+
+        self.lbl_detalle_socio_torniquete = QLabel("Ingrese RUT arriba para verificar estado de membresía en tiempo real.")
+        self.lbl_detalle_socio_torniquete.setAlignment(Qt.AlignCenter)
+        self.lbl_detalle_socio_torniquete.setStyleSheet("font-size: 13px; color: #CBD5E1;")
+
+        layout_molinete.addWidget(self.lbl_icono_torniquete)
+        layout_molinete.addWidget(self.lbl_estado_molinete)
+        layout_molinete.addWidget(self.lbl_detalle_socio_torniquete)
+
+        layout_torniquete.addWidget(self.card_estado_molinete)
+        self.pantallas.addWidget(self.vista_torniquete)
+
+    def simular_torniquete(self):
+        rut = self.input_rut_torniquete.text().strip()
+        if not rut:
+            QMessageBox.warning(self, "RUT Vacío", "Por favor ingresa un RUT para validar el molinete.")
+            return
+
+        socio = next((s for s in self.socios_registrados if s.getRut().replace(".", "").replace("-", "").upper() == rut.replace(".", "").replace("-", "").upper()), None)
+
+        if not socio:
+            self.lbl_icono_torniquete.setText("⚠️")
+            self.lbl_estado_molinete.setText("SOCIO NO ENCONTRADO EN SISTEMA")
+            self.lbl_estado_molinete.setStyleSheet("font-size: 18px; font-weight: bold; color: #F1C40F;")
+            self.lbl_detalle_socio_torniquete.setText(f"El RUT {rut} no registra inscripción en PowerFit.")
+            self.card_estado_molinete.setStyleSheet("background-color: #7D6608; border-radius: 10px; border: 2px solid #F1C40F;")
+            return
+
+        # Invocar formalmente la regla de negocio UML: Socio.permitirIngreso()
+        permitido = socio.permitirIngreso()
+
+        if permitido:
+            self.lbl_icono_torniquete.setText("🟢 PASE CONCEDIDO")
+            self.lbl_estado_molinete.setText("TORNIQUETE DESBLOQUEADO - ¡BIENVENIDO/A!")
+            self.lbl_estado_molinete.setStyleSheet("font-size: 18px; font-weight: bold; color: #2ECC71;")
+            self.lbl_detalle_socio_torniquete.setText(
+                f"Socio: {socio.getNombres()} {socio.getApellidoPaterno()} | RUT: {socio.getRut()}\n"
+                f"Membresía Al Día hasta: {socio.fechaVencimientoMembresia}"
+            )
+            self.card_estado_molinete.setStyleSheet("background-color: #145A32; border-radius: 10px; border: 2px solid #2ECC71;")
+            
+            QMessageBox.information(
+                self,
+                "🟢 Torniquete Desbloqueado",
+                f"¡Pase Concedido!\nSocio: {socio.getNombres()} {socio.getApellidoPaterno()}\n"
+                f"Vigencia: Hasta {socio.fechaVencimientoMembresia}"
+            )
+        else:
+            self.lbl_icono_torniquete.setText("🔴 ACCESO DENEGADO")
+            self.lbl_estado_molinete.setText("TORNIQUETE BLOQUEADO - MEMBRESÍA VENCIDA / PLAN CANCELADO")
+            self.lbl_estado_molinete.setStyleSheet("font-size: 18px; font-weight: bold; color: #E74C3C;")
+            
+            motivo = "Membresía VENCIDA / IMPAGO" if socio.estadoActivo else "Plan CANCELADO / INACTIVO"
+            self.lbl_detalle_socio_torniquete.setText(
+                f"Socio: {socio.getNombres()} {socio.getApellidoPaterno()} | RUT: {socio.getRut()}\n"
+                f"⛔ Estado: {motivo} ({socio.fechaVencimientoMembresia}). Pasar a Recepción a regularizar pago."
+            )
+            self.card_estado_molinete.setStyleSheet("background-color: #641E16; border-radius: 10px; border: 2px solid #E74C3C;")
+
+            # 🚨 Popup Alerta Flotante en Pantalla
+            QMessageBox.critical(
+                self,
+                "🚨 ALERTA PORTERÍA: TORNIQUETE BLOQUEADO",
+                f"⛔ ACCESO RECHAZADO EN PORTERÍA\n\n"
+                f"👤 Socio: {socio.getNombres()} {socio.getApellidoPaterno()}\n"
+                f"📄 RUT: {socio.getRut()}\n"
+                f"⚠️ Motivo Bloqueo: {motivo}\n"
+                f"📅 Fecha Vencimiento: {socio.fechaVencimientoMembresia}\n\n"
+                f"📢 El molinete ha sido bloqueado automáticamente.\nPor favor indique al socio dirijirse al módulo de Recepción para realizar el cobro/renovación."
+            )
 
 
 if __name__ == "__main__":

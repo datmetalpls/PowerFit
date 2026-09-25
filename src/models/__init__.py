@@ -1,11 +1,13 @@
-"""Paquete de modelos del dominio POO para PowerFit Gym System (UML Oficial)."""
+"""Paquete de modelos del dominio POO para PowerFit Gym System (UML posiblediagrama.drawio.xml)."""
 
-from src.models.persona import (
-    Persona,
-    Socio,
-    Trabajador,
-    Instructor,
-    Recepcionista,
+from src.models.persona import Persona
+from src.models.socio import Socio
+from src.models.trabajador import Trabajador
+from src.models.instructor import Instructor
+from src.models.recepcionista import Recepcionista
+from src.models.administrador import Administrador
+from src.models.clase import (
+    Clase,
     ClaseDirigida,
     Yoga,
     Spinning,
@@ -17,7 +19,12 @@ from src.models.persona import (
 from src.models.direccion import Direccion
 from src.models.comuna import Comuna, cargar_comunas_ine
 from src.models.inscripcion import InscripcionMensual, DetalleInscripcion
-from src.models.suplemento import Suplemento, IndicadorDolar
+from src.models.suplemento import (
+    Suplemento,
+    IndicadorDolar,
+    Venta,
+    DetalleVenta,
+)
 
 __all__ = [
     "Persona",
@@ -25,6 +32,8 @@ __all__ = [
     "Trabajador",
     "Instructor",
     "Recepcionista",
+    "Administrador",
+    "Clase",
     "ClaseDirigida",
     "Yoga",
     "Spinning",
@@ -39,4 +48,6 @@ __all__ = [
     "DetalleInscripcion",
     "Suplemento",
     "IndicadorDolar",
+    "Venta",
+    "DetalleVenta",
 ]

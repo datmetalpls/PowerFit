@@ -63,12 +63,12 @@ Plan de acción basado estrictamente en el modelo oficial del profesor y los flu
 
 | Módulo | Actor / Área | Estado | Descripción clave |
 | :--- | :--- | :---: | :--- |
-| **Módulo 1** | **🛎️ Recepcionista** | 🟡 En Desarrollo | `cobrarMensualidad()` extendiendo la vigencia por +30 días. Estado visual "Al Día" / "Vencida". |
-| **Módulo 2** | **🚪 Control Portería** | ⚪ Pendiente | Simulador de torniquete con `Socio.permitirIngreso()` (Bloqueo si membresía está vencida). |
-| **Módulo 3** | **🛒 Punto de Venta** | 🟡 En Desarrollo | Verificación con `Suplemento.hayStock()` y descuento físico de stock en bodega tras cada venta. |
-| **Módulo 4** | **🏋️ Instructor** | ⚪ Pendiente | Acción de `marcarAsistencia(socio, clase)` interactiva desde el mapa de puestos de la sala. |
-| **Módulo 5** | **✍️ Transacciones** | 🟢 Modelado | Objeto `InscripcionMensual` agrupando múltiples `DetalleInscripcion` (Composición 1 a 1..*). |
-| **Módulo 6** | **💾 Base de Datos** | ⚪ Fase Final | Persistencia relacional en local con `sqlite3` para socios, ventas, clases y membresías. |
+| **Módulo 1** | **🛎️ Recepcionista** | 🟢 Completada | `cobrarMensualidad()` extendiendo vigencia +30d. Estados "Al Día", "Vencida/Impago", "Plan Cancelado". |
+| **Módulo 2** | **🚪 Control Portería** | 🟢 Completada | Simulador interactivo de torniquete con `Socio.permitirIngreso()` y **Popups de Alerta Flotantes (`QMessageBox.critical`)**. |
+| **Módulo 3** | **🛒 Punto de Venta** | 🟢 Completada | `Suplemento.hayStock()`, descuento físico de stock en bodega y cálculo en CLP vía API Dólar. |
+| **Módulo 4** | **🏋️ Instructor** | 🟢 Completada | `marcarAsistencia(socio, clase)` validando estado de membresía desde mapa de puestos. |
+| **Módulo 5** | **✍️ Transacciones** | 🟢 Completada | Objeto `InscripcionMensual` agrupando `DetalleInscripcion` (Composición 1 a 1..*) y `Venta` con `DetalleVenta`. |
+| **Módulo 6** | **💾 Base de Datos** | ⚪ Pendiente | Persistencia relacional local con `sqlite3` y patrón DAO. |
 
 ---
 
@@ -237,13 +237,22 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
 
 ## 📁 Estructura del Repositorio
 
-- `src/models/`: Clases del dominio POO (`persona.py`, `comuna.py`, `direccion.py`, `trabajador.py`, `instructor.py`, `recepcionista.py`, `socio.py`, `administrador.py`).
+- `src/models/`: Clases del dominio POO desacopladas (1 archivo = 1 clase):
+  - `persona.py`: Clase abstracta base `Persona` con Algoritmo Módulo 11 para RUT.
+  - `socio.py`: Clase `Socio` (`fechaVencimientoMembresia`, `estadoActivo`, `permitirIngreso()`, `renovarMembresia()`, `cancelarPlan()`).
+  - `trabajador.py`: Clase abstracta base `Trabajador` (`autenticar()`, `tienePermiso()`).
+  - `administrador.py`: Subclase `Administrador` (`crearTrabajador()`, `crearClase()`, `reponerStock()`).
+  - `instructor.py`: Subclase `Instructor` (`dictarClase()`, `marcarAsistencia()`).
+  - `recepcionista.py`: Subclase `Recepcionista` (`registrarSocio()`, `cobrarMensualidad()`, `crearInscripcion()`, `registrarVenta()`).
+  - `clase.py`: Clase base `Clase`, `ClaseDirigida` y especializaciones `Yoga`, `Spinning`, `Crossfit`.
+  - `direccion.py` y `comuna.py`: Ubicación postal e integración de las 346 comunas INE de Chile.
+  - `inscripcion.py` y `suplemento.py`: Transacciones de reserva y punto de venta con API Dólar.
 - `tests/`: Suite de pruebas unitarias automatizadas (`test_persona.py`).
-- `docs/`: Documentación del proyecto, diagramas UML, estudio comparativo de GUIs (`Comparativa-GUI-Tkinter-PySide-PyQt.md`) e infografías (`docs/powerfit_rbac_profiles.jpg`).
-- `scratch/`: Scripts temporales y ejemplos demostrativos.
-- `main.py`: Punto de entrada principal para ejecutar la aplicación GUI.
-- `requirements.txt`: Archivo de dependencias del proyecto (`PySide6`, `FastAPI`, `Uvicorn`, etc.).
-- `CHANGELOG.md`: Registro formal de cambios y control de versiones del proyecto.
+- `uml/`: Diagramas estructurales (`posiblediagrama.drawio.xml`).
+- `docs/`: Documentación del proyecto, diagramas e infografías de arquitectura.
+- `main.py`: Punto de entrada principal con interfaz PySide6, Simulador de Torniquete y Popups Alerta.
+- `requirements.txt`: Dependencias del proyecto (`PySide6`, etc.).
+- `CHANGELOG.md`: Registro formal de versiones y cambios del proyecto.
 
 ---
 

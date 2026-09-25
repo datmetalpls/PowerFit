@@ -8,7 +8,29 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
-## [0.6.0] - 2026-09-22
+## [0.7.0] - 2026-09-25
+
+### 🏛️ Reorganización Modular de Clases & Alineación UML Definitivo (`posiblediagrama.drawio.xml`)
+- **Limpieza y Desacoplamiento de Modelos POO (`src/models/`)**:
+  - Desacoplamiento de clases masivas en archivos independientes de responsabilidad única (1 archivo = 1 clase):
+    - `persona.py`: Contiene únicamente la clase abstracta `Persona` con validación de RUT Módulo 11, teléfono y correo.
+    - `socio.py`: Clase `Socio` con atributos `- fechaVencimientoMembresia`, `- estadoActivo` y métodos `permitirIngreso()`, `renovarMembresia()` y `cancelarPlan()`.
+    - `trabajador.py`: Clase abstracta base `Trabajador` (`idTrabajador`, `passHash`, `autenticar()`, `tienePermiso()`).
+    - `administrador.py`: Subclase `Administrador` con `- nivelAcceso` y métodos `crearTrabajador()`, `crearClase()`, `modificarClase()`, `reponerStock()`.
+    - `instructor.py`: Subclase `Instructor` con `dictarClase()` y `marcarAsistencia()`.
+    - `recepcionista.py`: Subclase `Recepcionista` con `registrarSocio()`, `cobrarMensualidad()`, `crearInscripcion()` y `registrarVenta()`.
+    - `clase.py`: Clase abstracta base `Clase`, subclase abstracta `ClaseDirigida` y especializaciones `Yoga`, `Spinning`, `Crossfit`.
+    - `direccion.py`: Integración de objeto `Comuna` dentro de `Direccion` con método helper `obtenerDireccionCompleta()`.
+
+### 🚪 Simulador de Torniquete de Portería & Popups Alerta
+- **Simulador Interactivo de Molinete en GUI (`main.py`)**:
+  - Nueva pestaña **"🚪 Torniquete Portería"** que simula el lector físico de tarjetas/RUT a la entrada del gimnasio.
+  - Invocación en tiempo real del método de regla de negocio `Socio.permitirIngreso()`.
+  - **Popup Alerta Emergente (`QMessageBox.critical`)**: Alerta flotante roja inmediata al detectar a un socio con estado impago, membresía vencida o plan cancelado, indicándole dirigirse a Recepción.
+- **Gestión de Personal para Administrador (RBAC)**:
+  - Nueva pestaña **"👔 Personal (Admin)"** visible únicamente para rol Administrador para dar de alta trabajadores en tiempo real (`admin.crearTrabajador()`).
+- **Acciones de Recepción en GUI**:
+  - Botones dedicados en gestión de socios para **"💵 Cobrar Mensualidad / Renovar (+30d)"** y **"🚫 Cancelar / Desactivar Plan"**.
 
 ### 🎨 Reestilización GUI & Sistema de Temas Adaptable (macOS & Windows)
 - **Tema Visual Dark Cyber-Gym (Modern UI)**:
