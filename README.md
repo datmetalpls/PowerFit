@@ -50,6 +50,7 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | **Hito 5** | **Tablas `QTableWidget` en Tiempo Real** | 🟢 Completada | Tablas dinámicas interactivas agregando registros en vivo en Socios, Clases y Ventas. |
 | **Hito 6** | **Perfilamiento, Roles & Autenticación** | 🟢 Completada | Pantalla de Login, autenticación y control de acceso dinámico por rol (Admin, Recepción, Instructor). |
 | **Hito 7** | **Diseño Cyber-Gym & Dual-Theme Adaptable** | 🟢 Completada | Rediseño visual QSS estilo Dark Slate/Neon Orange y conmutador en vivo para **Modo Claro** y **Modo Oscuro** (macOS/Windows). |
+| **Hito 8** | **Modularización de Capa GUI (`src/gui/`)** | 🟢 Completada | Desacople de la ventana principal a `src/gui/app_window.py` y `styles.py`, dejando `main.py` como un bootstrap limpio. |
 
 
 
@@ -247,10 +248,11 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
   - `clase.py`: Clase base `Clase`, `ClaseDirigida` y especializaciones `Yoga`, `Spinning`, `Crossfit`.
   - `direccion.py` y `comuna.py`: Ubicación postal e integración de las 346 comunas INE de Chile.
   - `inscripcion.py` y `suplemento.py`: Transacciones de reserva y punto de venta con API Dólar.
+- `src/gui/`: Capa de interfaz gráfica modularizada (`app_window.py` para la ventana principal PySide6 y `styles.py` para hojas de estilo QSS).
 - `tests/`: Suite de pruebas unitarias automatizadas (`test_persona.py`).
 - `uml/`: Diagramas estructurales (`posiblediagrama.drawio.xml`).
 - `docs/`: Documentación del proyecto, diagramas e infografías de arquitectura.
-- `main.py`: Punto de entrada principal con interfaz PySide6, Simulador de Torniquete y Popups Alerta.
+- `main.py`: Punto de entrada limpio que arranca la aplicación visual PySide6.
 - `requirements.txt`: Dependencias del proyecto (`PySide6`, etc.).
 - `CHANGELOG.md`: Registro formal de versiones y cambios del proyecto.
 

@@ -8,7 +8,17 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
-## [0.7.0] - 2026-09-25
+## [0.8.0] - 2026-09-26
+
+### 🎨 Modularización de la Capa de Interfaz Gráfica (`src/gui/`)
+- **Desacople de Presentación & Bootstrap Limpio (`main.py`)**:
+  - Traslado de la arquitectura visual de PySide6 a un paquete dedicado en `src/gui/`.
+  - `src/gui/styles.py`: Extracción de las hojas de estilo QSS `QSS_MODO_OSCURO` y `QSS_MODO_CLARO` para el tema Cyber-Gym.
+  - `src/gui/app_window.py`: Clase `VentanaPrincipalPowerFit` encapsulada en su propio módulo, manteniendo el 100% de la funcionalidad de formularios, mapas de sala, simulación de torniquete y perfilamiento RBAC.
+  - `main.py`: Reducido a solo **20 líneas de código** actuando como un bootstrap limpio que inicia la aplicación visual.
+- **Preparación de Arquitectura para la Fase 6 (Persistencia SQLite / Patrón DAO)**:
+  - Estructura limpia y aislada que facilita la integración futura de la capa de persistencia relacional.
+
 
 ### 🏛️ Reorganización Modular de Clases & Alineación UML Definitivo (`posiblediagrama.drawio.xml`)
 - **Limpieza y Desacoplamiento de Modelos POO (`src/models/`)**:
