@@ -289,25 +289,28 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.lbl_usuario_status.setText(f"👤 {self.usuario_actual.getNombres()} | Rol: {rol}")
             self.barras_navegacion.setVisible(True)
 
-            # Control de Acceso por Roles (RBAC)
+            # Control de Acceso por Roles (RBAC) estricto
             if rol == "Administrador":
                 self.btn_socios.setVisible(True)
                 self.btn_clases.setVisible(True)
                 self.btn_ventas.setVisible(True)
                 self.btn_personal.setVisible(True)
+                self.btn_torniquete.setVisible(True)
                 self.ir_a_pantalla(1)  # Ir a Socios
             elif rol == "Recepcionista":
                 self.btn_socios.setVisible(True)
                 self.btn_clases.setVisible(False)
                 self.btn_ventas.setVisible(True)
                 self.btn_personal.setVisible(False)
+                self.btn_torniquete.setVisible(True)
                 self.ir_a_pantalla(1)  # Ir a Socios
             elif rol == "Instructor":
                 self.btn_socios.setVisible(False)
                 self.btn_clases.setVisible(True)
                 self.btn_ventas.setVisible(False)
                 self.btn_personal.setVisible(False)
-                self.ir_a_pantalla(2)  # Ir a Clases
+                self.btn_torniquete.setVisible(False)  # 🔒 Ocultar Torniquete al Instructor
+                self.ir_a_pantalla(2)  # Ir exclusivamente a Clases Dirigidas
 
             self.statusBar().showMessage(f"🟢 Sesión iniciada como {self.usuario_actual.getNombres()} ({rol})")
             QMessageBox.information(self, "Acceso Concedido", f"¡Bienvenido/a {self.usuario_actual.getNombres()}!\nRol: {rol}")
@@ -728,12 +731,20 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 )
                 return
 
+            # Si el usuario actual es Instructor, invocar formalmente Instructor.marcarAsistencia()
+            if isinstance(self.usuario_actual, Instructor):
+                asistencia_valida = self.usuario_actual.marcarAsistencia(socio, self.clase_seleccionada_actual)
+                if not asistencia_valida:
+                    QMessageBox.warning(self, "Asistencia Rechazada", f"No se pudo validar asistencia para {socio.getNombres()} en la clase.")
+                    return
+
             exito = self.clase_seleccionada_actual.inscribir_socio(socio, posicion)
             if exito:
+                msg_autoridad = f" Asistencia validada por Instructor {self.usuario_actual.getNombres()}." if isinstance(self.usuario_actual, Instructor) else ""
                 QMessageBox.information(
                     self,
                     "Reserva Exitosa",
-                    f"¡{socio.getNombres()} inscrito en el Puesto {posicion+1} para {self.clase_seleccionada_actual.nombre}!"
+                    f"¡{socio.getNombres()} inscrito en el Puesto {posicion+1} para {self.clase_seleccionada_actual.nombre}!{msg_autoridad}"
                 )
         else:
             # Liberar puesto
