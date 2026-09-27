@@ -77,6 +77,17 @@ Plan de acción basado estrictamente en el modelo oficial del profesor y los flu
 
 ![Matriz de Roles y Permisos RBAC PowerFit](docs/powerfit_rbac_profiles.jpg)
 
+| Módulo / Funcionalidad | Administrador 👔 | Recepcionista 🛎️ | Instructor 🏋️ |
+| :--- | :---: | :---: | :---: |
+| **Gestión de Socios (Alta y Cobro)** | 🟢 Sí | 🟢 Sí | 🔴 **No** |
+| **Clases Dirigidas & Asistencia** | 🟢 Sí | 🔴 **No** | 🟢 **Sí (Exclusivo)** |
+| **Punto de Venta (Dólar API)** | 🟢 Sí | 🟢 Sí | 🔴 **No** |
+| **Alta de Personal (RBAC)** | 🟢 **Sí (Exclusivo)** | 🔴 **No** | 🔴 **No** |
+| **Torniquete de Portería** | 🟢 Sí | 🟢 Sí | 🔴 **No** |
+
+> [!NOTE]
+> Al iniciar sesión como **Instructor**, el sistema redirige automáticamente a la vista de **Clases Dirigidas**, ocultando el torniquete, ventas, personal y socios. El marcado de puesto desde su perfil ejecuta formalmente la validación `Instructor.marcarAsistencia(socio, clase)`.
+
 ---
 
 

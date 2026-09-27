@@ -8,6 +8,19 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-09-27
+
+### 🔐 Ajuste Estricto de Perfilamiento RBAC (Instructor & Recepcionista)
+- **Restricción de Accesos para Instructor (`src/gui/app_window.py`)**:
+  - `btn_torniquete.setVisible(False)`: Se ocultó explícitamente el simulador de Torniquete / Portería al iniciar sesión como Instructor.
+  - El Instructor tiene acceso **exclusivo** a la pestaña **"🏋️ Clases Dirigidas"** (con Socios, Ventas, Personal y Torniquete bloqueados).
+  - Redirección automática inicial del Instructor hacia la vista de Clases Dirigidas.
+- **Invocación Formal de Asistencia por Instructor**:
+  - Al inscribir o marcar un socio desde el perfil del Instructor en el mapa de sala, el sistema ejecuta formalmente el método del modelo POO `Instructor.marcarAsistencia(socio, clase)`.
+- **Consolidación de Roles Recepcionista y Administrador**:
+  - Recepcionista: Acceso habilitado a Gestión de Socios, Punto de Venta (Dólar API) y Torniquete de Portería.
+  - Administrador: Acceso total a los 5 módulos del sistema.
+
 ## [0.8.0] - 2026-09-26
 
 ### 🎨 Modularización de la Capa de Interfaz Gráfica (`src/gui/`)
