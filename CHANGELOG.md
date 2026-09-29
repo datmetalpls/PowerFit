@@ -8,7 +8,13 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
-## [0.8.1] - 2026-09-27
+## [0.8.2] - 2026-09-29
+
+### 🧹 Limpieza y Optimización de Dependencias
+- **Depuración de `requirements.txt`**:
+  - Eliminación de dependencias innecesarias/no utilizadas (`fastapi`, `uvicorn`, `pydantic`, `python-dotenv`, `pyyaml`, `requests`, `pytest`, `shiboken6`, etc.).
+  - Consolidación de dependencias requeridas del proyecto (`PySide6>=6.7.0` para la GUI y `matplotlib>=3.8.0` para la generación de infografías).
+
 
 ### 🔐 Ajuste Estricto de Perfilamiento RBAC (Instructor & Recepcionista)
 - **Restricción de Accesos para Instructor (`src/gui/app_window.py`)**:
