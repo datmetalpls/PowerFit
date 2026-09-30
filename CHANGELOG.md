@@ -8,7 +8,15 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
-## [0.8.2] - 2026-09-29
+## [0.9.0] - 2026-09-30
+
+### 🗄️ Inicialización de Capa DAO e Infraestructura SQLite
+- **Paquete DAO (`src/dao/`)**:
+  - Creación del paquete `src/dao/` y los esqueletos de DAO para `SocioDAO`, `TrabajadorDAO`, `ClaseDAO`, `InscripcionDAO` y `SuplementoDAO`.
+  - Implementación de `ConexionDB` en `src/dao/conexion.py` con cálculo de ruta dinámica `database/powerfit.db`, activación de Foreign Keys (`PRAGMA foreign_keys = ON`) y formato de filas por nombre (`sqlite3.Row`).
+- **Infraestructura de Base de Datos**:
+  - Creación del directorio `database/` con `.gitkeep` y actualización de `.gitignore` para el aislamiento de archivos SQLite `.db`.
+
 
 ### 🧹 Limpieza y Optimización de Dependencias
 - **Depuración de `requirements.txt`**:
