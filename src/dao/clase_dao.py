@@ -2,7 +2,7 @@
 from typing import List, Optional
 from src.dao.conexion import ConexionDB
 from src.dao.base_dao import BaseDAO
-from src.models.clase import Clase
+from src.models.clase import Clase, ClaseDirigida, Spinning, Yoga, Crossfit
 from src.dao.trabajador_dao import TrabajadorDAO
 
 class ClaseDAO(BaseDAO):
@@ -11,19 +11,26 @@ class ClaseDAO(BaseDAO):
     def __init__(self):
         self._trabajador_dao = TrabajadorDAO()
 
-    def _map_row_to_clase(self, row) -> Clase: 
-        """Convierte una fila de la BD en un objeto Clase."""
+    def _map_row_to_clase(self, row) -> ClaseDirigida: 
+        """Convierte una fila de la BD en un objeto de la subclase concreta de ClaseDirigida."""
         id_instructor = row['id_instructor']
         instructor = self._trabajador_dao.obtener_por_id(id_instructor) if id_instructor else None
 
-        clase = Clase(
-            idClase=row['id_clase'],
-            nombre=row['nombre'],
-            horario=row['horario'],
-            cupoMaximo=row['cupo_maximo'],
-            instructor=instructor
-        )
+        nombre = row['nombre']
+        nombre_lower = nombre.lower()
+        codigo_str = str(row['id_clase'])
+        cupo = row['cupo_maximo']
+
+        if "spinning" in nombre_lower:
+            clase = Spinning(codigo=codigo_str, nombre=nombre, cupoMaximo=cupo, instructor=instructor)
+        elif "yoga" in nombre_lower:
+            clase = Yoga(codigo=codigo_str, nombre=nombre, cupoMaximo=cupo, instructor=instructor)
+        else:
+            clase = Crossfit(codigo=codigo_str, nombre=nombre, cupoMaximo=cupo, instructor=instructor)
+
+        clase.horario = row['horario']
         return clase
+
 
     def obtener_todos(self) -> List[Clase]:
         """Obtiene todas las clases dirigidas registradas."""
