@@ -715,6 +715,14 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.clases_registradas[nombre] = obj_clase
         self.clase_seleccionada_actual = obj_clase
 
+        #Guardar en SQLIte permanentemente a través del DAO
+        self.clase_dao.guardar(obj_clase)
+
+        #Actualizar clases desde la bbdd 
+        clases_list = self.clase_dao.obtener_todos()
+        self.clases_registradas = {c.nombre: c for c in clases_list}
+        self.clase_seleccionada_actual = self.clases_registradas.get(nombre, obj_clase)
+
         # Insertar en Tabla Visual
         row = self.tabla_clases.rowCount()
         self.tabla_clases.insertRow(row)
@@ -810,12 +818,22 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
             exito = self.clase_seleccionada_actual.inscribir_socio(socio, posicion)
             if exito:
+                # Guardar inscripción permanente en SQLite
+                codigo_raw = str(getattr(self.clase_seleccionada_actual, 'codigo', '1'))
+                id_clase_num = int(''.join(filter(str.isdigit, codigo_raw)) or '1')
+                self.inscripcion_dao.inscribir_socio(socio.idSocio, id_clase_num)
+
+                # Si es instructor, marcar asistencia en SQLite
+                if isinstance(self.usuario_actual, Instructor):
+                    self.inscripcion_dao.marcar_asistencia(socio.idSocio, id_clase_num, asistio=True)
+
                 msg_autoridad = f" Asistencia validada por Instructor {self.usuario_actual.getNombres()}." if isinstance(self.usuario_actual, Instructor) else ""
                 QMessageBox.information(
                     self,
                     "Reserva Exitosa",
                     f"¡{socio.getNombres()} inscrito en el Puesto {posicion+1} para {self.clase_seleccionada_actual.nombre}!{msg_autoridad}"
                 )
+
         else:
             # Liberar puesto
             respuesta = QMessageBox.question(
@@ -915,14 +933,21 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         prod_nombre = self.combo_producto.currentText()
         precio_usd = 45.0 if "Whey" in prod_nombre else (25.0 if "Creatina" in prod_nombre else (30.0 if "Pre-Entreno" in prod_nombre else 20.0))
-        sup = Suplemento("SUP-001", prod_nombre, precio_usd, stock=20)
+        cod_id = "1" if "Whey" in prod_nombre else ("2" if "Creatina" in prod_nombre else ("3" if "Pre-Entreno" in prod_nombre else "4"))
+        
+        # Buscar en BD o crear
+        sup = self.suplemento_dao.obtener_por_id(int(cod_id))
+        if not sup:
+            sup = Suplemento(cod_id, prod_nombre, precio_usd, stock=20)
 
         # Invocar Administrador.reponerStock(sup, cant)
         self.usuario_actual.reponerStock(sup, cant)
+        self.suplemento_dao.guardar(sup)
+
         QMessageBox.information(
             self,
             "Stock Repuesto",
-            f"¡El Administrador {self.usuario_actual.getNombres()} ha repuesto +{cant} unidades de '{prod_nombre}'!\n"
+            f"¡El Administrador {self.usuario_actual.getNombres()} ha repuesto +{cant} unidades de '{prod_nombre}' en SQLite!\n"
             f"Nuevo Stock Total: {sup.stock} unidades."
         )
 
@@ -954,17 +979,24 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Valor Inválido", "Cantidad debe ser entero y valor dólar numérico.")
             return
 
-        # 1. Crear Suplemento (UML)
+        # 1. Obteber o Crear Suplemento en BD
         precio_usd = 45.0 if "Whey" in prod else (25.0 if "Creatina" in prod else (30.0 if "Pre-Entreno" in prod else 20.0))
-        cod_prod = "SUP-001" if "Whey" in prod else ("SUP-002" if "Creatina" in prod else "SUP-003")
-        obj_suplemento = Suplemento(codigo=cod_prod, nombre=prod, precioUSD=precio_usd, stock=100)
+        cod_id = "1" if "Whey" in prod else ("2" if "Creatina" in prod else ("3" if "Pre-Entreno" in prod else "4"))
+        
+        obj_suplemento = self.suplemento_dao.obtener_por_id(int(cod_id))
+        if not obj_suplemento:
+            obj_suplemento = Suplemento(codigo=cod_id, nombre=prod, precioUSD=precio_usd, stock=100)
 
         # 2. Verificar Stock (Regla #6 UML)
         if not obj_suplemento.hayStock(cant):
-            QMessageBox.warning(self, "Stock Insuficiente", f"No hay stock suficiente para {prod}.")
+            QMessageBox.warning(self, "Stock Insuficiente", f"No hay stock suficiente para {prod} (Stock actual: {obj_suplemento.stock}).")
             return
 
         precio_clp = obj_suplemento.calcularPrecioCLP(valor_dolar)
+
+        # Descontar stock y actualizar SQLite
+        obj_suplemento.descontarStock(cant)
+        self.suplemento_dao.guardar(obj_suplemento)
 
         # 3. Crear DetalleVenta y Venta compuesta (UML)
         obj_detalle = DetalleVenta(cantidad=cant, precioUnitarioCLP=precio_clp, suplemento=obj_suplemento)
@@ -980,6 +1012,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.tabla_ventas.setItem(row, 0, QTableWidgetItem(prod))
         self.tabla_ventas.setItem(row, 1, QTableWidgetItem(str(cant)))
         self.tabla_ventas.setItem(row, 2, QTableWidgetItem(f"${valor_dolar:,.2f} CLP"))
+
         self.tabla_ventas.setItem(row, 3, QTableWidgetItem(f"${obj_venta.totalCLP:,.0f} CLP"))
 
         QMessageBox.information(
@@ -1075,6 +1108,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
         # Invocar formalmente Administrador.crearTrabajador(t)
         exito = self.usuario_actual.crearTrabajador(nuevo_t)
         if exito:
+            # Guardar en SQLite permanente
+            self.trabajador_dao.guardar(nuevo_t)
+
             self.usuarios_sistema[usr] = nuevo_t
             r = self.tabla_personal.rowCount()
             self.tabla_personal.insertRow(r)
@@ -1086,8 +1122,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.information(
                 self,
                 "Trabajador Creado",
-                f"¡El Administrador {self.usuario_actual.getNombres()} ha creado al trabajador {nombres} con rol {rol}!"
+                f"¡El Administrador {self.usuario_actual.getNombres()} ha creado al trabajador {nombres} con rol {rol} en SQLite!"
             )
+
 
     # =========================================================================
     # VISTA 5: SIMULADOR DE TORNIQUETE / CONTROL DE PORTERÍA

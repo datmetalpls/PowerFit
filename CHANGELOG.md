@@ -8,7 +8,21 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
-## [0.9.1] - 2026-10-04
+## [0.9.2] - 2026-10-04
+
+### 🚀 Integración Total de Interfaz Gráfica PySide6 & Persistencia SQLite (`src/gui/app_window.py`)
+- **Módulo de Clases e Inscripciones Conectado a SQLite**:
+  - `guardar_clase()`: Persistencia permanente de clases dirigidas con `ClaseDAO`.
+  - `hacer_clic_puesto()`: Registro automático de inscripciones en `InscripcionDAO` e integración con la validación formal de asistencias por Instructores.
+- **Módulo de Punto de Venta & Inventario Conectado a SQLite**:
+  - `reponer_stock_admin()`: Reposición física de suplementos por Administrador persistida en la base de datos mediante `SuplementoDAO`.
+  - `guardar_venta()`: Validación transaccional de stock en SQLite y actualización automática tras procesar ventas.
+- **Módulo de Personal Conectado a SQLite**:
+  - `guardar_trabajador_admin()`: Registro y alta de trabajadores (Recepcionistas, Instructores, Administradores) persistidos permanentemente con `TrabajadorDAO`.
+- **Estabilidad & Calidad de Código**:
+  - Eliminación de código duplicado en el renderizado de la tabla de socios (`actualizar_tabla_socios()`).
+  - Verificación sin errores de compilación ni de tiempo de ejecución.
+
 
 ### 🗄️ Implementación Completa de Capa DAO SQLite (`src/dao/`)
 - **Esquema Relacional DDL (`ConexionDB.crear_tablas`)**:
