@@ -8,7 +8,30 @@ El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1
 
 ## [Unreleased]
 
-## [0.9.0] - 2026-09-30
+## [0.9.1] - 2026-10-04
+
+### 🗄️ Implementación Completa de Capa DAO SQLite (`src/dao/`)
+- **Esquema Relacional DDL (`ConexionDB.crear_tablas`)**:
+  - Sentencias `CREATE TABLE IF NOT EXISTS` para `socios`, `trabajadores`, `clases`, `inscripciones` y `suplementos`.
+  - Activación de restricciones de Foreign Keys (`PRAGMA foreign_keys = ON;`) y soporte para mapeo dinámico por columnas.
+- **Jerarquía y Contrato Abstracto (`BaseDAO`)**:
+  - `src/dao/base_dao.py`: Clase abstracta genérica definiendo los contratos CRUD (`obtener_todos`, `obtener_por_id`, `guardar`, `eliminar`).
+- **Data Access Objects Concretos**:
+  - `SocioDAO`: Persistencia completa con soporte para `obtener_por_rut()` y lógica UPSERT.
+  - `TrabajadorDAO`: Instanciación polimórfica adecuada para `Administrador`, `Instructor` y `Recepcionista`.
+  - `ClaseDAO`: Mapeo polimórfico a subclases de disciplina concretas (`Spinning`, `Yoga`, `Crossfit`).
+  - `SuplementoDAO`: CRUD completo para inventario y catálogo de suplementos.
+  - `InscripcionDAO`: Persistencia de inscripciones y registro de asistencia en clases dirigidas.
+- **Suite de Pruebas Unitarias (`tests/`)**:
+  - Pruebas dedicadas `tests/test_socio_dao.py` y `tests/test_trabajador_dao.py` para verificar lectura/escritura SQLite.
+
+### 🖥️ Integración Inicial GUI (`src/gui/app_window.py`)
+- **Sincronización al Iniciar (`cargar_datos_desde_bd`)**:
+  - Carga automática de Socios, Clases y Usuarios del sistema desde `powerfit.db`.
+  - Si la base de datos está vacía, sembrado automático de usuarios iniciales (`admin`, `recepcion`, `instructor`).
+- **Persistencia en Gestión de Socios**:
+  - Registro de nuevo socio, renovación de mensualidad y cancelación de plan persistidos permanentemente en SQLite a través de `SocioDAO`.
+
 
 ### 🗄️ Inicialización de Capa DAO e Infraestructura SQLite
 - **Paquete DAO (`src/dao/`)**:
