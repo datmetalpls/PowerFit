@@ -81,6 +81,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.clase_dao = ClaseDAO()
         self.suplemento_dao = SuplementoDAO()
         self.inscripcion_dao = InscripcionDAO()
+        self.venta_dao = VentaDAO()
 
         
 
@@ -130,9 +131,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.socios_registrados = []
         self.clases_registradas = {}  # dict: {nombre_clase: obj ClaseDirigida}
         self.clase_seleccionada_actual = None
-
-        #cargar datos de bbdd
-        self.cargar_datos_desde_bd()
 
         # Layout Principal
         self.widget_central = QWidget()
@@ -190,6 +188,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.construir_vista_ventas()     # Índice 3
         self.construir_vista_personal()   # Índice 4
         self.construir_vista_torniquete()  # Índice 5
+
+        # Cargar datos de la base de datos SQLite y poblar la GUI
+        self.cargar_datos_desde_bd()
 
         self.layout_principal.addWidget(self.pantallas)
 
