@@ -203,25 +203,29 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.statusBar().showMessage("🔒 Por favor inicie sesión para acceder al sistema.")
 
     def cargar_datos_desde_bd(self):
-        """cargar y sincronizar la memoria local de la GUI con la base de datos SQlite"""
-        #1. cargar socios desde sqlite
+        """Carga y sincroniza la memoria local de la GUI con la base de datos SQLite."""
+        # 1. Cargar socios desde SQLite
         self.socios_registrados = self.socio_dao.obtener_todos()
 
-        #2. cargar clases dirigidas desde Sqlite
+        # 2. Cargar clases dirigidas desde SQLite
         clases_list = self.clase_dao.obtener_todos()
-        self.clases_registradas= {clase.nombre: clase for clase in clases_list}
+        self.clases_registradas = {clase.nombre: clase for clase in clases_list}
 
-        #3. cargar usuarios del sistema (si bd está vacía == null == None, sembrar ininciales)
+        # 3. Cargar usuarios del sistema (si BD está vacía, sembrar iniciales)
         trabajadores_bd = self.trabajador_dao.obtener_todos()
         if not trabajadores_bd:
-            # sembrar trabajadores en la bd
             for user_obj in self.usuarios_sistema.values():
                 self.trabajador_dao.guardar(user_obj)
             trabajadores_bd = self.trabajador_dao.obtener_todos()
-        #actualziar el diccionario de usuarios con los leídos de la bd
+
+        # Preservar contraseñas/credenciales en memoria para autenticación RBAC
+        pass_map = {"admin": "admin123", "recepcion": "rec123", "instructor": "ins123"}
         for t in trabajadores_bd:
-            key_user = t.usuario if getattr(t, 'usuario', None) else t.nombres.lower().replace(" ", "")
+            key_user = getattr(t, 'usuario', None) or t.nombres.lower().replace(" ", "")
+            if key_user in pass_map:
+                t._passHash = pass_map[key_user]
             self.usuarios_sistema[key_user] = t
+
 
     def alternar_tema(self):
         self.modo_oscuro_activo = not self.modo_oscuro_activo
@@ -1076,9 +1080,14 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.pantallas.addWidget(self.vista_personal)
 
     def guardar_trabajador_admin(self):
-        if not isinstance(self.usuario_actual, Administrador):
-            QMessageBox.warning(self, "Acceso Denegado", "Solo un Administrador posee permisos para crear personal.")
+        if not self.usuario_actual or not isinstance(self.usuario_actual, Administrador):
+            QMessageBox.warning(
+                self,
+                "Acceso Denegado (Requiere Administrador)",
+                "Para registrar personal debes haber iniciado sesión como Administrador (Usuario: admin / Contraseña: admin123)."
+            )
             return
+
 
         rol = self.combo_trab_rol.currentText()
         rut = self.input_trab_rut.text().strip()
@@ -1091,7 +1100,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Campos Vacíos", "Por favor completa RUT, Nombres, Usuario y Contraseña.")
             return
 
-        nuevo_id = str(len(self.usuarios_sistema) + 1)
+        nuevo_id = "0"
         if rol == "Recepcionista":
             nuevo_t = Recepcionista(
                 idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellidos, usuario=usr, passHash=pwd
@@ -1111,19 +1120,40 @@ class VentanaPrincipalPowerFit(QMainWindow):
             # Guardar en SQLite permanente
             self.trabajador_dao.guardar(nuevo_t)
 
-            self.usuarios_sistema[usr] = nuevo_t
-            r = self.tabla_personal.rowCount()
-            self.tabla_personal.insertRow(r)
-            self.tabla_personal.setItem(r, 0, QTableWidgetItem(str(nuevo_t.idTrabajador)))
-            self.tabla_personal.setItem(r, 1, QTableWidgetItem(nuevo_t.usuario))
-            self.tabla_personal.setItem(r, 2, QTableWidgetItem(f"{nuevo_t.nombres} {nuevo_t.apellidoPaterno}"))
-            self.tabla_personal.setItem(r, 3, QTableWidgetItem(nuevo_t.getRol()))
+            # Releer de SQLite para obtener los objetos actualizados con IDs reales
+            trabajadores_bd = self.trabajador_dao.obtener_todos()
+            for t in trabajadores_bd:
+                key_u = getattr(t, 'usuario', None) or t.nombres.lower().replace(" ", "")
+                self.usuarios_sistema[key_u] = t
+
+            # Refrescar tabla visual de personal
+            self.actualizar_tabla_personal()
+
+            # Limpiar entradas de texto
+            self.input_trab_rut.clear()
+            self.input_trab_nombres.clear()
+            self.input_trab_apellidos.clear()
+            self.input_trab_usuario.clear()
+            self.input_trab_pass.clear()
 
             QMessageBox.information(
                 self,
                 "Trabajador Creado",
                 f"¡El Administrador {self.usuario_actual.getNombres()} ha creado al trabajador {nombres} con rol {rol} en SQLite!"
             )
+
+    def actualizar_tabla_personal(self):
+        """Redibuja la tabla visual de personal con los usuarios registrados en el sistema."""
+        self.tabla_personal.setRowCount(0)
+        for u in self.usuarios_sistema.values():
+            r = self.tabla_personal.rowCount()
+            self.tabla_personal.insertRow(r)
+            self.tabla_personal.setItem(r, 0, QTableWidgetItem(str(u.idTrabajador)))
+            self.tabla_personal.setItem(r, 1, QTableWidgetItem(u.usuario))
+            self.tabla_personal.setItem(r, 2, QTableWidgetItem(f"{u.nombres} {u.apellidoPaterno}"))
+            self.tabla_personal.setItem(r, 3, QTableWidgetItem(u.getRol()))
+
+
 
 
     # =========================================================================

@@ -14,6 +14,9 @@ class TrabajadorDAO(BaseDAO):
         """Convierte una fila de la tabla trabajadores y sus subclases en SQLite"""
 
         rol = row['rol']
+        usr = row['usuario'] if 'usuario' in row.keys() and row['usuario'] else row['nombres'].lower().replace(" ", "")
+        pwd = row['pass_hash'] if 'pass_hash' in row.keys() else ''
+
         datos_base = dict(
             idTrabajador=row['id_trabajador'],
             rut=row['rut'],
@@ -21,10 +24,12 @@ class TrabajadorDAO(BaseDAO):
             apellidoPaterno=row['apellido_paterno'],
             apellidoMaterno=row['apellido_materno'],
             telefono=row['telefono'],
-            correoElectronico=row['correo_electronico']
+            correoElectronico=row['correo_electronico'],
+            usuario=usr,
+            passHash=pwd
         )
         if rol == 'Administrador':
-            return Administrador(**datos_base)
+            return Administrador(**datos_base, nivelAcceso='General')
         elif rol == 'Instructor':
             return Instructor(**datos_base, especialidad=row['especialidad'] or 'General')
         else: #Recepcionista o por defecto
@@ -56,43 +61,48 @@ class TrabajadorDAO(BaseDAO):
             return self._map_row_to_trabajador(row) if row else None
 
     def guardar(self, entidad: Trabajador) -> bool:
-        """Inserta o actuaiza un trabajador en la base de datos"""
-        #Determinar el nombre del rol segun el tipo de objeto
+        """Inserta o actualiza un trabajador en la base de datos."""
         if isinstance(entidad, Administrador):
             rol = 'Administrador'
         elif isinstance(entidad, Instructor):
-            rol ='Instructor'
+            rol = 'Instructor'
         else: 
             rol = 'Recepcionista'
 
         especialidad = getattr(entidad, 'especialidad', '')
+        usr = getattr(entidad, 'usuario', '')
+        pwd = getattr(entidad, '_passHash', '')
+        id_trab_num = int(entidad.idTrabajador) if str(entidad.idTrabajador).isdigit() else 0
 
         with ConexionDB.obt_conexion() as conn:
-            cursor = conn.cursor ()
-            cursor.execute("SELECT id_trabajador FROM trabajadores WHERE id_trabajador = ?;", (entidad.idTrabajador,))
+            cursor = conn.cursor()
+            cursor.execute("SELECT id_trabajador FROM trabajadores WHERE id_trabajador = ?;", (id_trab_num,))
             existe = cursor.fetchone()
 
-            if existe: 
+            if existe and id_trab_num > 0: 
                 cursor.execute("""
-                UPDATE trabajadores
-                SET rut = ?, nombres = ?, apellido_paterno = ?, apellido_materno = ?,
-                telefono = ?, correo_electronico = ?, rol = ?, especialidad = ?
-                where id_trabajador = ?;
+                    UPDATE trabajadores
+                    SET rut = ?, nombres = ?, apellido_paterno = ?, apellido_materno = ?,
+                        telefono = ?, correo_electronico = ?, rol = ?, especialidad = ?,
+                        usuario = ?, pass_hash = ?
+                    WHERE id_trabajador = ?;
                 """, (
-                    entidad.rut, entidad.nombres, entidad.apellidoPaterno, entidad.apellidoMaterno, entidad.telefono, 
-                    entidad.correoElectronico,rol, especialidad, entidad.idTrabajador
+                    entidad.rut, entidad.nombres, entidad.apellidoPaterno, entidad.apellidoMaterno,
+                    entidad.telefono, entidad.correoElectronico, rol, especialidad, usr, pwd, id_trab_num
                 ))
             else: 
                 cursor.execute("""
-                INSERT INTO trabajadores (rut , nombres, apellido_paterno, apellido_materno, telefono, correo_electronico, rol, especialidad)
-                values (?,?,?,?,?,?,?,?);
+                    INSERT INTO trabajadores (rut, nombres, apellido_paterno, apellido_materno, telefono, correo_electronico, rol, especialidad, usuario, pass_hash)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """, (
                     entidad.rut, entidad.nombres, entidad.apellidoPaterno, entidad.apellidoMaterno,
-                    entidad.telefono, entidad.correoElectronico, rol, especialidad
-
+                    entidad.telefono, entidad.correoElectronico, rol, especialidad, usr, pwd
                 ))
+
             conn.commit()
             return True
+
+
 
     def eliminar(self, id_entidad: int) -> bool:
         """Elimina un trabajador por su ID."""

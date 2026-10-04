@@ -59,9 +59,20 @@ class ConexionDB:
                     telefono TEXT DEFAULT '',
                     correo_electronico TEXT DEFAULT '',
                     rol TEXT NOT NULL,
-                    especialidad TEXT DEFAULT ''
+                    especialidad TEXT DEFAULT '',
+                    usuario TEXT DEFAULT '',
+                    pass_hash TEXT DEFAULT ''
                 );
             """)
+
+            # Auto-migrar columnas si la tabla ya existia previamente
+            cursor.execute("PRAGMA table_info(trabajadores);")
+            columnas_existentes = [col['name'] for col in cursor.fetchall()]
+            if 'usuario' not in columnas_existentes:
+                cursor.execute("ALTER TABLE trabajadores ADD COLUMN usuario TEXT DEFAULT '';")
+            if 'pass_hash' not in columnas_existentes:
+                cursor.execute("ALTER TABLE trabajadores ADD COLUMN pass_hash TEXT DEFAULT '';")
+
 
             # 3. Tabla Clases
             cursor.execute("""
