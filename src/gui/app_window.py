@@ -1044,7 +1044,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         obj_suplemento = self.combo_producto.currentData()
         if not obj_suplemento:
-            # Releer por si acaso
             idx = self.combo_producto.currentIndex()
             if hasattr(self, 'suplementos_bd') and idx >= 0 and idx < len(self.suplementos_bd):
                 obj_suplemento = self.suplementos_bd[idx]
@@ -1053,7 +1052,13 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Producto Inválido", "No se encontró el producto seleccionado.")
             return
 
-        # 2. Verificar Stock (Regla #6 UML)
+        # Reconsultar el suplemento fresco desde SQLite para asegurar sincronía 100% real
+        id_sup_num = int(obj_suplemento.codigo) if str(obj_suplemento.codigo).isdigit() else 1
+        sup_actualizado = self.suplemento_dao.obtener_por_id(id_sup_num)
+        if sup_actualizado:
+            obj_suplemento = sup_actualizado
+
+        # 2. Verificar Stock (Regla #6 UML) sobre la información más fresca de la BD
         if not obj_suplemento.hayStock(cant):
             QMessageBox.warning(self, "Stock Insuficiente", f"No hay stock suficiente para {obj_suplemento.nombre} (Stock actual: {obj_suplemento.stock}).")
             return

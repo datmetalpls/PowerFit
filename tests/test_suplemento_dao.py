@@ -12,8 +12,9 @@ def test_crud_suplemento():
     # 1. Asegurar esquema de tablas
     ConexionDB.crear_tablas()
 
-    # Limpiar suplementos de prueba previas
+    # Limpiar suplementos de prueba previas y sus detalles asociados
     with ConexionDB.obt_conexion() as conn:
+        conn.execute("DELETE FROM detalles_ventas WHERE id_suplemento IN (SELECT id_suplemento FROM suplementos WHERE nombre LIKE 'Test %');")
         conn.execute("DELETE FROM suplementos WHERE nombre LIKE 'Test %';")
 
     dao = SuplementoDAO()
