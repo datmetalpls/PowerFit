@@ -538,16 +538,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
             lbl_estado = "🟢 Al Día" if (socio.estadoActivo and socio.permitirIngreso()) else ("🔴 Vencida / Impago" if socio.estadoActivo else "⚪ Plan Cancelado")
             self.tabla_socios.setItem(row, 5, QTableWidgetItem(lbl_estado))
 
-        self.tabla_socios.setItem(row, 5, QTableWidgetItem(lbl_estado))
         self.actualizar_combo_socios_inscripcion()
-
-        QMessageBox.information(
-            self,
-            "Socio Registrado",
-            f"¡Socio {nombres} {apellidos} registrado exitosamente!\n"
-            f"📍 Dirección: {obj_direccion.obtenerDireccionCompleta()}\n"
-            f"🔑 Estado Membresía: {lbl_estado}"
-        )
 
     def renovar_membresia_socio(self):
         items = self.tabla_socios.selectedItems()
