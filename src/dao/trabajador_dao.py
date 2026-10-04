@@ -71,7 +71,7 @@ class TrabajadorDAO(BaseDAO):
 
         especialidad = getattr(entidad, 'especialidad', '')
         usr = getattr(entidad, 'usuario', '')
-        pwd = getattr(entidad, '_passHash', '')
+        pwd = getattr(entidad, '_passHash', getattr(entidad, 'passHash', ''))
         id_trab_num = int(entidad.idTrabajador) if str(entidad.idTrabajador).isdigit() else 0
 
         with ConexionDB.obt_conexion() as conn:
