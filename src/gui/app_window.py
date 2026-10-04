@@ -10,6 +10,7 @@ from src.dao.trabajador_dao import TrabajadorDAO
 from src.dao.clase_dao import ClaseDAO
 from src.dao.suplemento_dao import SuplementoDAO
 from src.dao.inscripcion_dao import InscripcionDAO
+from src.dao.venta_dao import VentaDAO
 
 
 from PySide6.QtWidgets import (
@@ -225,6 +226,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
             if key_user in pass_map:
                 t._passHash = pass_map[key_user]
             self.usuarios_sistema[key_user] = t
+
+        # 4. Cargar historial de ventas persistido en la BD
+        self.cargar_historial_ventas_bd()
 
 
     def alternar_tema(self):
@@ -859,16 +863,18 @@ class VentanaPrincipalPowerFit(QMainWindow):
     # =========================================================================
     def construir_vista_ventas(self):
         self.vista_ventas = QWidget()
-        layout_ventas = QVBoxLayout(self.vista_ventas)
+        layout_principal_ventas = QHBoxLayout(self.vista_ventas)
+
+        # Panel Izquierdo: Formulario de Venta y Reposición Admin
+        panel_izq = QWidget()
+        layout_izq = QVBoxLayout(panel_izq)
 
         lbl = QLabel("🛒 Punto de Venta de Suplementos & API Dólar")
         lbl.setStyleSheet("font-size: 18px; font-weight: bold; color: #2C3E50;")
-        layout_ventas.addWidget(lbl)
+        layout_izq.addWidget(lbl)
 
         form_ventas = QFormLayout()
-        form_ventas = QFormLayout()
         self.combo_producto = QComboBox()
-        self.combo_producto.currentIndexChanged.connect(self.al_cambiar_producto_venta)
 
         self.input_cantidad = QLineEdit("1")
         self.input_valor_dolar = QLineEdit()
@@ -883,14 +889,14 @@ class VentanaPrincipalPowerFit(QMainWindow):
         form_ventas.addRow("Valor dólar (CLP): ", self.input_valor_dolar)
         form_ventas.addRow("Consultar API: ", self.btn_obtener_dolar)
 
-        layout_ventas.addLayout(form_ventas)
+        layout_izq.addLayout(form_ventas)
 
         self.btn_guardar_venta = QPushButton("💳 Procesar Venta")
         self.btn_guardar_venta.setStyleSheet("background-color: #2980B9; color: white; padding: 8px; font-weight: bold;")
         self.btn_guardar_venta.clicked.connect(self.guardar_venta)
-        layout_ventas.addWidget(self.btn_guardar_venta)
+        layout_izq.addWidget(self.btn_guardar_venta)
 
-        # Sección Administrador: Reponer Stock (UML Administrador.reponerStock)
+        # Sección Administrador: Reponer Stock
         box_admin_stock = QGroupBox("📦 Gestión de Inventario & Reposición (Administrador)")
         layout_stock = QHBoxLayout(box_admin_stock)
         self.input_reponer_cant = QLineEdit("50")
@@ -901,18 +907,40 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout_stock.addWidget(QLabel("Cantidad:"))
         layout_stock.addWidget(self.input_reponer_cant)
         layout_stock.addWidget(self.btn_reponer_stock)
-        layout_ventas.addWidget(box_admin_stock)
+        layout_izq.addWidget(box_admin_stock)
+
+        # Historial de Ventas Persistido
+        lbl_hist = QLabel("📄 Historial de Ventas Procesadas (Persistido en BD)")
+        lbl_hist.setStyleSheet("font-weight: bold; font-size: 13px; color: #2C3E50; margin-top: 10px;")
+        layout_izq.addWidget(lbl_hist)
 
         self.tabla_ventas = QTableWidget()
         self.tabla_ventas.setColumnCount(4)
-        self.tabla_ventas.setHorizontalHeaderLabels(["Producto", "Cantidad", "Valor Dólar", "Total Estimado (CLP)"])
-        layout_ventas.addWidget(self.tabla_ventas)
+        self.tabla_ventas.setHorizontalHeaderLabels(["Producto", "Cantidad", "Fecha / Dólar", "Total (CLP)"])
+        layout_izq.addWidget(self.tabla_ventas)
+
+        layout_principal_ventas.addWidget(panel_izq, stretch=1)
+
+        # Panel Derecho: Inventario y Stock Físico en Tiempo Real
+        panel_der = QGroupBox("📊 Inventario y Stock Físico en Tiempo Real")
+        layout_der = QVBoxLayout(panel_der)
+
+        lbl_inv_desc = QLabel("💡 Revisa el stock disponible actualizado en vivo tras cada venta o reposición:")
+        lbl_inv_desc.setStyleSheet("font-size: 11px; color: #555; font-style: italic;")
+        layout_der.addWidget(lbl_inv_desc)
+
+        self.tabla_inventario = QTableWidget()
+        self.tabla_inventario.setColumnCount(4)
+        self.tabla_inventario.setHorizontalHeaderLabels(["ID", "Producto", "Precio USD", "Stock Disponible"])
+        layout_der.addWidget(self.tabla_inventario)
+
+        layout_principal_ventas.addWidget(panel_der, stretch=1)
 
         self.pantallas.addWidget(self.vista_ventas)
-        self.actualizar_combo_productos_ventas()
+        self.actualizar_inventario_y_combo()
 
-    def actualizar_combo_productos_ventas(self):
-        """Carga y refresca dinámicamente los productos desde SQLite indicando su stock actual."""
+    def actualizar_inventario_y_combo(self):
+        """Carga y refresca dinámicamente el stock en el combo y en la tabla de inventario derecha."""
         productos_defecto = [
             ("1", "Proteína Whey Gold 1kg ($45 USD)", 45.0, 100),
             ("2", "Creatina Monohidratada 500g ($25 USD)", 25.0, 100),
@@ -928,11 +956,27 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         self.suplementos_bd = self.suplemento_dao.obtener_todos()
 
+        # 1. Actualizar combo izquierdo (solo nombre de producto)
         self.combo_producto.blockSignals(True)
         self.combo_producto.clear()
         for sup in self.suplementos_bd:
-            self.combo_producto.addItem(f"{sup.nombre} | Stock Disponible: {sup.stock} un.", sup)
+            self.combo_producto.addItem(sup.nombre, sup)
         self.combo_producto.blockSignals(False)
+
+        # 2. Actualizar tabla de inventario derecha
+        self.tabla_inventario.setRowCount(0)
+        for sup in self.suplementos_bd:
+            r = self.tabla_inventario.rowCount()
+            self.tabla_inventario.insertRow(r)
+            self.tabla_inventario.setItem(r, 0, QTableWidgetItem(str(sup.codigo)))
+            self.tabla_inventario.setItem(r, 1, QTableWidgetItem(sup.nombre))
+            self.tabla_inventario.setItem(r, 2, QTableWidgetItem(f"${sup.precioUSD:.2f} USD"))
+            
+            lbl_stock = f"📦 {sup.stock} unidades"
+            item_st = QTableWidgetItem(lbl_stock)
+            if sup.stock <= 5:
+                item_st.setForeground(Qt.red)
+            self.tabla_inventario.setItem(r, 3, item_st)
 
     def al_cambiar_producto_venta(self):
         """Mantiene sincronizada la selección actual del producto."""
@@ -960,8 +1004,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
         admin_autoridad.reponerStock(obj_suplemento, cant)
         self.suplemento_dao.guardar(obj_suplemento)
 
-        # Refrescar productos en la UI
-        self.actualizar_combo_productos_ventas()
+        # Refrescar productos en la UI y la tabla de inventario derecha
+        self.actualizar_inventario_y_combo()
 
         QMessageBox.information(
             self,
@@ -1019,8 +1063,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
         obj_suplemento.descontarStock(cant)
         self.suplemento_dao.guardar(obj_suplemento)
 
-        # Refrescar vista del combo con el nuevo stock reducido
-        self.actualizar_combo_productos_ventas()
+        # Refrescar vista del combo y la tabla de inventario en tiempo real
+        self.actualizar_inventario_y_combo()
 
         # 3. Crear DetalleVenta y Venta compuesta (UML)
         obj_detalle = DetalleVenta(cantidad=cant, precioUnitarioCLP=precio_clp, suplemento=obj_suplemento)
@@ -1028,24 +1072,37 @@ class VentanaPrincipalPowerFit(QMainWindow):
         exito = obj_venta.agregarDetalle(obj_detalle)
 
         # 4. Invocar Recepcionista.registrarVenta(venta) si corresponde (UML)
-        if isinstance(self.usuario_actual, Recepcionista):
-            self.usuario_actual.registrarVenta(obj_venta)
+        recepcion_autoridad = self.usuario_actual if isinstance(self.usuario_actual, Recepcionista) else self.usuarios_sistema.get("recepcion")
+        if recepcion_autoridad and hasattr(recepcion_autoridad, 'registrarVenta'):
+            recepcion_autoridad.registrarVenta(obj_venta)
 
-        row = self.tabla_ventas.rowCount()
-        self.tabla_ventas.insertRow(row)
-        self.tabla_ventas.setItem(row, 0, QTableWidgetItem(obj_suplemento.nombre))
-        self.tabla_ventas.setItem(row, 1, QTableWidgetItem(str(cant)))
-        self.tabla_ventas.setItem(row, 2, QTableWidgetItem(f"${valor_dolar:,.2f} CLP"))
+        # 5. Persistir Venta en SQLite permanentemente a través de VentaDAO
+        if hasattr(self, 'venta_dao'):
+            self.venta_dao.guardar(obj_venta)
 
-        self.tabla_ventas.setItem(row, 3, QTableWidgetItem(f"${obj_venta.totalCLP:,.0f} CLP"))
+        self.cargar_historial_ventas_bd()
 
         QMessageBox.information(
             self,
             "Venta Transaccional Procesada",
-            f"¡Venta N° {obj_venta.numero} de '{obj_suplemento.nombre}' procesada con éxito!\n"
+            f"¡Venta N° {obj_venta.numero} de '{obj_suplemento.nombre}' procesada con éxito y guardada en BD!\n"
             f"💰 Total CLP: ${obj_venta.totalCLP:,.0f}\n"
             f"📦 Stock Restante en BD: {obj_suplemento.stock} unidades"
         )
+
+    def cargar_historial_ventas_bd(self):
+        """Carga y muestra el historial de ventas procesadas desde la base de datos SQLite."""
+        if not hasattr(self, 'venta_dao'):
+            return
+        ventas_bd = self.venta_dao.obtener_todos()
+        self.tabla_ventas.setRowCount(0)
+        for v in ventas_bd:
+            r = self.tabla_ventas.rowCount()
+            self.tabla_ventas.insertRow(r)
+            self.tabla_ventas.setItem(r, 0, QTableWidgetItem(str(v.get('nombre_producto', 'Suplemento'))))
+            self.tabla_ventas.setItem(r, 1, QTableWidgetItem(f"{v.get('cantidad', 1)} un."))
+            self.tabla_ventas.setItem(r, 2, QTableWidgetItem(str(v.get('fecha', 'N/A'))))
+            self.tabla_ventas.setItem(r, 3, QTableWidgetItem(f"${v.get('total_clp', 0.0):,.0f} CLP"))
 
     # =========================================================================
     # VISTA 4: GESTIÓN DE PERSONAL / TRABAJADORES (ADMINISTRADOR)

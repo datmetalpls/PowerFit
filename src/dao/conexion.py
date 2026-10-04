@@ -111,5 +111,28 @@ class ConexionDB:
                 );
             """)
 
+            # 6. Tabla Ventas
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS ventas (
+                    id_venta INTEGER PRIMARY KEY AUTOINCREMENT,
+                    numero INTEGER NOT NULL,
+                    fecha TEXT NOT NULL,
+                    total_clp REAL NOT NULL DEFAULT 0.0
+                );
+            """)
+
+            # 7. Tabla Detalle Ventas
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS detalles_ventas (
+                    id_detalle INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id_venta INTEGER NOT NULL,
+                    id_suplemento INTEGER NOT NULL,
+                    cantidad INTEGER NOT NULL,
+                    precio_unitario_clp REAL NOT NULL,
+                    FOREIGN KEY (id_venta) REFERENCES ventas(id_venta) ON DELETE CASCADE,
+                    FOREIGN KEY (id_suplemento) REFERENCES suplementos(id_suplemento)
+                );
+            """)
+
             conexion.commit()
 
