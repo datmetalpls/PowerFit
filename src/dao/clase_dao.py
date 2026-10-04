@@ -51,25 +51,32 @@ class ClaseDAO(BaseDAO):
         """Inserta o actualiza una clase en SQLite."""
         id_instructor = entidad.instructor.idTrabajador if entidad.instructor else None
 
+        # Extraer ID numerico de 'entidad.codigo' (ej: 'CLS-001' -> 1)
+        cod_str = str(getattr(entidad, 'codigo', '0'))
+        id_clase_num = int(''.join(filter(str.isdigit, cod_str)) or '0')
+
+        horario_str = getattr(entidad, 'horario', None) or f"{getattr(entidad, 'duracionMin', 60)} min - {getattr(entidad, 'sala', 'Sala 1')}"
+
         with ConexionDB.obt_conexion() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT id_clase FROM clases WHERE id_clase = ?;", (entidad.idClase,))
+            cursor.execute("SELECT id_clase FROM clases WHERE id_clase = ?;", (id_clase_num,))
             existe = cursor.fetchone()
 
-            if existe: 
+            if existe and id_clase_num > 0: 
                 cursor.execute("""
                     UPDATE clases
                     SET nombre = ?, horario = ?, cupo_maximo = ?, id_instructor = ?
                     WHERE id_clase = ?;
-                """, (entidad.nombre, entidad.horario, entidad.cupoMaximo, id_instructor, entidad.idClase))
+                """, (entidad.nombre, horario_str, entidad.cupoMaximo, id_instructor, id_clase_num))
             else: 
                 cursor.execute("""
                     INSERT INTO clases (nombre, horario, cupo_maximo, id_instructor)
                     VALUES (?, ?, ?, ?);
-                """, (entidad.nombre, entidad.horario, entidad.cupoMaximo, id_instructor))
+                """, (entidad.nombre, horario_str, entidad.cupoMaximo, id_instructor))
 
             conn.commit()
             return True
+
 
     def eliminar(self, id_entidad: int) -> bool:
         """Elimina una clase por su ID."""
