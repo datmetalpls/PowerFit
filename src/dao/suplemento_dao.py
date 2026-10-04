@@ -52,10 +52,16 @@ class SuplementoDAO(BaseDAO):
                     WHERE id_suplemento = ?;
                 """, (entidad.nombre, precio_clp, entidad.stock, categoria, id_sup))
             else:
-                cursor.execute("""
-                    INSERT INTO suplementos (nombre, precio_clp, stock, categoria)
-                    VALUES (?, ?, ?, ?);
-                """, (entidad.nombre, precio_clp, entidad.stock, categoria))
+                if id_sup > 0:
+                    cursor.execute("""
+                        INSERT INTO suplementos (id_suplemento, nombre, precio_clp, stock, categoria)
+                        VALUES (?, ?, ?, ?, ?);
+                    """, (id_sup, entidad.nombre, precio_clp, entidad.stock, categoria))
+                else:
+                    cursor.execute("""
+                        INSERT INTO suplementos (nombre, precio_clp, stock, categoria)
+                        VALUES (?, ?, ?, ?);
+                    """, (entidad.nombre, precio_clp, entidad.stock, categoria))
 
             conn.commit()
             return True
