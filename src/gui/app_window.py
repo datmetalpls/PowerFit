@@ -1080,14 +1080,15 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.pantallas.addWidget(self.vista_personal)
 
     def guardar_trabajador_admin(self):
-        if not self.usuario_actual or not isinstance(self.usuario_actual, Administrador):
+        admin_autoridad = self.usuario_actual if isinstance(self.usuario_actual, Administrador) else self.usuarios_sistema.get("admin")
+        
+        if not admin_autoridad or not isinstance(admin_autoridad, Administrador):
             QMessageBox.warning(
                 self,
                 "Acceso Denegado (Requiere Administrador)",
                 "Para registrar personal debes haber iniciado sesión como Administrador (Usuario: admin / Contraseña: admin123)."
             )
             return
-
 
         rol = self.combo_trab_rol.currentText()
         rut = self.input_trab_rut.text().strip()
@@ -1114,32 +1115,39 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 nivelAcceso="General", idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellidos, usuario=usr, passHash=pwd
             )
 
-        # Invocar formalmente Administrador.crearTrabajador(t)
-        exito = self.usuario_actual.crearTrabajador(nuevo_t)
-        if exito:
-            # Guardar en SQLite permanente
-            self.trabajador_dao.guardar(nuevo_t)
+        try:
+            # Invocar formalmente Administrador.crearTrabajador(t)
+            exito = admin_autoridad.crearTrabajador(nuevo_t)
+            if exito:
+                # Guardar en SQLite permanente
+                self.trabajador_dao.guardar(nuevo_t)
 
-            # Releer de SQLite para obtener los objetos actualizados con IDs reales
-            trabajadores_bd = self.trabajador_dao.obtener_todos()
-            for t in trabajadores_bd:
-                key_u = getattr(t, 'usuario', None) or t.nombres.lower().replace(" ", "")
-                self.usuarios_sistema[key_u] = t
+                # Releer de SQLite para obtener los objetos actualizados con IDs reales
+                trabajadores_bd = self.trabajador_dao.obtener_todos()
+                for t in trabajadores_bd:
+                    key_u = getattr(t, 'usuario', None) or t.nombres.lower().replace(" ", "")
+                    self.usuarios_sistema[key_u] = t
 
-            # Refrescar tabla visual de personal
-            self.actualizar_tabla_personal()
+                # Refrescar tabla visual de personal
+                self.actualizar_tabla_personal()
 
-            # Limpiar entradas de texto
-            self.input_trab_rut.clear()
-            self.input_trab_nombres.clear()
-            self.input_trab_apellidos.clear()
-            self.input_trab_usuario.clear()
-            self.input_trab_pass.clear()
+                # Limpiar entradas de texto
+                self.input_trab_rut.clear()
+                self.input_trab_nombres.clear()
+                self.input_trab_apellidos.clear()
+                self.input_trab_usuario.clear()
+                self.input_trab_pass.clear()
 
-            QMessageBox.information(
+                QMessageBox.information(
+                    self,
+                    "Trabajador Creado",
+                    f"¡El Administrador {admin_autoridad.getNombres()} ha creado al trabajador {nombres} con rol {rol} en la Base de Datos!"
+                )
+        except Exception as err:
+            QMessageBox.critical(
                 self,
-                "Trabajador Creado",
-                f"¡El Administrador {self.usuario_actual.getNombres()} ha creado al trabajador {nombres} con rol {rol} en SQLite!"
+                "Error al Guardar Trabajador",
+                f"No se pudo guardar el trabajador en la base de datos:\n{str(err)}"
             )
 
     def actualizar_tabla_personal(self):

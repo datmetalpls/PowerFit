@@ -21,16 +21,18 @@ def test_crud_inscripcion():
     inscripcion_dao = InscripcionDAO()
 
     # 2. Crear socio y clase para la prueba
-    socio_test = Socio(
-        idSocio=0,
-        rut="99.999.999-9",
-        nombres="SocioInscripcion",
-        apellidoPaterno="Test",
-        fechaVencimientoMembresia=date(2026, 12, 31),
-        estadoActivo=True
-    )
-    socio_dao.guardar(socio_test)
     socio_db = socio_dao.obtener_por_rut("99.999.999-9")
+    if not socio_db:
+        socio_test = Socio(
+            idSocio=0,
+            rut="99.999.999-9",
+            nombres="SocioInscripcion",
+            apellidoPaterno="Test",
+            fechaVencimientoMembresia=date(2026, 12, 31),
+            estadoActivo=True
+        )
+        socio_dao.guardar(socio_test)
+        socio_db = socio_dao.obtener_por_rut("99.999.999-9")
 
     clase_test = Spinning(codigo="CLS-999", nombre="Test Spinning Inscripcion", cupoMaximo=15, sala="Sala 1")
     clase_dao.guardar(clase_test)
