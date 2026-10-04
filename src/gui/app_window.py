@@ -866,13 +866,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout_ventas.addWidget(lbl)
 
         form_ventas = QFormLayout()
+        form_ventas = QFormLayout()
         self.combo_producto = QComboBox()
-        self.combo_producto.addItems([
-            "Proteína Whey Gold 1kg ($45 USD)",
-            "Creatina Monohidratada 500g ($25 USD)",
-            "Pre-Entreno C4 300g ($30 USD)",
-            "BCAA Aminoácidos 400g ($20 USD)",
-        ])
+        self.combo_producto.currentIndexChanged.connect(self.al_cambiar_producto_venta)
 
         self.input_cantidad = QLineEdit("1")
         self.input_valor_dolar = QLineEdit()
@@ -913,9 +909,38 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout_ventas.addWidget(self.tabla_ventas)
 
         self.pantallas.addWidget(self.vista_ventas)
+        self.actualizar_combo_productos_ventas()
+
+    def actualizar_combo_productos_ventas(self):
+        """Carga y refresca dinámicamente los productos desde SQLite indicando su stock actual."""
+        productos_defecto = [
+            ("1", "Proteína Whey Gold 1kg ($45 USD)", 45.0, 100),
+            ("2", "Creatina Monohidratada 500g ($25 USD)", 25.0, 100),
+            ("3", "Pre-Entreno C4 300g ($30 USD)", 30.0, 100),
+            ("4", "BCAA Aminoácidos 400g ($20 USD)", 20.0, 100)
+        ]
+
+        # Asegurar catálogo inicial en SQLite si no existen
+        for cod, nom, pre, st in productos_defecto:
+            sup_exist = self.suplemento_dao.obtener_por_id(int(cod))
+            if not sup_exist:
+                self.suplemento_dao.guardar(Suplemento(codigo=cod, nombre=nom, precioUSD=pre, stock=st))
+
+        self.suplementos_bd = self.suplemento_dao.obtener_todos()
+
+        self.combo_producto.blockSignals(True)
+        self.combo_producto.clear()
+        for sup in self.suplementos_bd:
+            self.combo_producto.addItem(f"{sup.nombre} | Stock Disponible: {sup.stock} un.", sup)
+        self.combo_producto.blockSignals(False)
+
+    def al_cambiar_producto_venta(self):
+        """Mantiene sincronizada la selección actual del producto."""
+        pass
 
     def reponer_stock_admin(self):
-        if not isinstance(self.usuario_actual, Administrador):
+        admin_autoridad = self.usuario_actual if isinstance(self.usuario_actual, Administrador) else self.usuarios_sistema.get("admin")
+        if not admin_autoridad or not isinstance(admin_autoridad, Administrador):
             QMessageBox.warning(self, "Acceso Denegado", "Solo el Administrador posee permisos para reponer stock físico.")
             return
 
@@ -926,24 +951,23 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Valor Inválido", "La cantidad a reponer debe ser un número entero.")
             return
 
-        prod_nombre = self.combo_producto.currentText()
-        precio_usd = 45.0 if "Whey" in prod_nombre else (25.0 if "Creatina" in prod_nombre else (30.0 if "Pre-Entreno" in prod_nombre else 20.0))
-        cod_id = "1" if "Whey" in prod_nombre else ("2" if "Creatina" in prod_nombre else ("3" if "Pre-Entreno" in prod_nombre else "4"))
-        
-        # Buscar en BD o crear
-        sup = self.suplemento_dao.obtener_por_id(int(cod_id))
-        if not sup:
-            sup = Suplemento(cod_id, prod_nombre, precio_usd, stock=20)
+        obj_suplemento = self.combo_producto.currentData()
+        if not obj_suplemento:
+            QMessageBox.warning(self, "Selección Inválida", "Por favor selecciona un producto válido de la lista.")
+            return
 
         # Invocar Administrador.reponerStock(sup, cant)
-        self.usuario_actual.reponerStock(sup, cant)
-        self.suplemento_dao.guardar(sup)
+        admin_autoridad.reponerStock(obj_suplemento, cant)
+        self.suplemento_dao.guardar(obj_suplemento)
+
+        # Refrescar productos en la UI
+        self.actualizar_combo_productos_ventas()
 
         QMessageBox.information(
             self,
             "Stock Repuesto",
-            f"¡El Administrador {self.usuario_actual.getNombres()} ha repuesto +{cant} unidades de '{prod_nombre}' en SQLite!\n"
-            f"Nuevo Stock Total: {sup.stock} unidades."
+            f"¡El Administrador {admin_autoridad.getNombres()} ha repuesto +{cant} unidades de '{obj_suplemento.nombre}' en SQLite!\n"
+            f"Nuevo Stock Total: {obj_suplemento.stock} unidades."
         )
 
     def cargar_dolar_api(self):
@@ -959,7 +983,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Error API Dólar", f"No se pudo consultar el valor del dólar: {e}")
 
     def guardar_venta(self):
-        prod = self.combo_producto.currentText()
         cant_str = self.input_cantidad.text().strip()
         dolar_clp_str = self.input_valor_dolar.text().strip()
 
@@ -974,17 +997,20 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Valor Inválido", "Cantidad debe ser entero y valor dólar numérico.")
             return
 
-        # 1. Obteber o Crear Suplemento en BD
-        precio_usd = 45.0 if "Whey" in prod else (25.0 if "Creatina" in prod else (30.0 if "Pre-Entreno" in prod else 20.0))
-        cod_id = "1" if "Whey" in prod else ("2" if "Creatina" in prod else ("3" if "Pre-Entreno" in prod else "4"))
-        
-        obj_suplemento = self.suplemento_dao.obtener_por_id(int(cod_id))
+        obj_suplemento = self.combo_producto.currentData()
         if not obj_suplemento:
-            obj_suplemento = Suplemento(codigo=cod_id, nombre=prod, precioUSD=precio_usd, stock=100)
+            # Releer por si acaso
+            idx = self.combo_producto.currentIndex()
+            if hasattr(self, 'suplementos_bd') and idx >= 0 and idx < len(self.suplementos_bd):
+                obj_suplemento = self.suplementos_bd[idx]
+
+        if not obj_suplemento:
+            QMessageBox.warning(self, "Producto Inválido", "No se encontró el producto seleccionado.")
+            return
 
         # 2. Verificar Stock (Regla #6 UML)
         if not obj_suplemento.hayStock(cant):
-            QMessageBox.warning(self, "Stock Insuficiente", f"No hay stock suficiente para {prod} (Stock actual: {obj_suplemento.stock}).")
+            QMessageBox.warning(self, "Stock Insuficiente", f"No hay stock suficiente para {obj_suplemento.nombre} (Stock actual: {obj_suplemento.stock}).")
             return
 
         precio_clp = obj_suplemento.calcularPrecioCLP(valor_dolar)
@@ -992,6 +1018,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
         # Descontar stock y actualizar SQLite
         obj_suplemento.descontarStock(cant)
         self.suplemento_dao.guardar(obj_suplemento)
+
+        # Refrescar vista del combo con el nuevo stock reducido
+        self.actualizar_combo_productos_ventas()
 
         # 3. Crear DetalleVenta y Venta compuesta (UML)
         obj_detalle = DetalleVenta(cantidad=cant, precioUnitarioCLP=precio_clp, suplemento=obj_suplemento)
@@ -1004,7 +1033,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         row = self.tabla_ventas.rowCount()
         self.tabla_ventas.insertRow(row)
-        self.tabla_ventas.setItem(row, 0, QTableWidgetItem(prod))
+        self.tabla_ventas.setItem(row, 0, QTableWidgetItem(obj_suplemento.nombre))
         self.tabla_ventas.setItem(row, 1, QTableWidgetItem(str(cant)))
         self.tabla_ventas.setItem(row, 2, QTableWidgetItem(f"${valor_dolar:,.2f} CLP"))
 
@@ -1013,9 +1042,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
         QMessageBox.information(
             self,
             "Venta Transaccional Procesada",
-            f"¡Venta N° {obj_venta.numero} de '{prod}' procesada con éxito!\n"
+            f"¡Venta N° {obj_venta.numero} de '{obj_suplemento.nombre}' procesada con éxito!\n"
             f"💰 Total CLP: ${obj_venta.totalCLP:,.0f}\n"
-            f"📦 Stock Restante: {obj_suplemento.stock} unidades"
+            f"📦 Stock Restante en BD: {obj_suplemento.stock} unidades"
         )
 
     # =========================================================================
