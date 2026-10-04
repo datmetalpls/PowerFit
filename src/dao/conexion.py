@@ -28,9 +28,77 @@ class ConexionDB:
 
         return conexion
     @classmethod
-    def crear_tabla(cls):
-            """Esquema inicial de tablas en SQLite por si no existen"""
-            with cls.obt_conexion() as conexion:
-                 cursor=conexion.cursor()
-                 #Aquí en adelante se ejecutarán los create table if not exists
-                 conexion.commit()
+    def crear_tablas(cls):
+        """Crea el esquema inicial de tablas en SQLite si no existen."""
+        with cls.obt_conexion() as conexion:
+            cursor = conexion.cursor()
+
+            # 1. Tabla Socios
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS socios (
+                    id_socio INTEGER PRIMARY KEY AUTOINCREMENT,
+                    rut TEXT UNIQUE NOT NULL,
+                    nombres TEXT NOT NULL,
+                    apellido_paterno TEXT NOT NULL,
+                    apellido_materno TEXT DEFAULT '',
+                    telefono TEXT DEFAULT '',
+                    correo_electronico TEXT DEFAULT '',
+                    fecha_vencimiento TEXT NOT NULL,
+                    estado_activo INTEGER NOT NULL DEFAULT 1
+                );
+            """)
+
+            # 2. Tabla Trabajadores (Administrador, Recepcionista, Instructor)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS trabajadores (
+                    id_trabajador INTEGER PRIMARY KEY AUTOINCREMENT,
+                    rut TEXT UNIQUE NOT NULL,
+                    nombres TEXT NOT NULL,
+                    apellido_paterno TEXT NOT NULL,
+                    apellido_materno TEXT DEFAULT '',
+                    telefono TEXT DEFAULT '',
+                    correo_electronico TEXT DEFAULT '',
+                    rol TEXT NOT NULL,
+                    especialidad TEXT DEFAULT ''
+                );
+            """)
+
+            # 3. Tabla Clases
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS clases (
+                    id_clase INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nombre TEXT NOT NULL,
+                    horario TEXT NOT NULL,
+                    cupo_maximo INTEGER NOT NULL DEFAULT 20,
+                    id_instructor INTEGER,
+                    FOREIGN KEY (id_instructor) REFERENCES trabajadores(id_trabajador) ON DELETE SET NULL
+                );
+            """)
+
+            # 4. Tabla Inscripciones (Relación Socio - Clase)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS inscripciones (
+                    id_inscripcion INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id_socio INTEGER NOT NULL,
+                    id_clase INTEGER NOT NULL,
+                    fecha_inscripcion TEXT NOT NULL,
+                    asistio INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY (id_socio) REFERENCES socios(id_socio) ON DELETE CASCADE,
+                    FOREIGN KEY (id_clase) REFERENCES clases(id_clase) ON DELETE CASCADE,
+                    UNIQUE(id_socio, id_clase)
+                );
+            """)
+
+            # 5. Tabla Suplementos (Punto de Venta)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS suplementos (
+                    id_suplemento INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nombre TEXT NOT NULL,
+                    precio_clp INTEGER NOT NULL,
+                    stock INTEGER NOT NULL DEFAULT 0,
+                    categoria TEXT DEFAULT 'Proteína'
+                );
+            """)
+
+            conexion.commit()
+
