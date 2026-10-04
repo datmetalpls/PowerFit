@@ -3,7 +3,14 @@ import os
 import sys
 import json
 import urllib.request
-import uuid
+
+from src.dao.conexion import ConexionDB
+from src.dao.socio_dao import SocioDAO
+from src.dao.trabajador_dao import TrabajadorDAO
+from src.dao.clase_dao import ClaseDAO
+from src.dao.suplemento_dao import SuplementoDAO
+from src.dao.inscripcion_dao import InscripcionDAO
+
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -65,6 +72,17 @@ class VentanaPrincipalPowerFit(QMainWindow):
         # Usuario autenticado actualmente
         self.usuario_actual = None
 
+
+        #Inicializar base de datos SQLite y DAOss
+        ConexionDB.crear_tablas()
+        self.socio_dao = SocioDAO()
+        self.trabajador_dao = TrabajadorDAO()
+        self.clase_dao = ClaseDAO()
+        self.suplemento_dao = SuplementoDAO()
+        self.inscripcion_dao = InscripcionDAO()
+
+        
+
         # Base de datos simulada de usuarios del sistema (RBAC)
         self.usuarios_sistema = {
             "admin": Administrador(
@@ -105,10 +123,15 @@ class VentanaPrincipalPowerFit(QMainWindow):
             ),
         }
 
+
+
         # Almacenamiento en memoria de objetos del dominio POO
         self.socios_registrados = []
         self.clases_registradas = {}  # dict: {nombre_clase: obj ClaseDirigida}
         self.clase_seleccionada_actual = None
+
+        #cargar datos de bbdd
+        self.cargar_datos_desde_bd()
 
         # Layout Principal
         self.widget_central = QWidget()
@@ -178,6 +201,27 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.btn_logout.clicked.connect(self.cerrar_sesion)
 
         self.statusBar().showMessage("🔒 Por favor inicie sesión para acceder al sistema.")
+
+    def cargar_datos_desde_bd(self):
+        """cargar y sincronizar la memoria local de la GUI con la base de datos SQlite"""
+        #1. cargar socios desde sqlite
+        self.socios_registrados = self.socio_dao.obtener_todos()
+
+        #2. cargar clases dirigidas desde Sqlite
+        clases_list = self.clase_dao.obtener_todos()
+        self.clases_registradas= {clase.nombre: clase for clase in clases_list}
+
+        #3. cargar usuarios del sistema (si bd está vacía == null == None, sembrar ininciales)
+        trabajadores_bd = self.trabajador_dao.obtener_todos()
+        if not trabajadores_bd:
+            # sembrar trabajadores en la bd
+            for user_obj in self.usuarios_sistema.values():
+                self.trabajador_dao.guardar(user_obj)
+            trabajadores_bd = self.trabajador_dao.obtener_todos()
+        #actualziar el diccionario de usuarios con los leídos de la bd
+        for t in trabajadores_bd:
+            key_user = t.usuario if getattr(t, 'usuario', None) else t.nombres.lower().replace(" ", "")
+            self.usuarios_sistema[key_user] = t
 
     def alternar_tema(self):
         self.modo_oscuro_activo = not self.modo_oscuro_activo
@@ -410,18 +454,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Campos Incompletos", "Por favor completa al menos RUT, Nombres y Apellidos")
             return
 
-        row = self.tabla_socios.rowCount()
-        self.tabla_socios.insertRow(row)
-        self.tabla_socios.setItem(row, 0, QTableWidgetItem(rut))
-        self.tabla_socios.setItem(row, 1, QTableWidgetItem(f"{nombres} {apellidos}"))
-        self.tabla_socios.setItem(row, 2, QTableWidgetItem(telefono))
-        self.tabla_socios.setItem(row, 3, QTableWidgetItem(comuna))
-        self.tabla_socios.setItem(row, 4, QTableWidgetItem(tipo_direccion))
-
         # Crear objetos Comuna y Direccion integrados
         from src.models import Comuna
-        comuna_str = self.combo_comunas.currentText()
-        nombre_comuna = comuna_str.split(" (ID:")[0]
+        nombre_comuna = comuna.split(" (ID:")[0]
         obj_comuna = Comuna(idComuna=13101, nombre=nombre_comuna)
 
         tipo_dir_mapeo = tipo_direccion.lower()
@@ -452,7 +487,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         # Crear y guardar objeto Socio en el dominio POO
         nuevo_socio = Socio(
-            idSocio=len(self.socios_registrados) + 1,
+            idSocio=0,
             rut=rut,
             nombres=nombres,
             apellidoPaterno=apellidos,
@@ -462,16 +497,43 @@ class VentanaPrincipalPowerFit(QMainWindow):
             telefono=telefono,
             correoElectronico=self.input_correo.text().strip(),
         )
-        # Asociar la direccion completa mejorada al socio
         nuevo_socio.direccion = obj_direccion
 
-        # Invocar formalmente registrarSocio() del usuario recepcionista/admin en sesión
         if isinstance(self.usuario_actual, Recepcionista):
             self.usuario_actual.registrarSocio(nuevo_socio)
 
-        self.socios_registrados.append(nuevo_socio)
-        
-        lbl_estado = "🟢 Al Día" if (nuevo_socio.estadoActivo and nuevo_socio.permitirIngreso()) else ("🔴 Vencida / Impago" if nuevo_socio.estadoActivo else "⚪ Plan Cancelado")
+        # Guardar en SQLite permanente y actualizar GUI
+        self.socio_dao.guardar(nuevo_socio)
+        self.socios_registrados = self.socio_dao.obtener_todos()
+        self.actualizar_tabla_socios()
+        self.actualizar_combo_socios_inscripcion()
+
+        QMessageBox.information(
+            self,
+            "Socio Registrado",
+            f"¡Socio {nombres} {apellidos} registrado exitosamente y guardado en SQLite!\n"
+            f"Vigencia: Hasta {fecha_venc}"
+        )
+
+    def actualizar_tabla_socios(self):
+        """Puebla la QTableWidget visual con los socios guardados en SQLite."""
+        self.tabla_socios.setRowCount(0)
+        for socio in self.socios_registrados:
+            row = self.tabla_socios.rowCount()
+            self.tabla_socios.insertRow(row)
+            self.tabla_socios.setItem(row, 0, QTableWidgetItem(socio.rut))
+            self.tabla_socios.setItem(row, 1, QTableWidgetItem(f"{socio.nombres} {socio.apellidoPaterno}"))
+            self.tabla_socios.setItem(row, 2, QTableWidgetItem(socio.telefono))
+
+            comuna_nombre = socio.direccion.comuna.nombre if getattr(socio, 'direccion', None) and getattr(socio.direccion, 'comuna', None) else "N/A"
+            vivienda_tipo = socio.direccion.tipoDireccion if getattr(socio, 'direccion', None) else "N/A"
+
+            self.tabla_socios.setItem(row, 3, QTableWidgetItem(comuna_nombre))
+            self.tabla_socios.setItem(row, 4, QTableWidgetItem(vivienda_tipo))
+
+            lbl_estado = "🟢 Al Día" if (socio.estadoActivo and socio.permitirIngreso()) else ("🔴 Vencida / Impago" if socio.estadoActivo else "⚪ Plan Cancelado")
+            self.tabla_socios.setItem(row, 5, QTableWidgetItem(lbl_estado))
+
         self.tabla_socios.setItem(row, 5, QTableWidgetItem(lbl_estado))
         self.actualizar_combo_socios_inscripcion()
 
@@ -486,26 +548,30 @@ class VentanaPrincipalPowerFit(QMainWindow):
     def renovar_membresia_socio(self):
         items = self.tabla_socios.selectedItems()
         if not items:
-            QMessageBox.warning(self, "Selección Requerida", "Por favor selecciona un socio en la tabla para renovar su membresía.")
+            QMessageBox.warning(self, "Seleccion Requerida", "Por favor selecciona un socio en la tabla para renovar su membresía.")
             return
 
         row = items[0].row()
         rut_socio = self.tabla_socios.item(row, 0).text()
-        socio = next((s for s in self.socios_registrados if s.getRut() == rut_socio), None)
+        socio = next((s for s in self.socios_registrados if s.rut == rut_socio), None)
 
-        if socio:
-            from datetime import date, timedelta
-            # Invocar Recepcionista.cobrarMensualidad
+        if socio: 
+            #Se invoca recepcionista.cobra mensualdiad
             if isinstance(self.usuario_actual, Recepcionista):
                 self.usuario_actual.cobrarMensualidad(socio, 35000)
-            
-            socio.renovarMembresia(dias=30)
-            self.tabla_socios.setItem(row, 5, QTableWidgetItem("🟢 Al Día (+30d)"))
-            QMessageBox.information(
-                self,
-                "Membresía Renovada",
-                f"¡Cobro realizado por la Recepcion! La membresía del socio {socio.getNombres()} ha sido renovada hasta {socio.fechaVencimientoMembresia}."
-            )
+
+                socio.renovarMembresia(dias=30)
+
+                #Persistir cambio en Sqlite
+                self.socio_dao.guardar(socio)
+                self.actualizar_tabla_socios()
+
+                QMessageBox.information(
+                    self, 
+                    "Membresia Renovada",
+                    f"¡Cobro realizado! La membresía del socio {socio.nombres} {socio.apellidoPaterno} ha sido renovada en la base de datos hasta {socio.fechaVencimientoMembresia}. "
+
+                )
 
     def cancelar_plan_socio(self):
         items = self.tabla_socios.selectedItems()
@@ -513,18 +579,22 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Selección Requerida", "Por favor selecciona un socio en la tabla para cancelar su plan.")
             return
 
-        row = items[0].row()
+        row = items [0].row()
         rut_socio = self.tabla_socios.item(row, 0).text()
-        socio = next((s for s in self.socios_registrados if s.getRut() == rut_socio), None)
+        socio = next((s for s in self.socios_registrados if s.rut == rut_socio), None)
 
-        if socio:
+        if socio: 
             socio.cancelarPlan()
-            self.tabla_socios.setItem(row, 5, QTableWidgetItem("⚪ Plan Cancelado"))
+
+            #Persistir cambio en SQlite
+            self.socio_dao.guardar(socio)
+            self.actualizar_tabla_socios()
+
             QMessageBox.warning(
                 self,
                 "Plan Cancelado",
-                f"El plan del socio {socio.getNombres()} ({socio.getRut()}) ha sido CANCELADO/DESACTIVADO.\n"
-                f"El molinete de portería bloqueará su ingreso hasta un nuevo alta/renovación."
+                f"El plan del socio {socio.nombres} ({socio.rut}) ha sido Cancelado/Desactivado en la Base de Daots. \n"
+                f"El Torniquete de portería bloqueará su ingreso hasta una nueva renovación. "
             )
 
     # =========================================================================
