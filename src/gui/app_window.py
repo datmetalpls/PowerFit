@@ -205,30 +205,37 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.statusBar().showMessage("🔒 Por favor inicie sesión para acceder al sistema.")
 
     def cargar_datos_desde_bd(self):
-        """Carga y sincroniza la memoria local de la GUI con la base de datos SQLite."""
-        # 1. Cargar socios desde SQLite
+        """Carga y sincroniza la memoria local y las tablas de la GUI con la base de datos SQLite."""
+        # 1. Cargar socios desde SQLite y refrescar tabla visual
         self.socios_registrados = self.socio_dao.obtener_todos()
+        if hasattr(self, 'actualizar_tabla_socios'):
+            self.actualizar_tabla_socios()
 
-        # 2. Cargar clases dirigidas desde SQLite
+        # 2. Cargar clases dirigidas desde SQLite y refrescar tabla visual
         clases_list = self.clase_dao.obtener_todos()
         self.clases_registradas = {clase.nombre: clase for clase in clases_list}
+        if hasattr(self, 'actualizar_tabla_clases_bd'):
+            self.actualizar_tabla_clases_bd()
 
-        # 3. Cargar usuarios del sistema (si BD está vacía, sembrar iniciales)
+        # 3. Cargar usuarios del sistema y refrescar tabla visual de personal
         trabajadores_bd = self.trabajador_dao.obtener_todos()
         if not trabajadores_bd:
             for user_obj in self.usuarios_sistema.values():
                 self.trabajador_dao.guardar(user_obj)
             trabajadores_bd = self.trabajador_dao.obtener_todos()
 
-        # Preservar contraseñas/credenciales en memoria para autenticación RBAC
         pass_map = {"admin": "admin123", "recepcion": "rec123", "instructor": "ins123"}
         for t in trabajadores_bd:
             key_user = getattr(t, 'usuario', None) or t.nombres.lower().replace(" ", "")
             if key_user in pass_map:
                 t._passHash = pass_map[key_user]
             self.usuarios_sistema[key_user] = t
+        if hasattr(self, 'actualizar_tabla_personal'):
+            self.actualizar_tabla_personal()
 
-        # 4. Cargar historial de ventas persistido en la BD
+        # 4. Cargar inventario y ventas persistidos en la BD
+        if hasattr(self, 'actualizar_inventario_y_combo'):
+            self.actualizar_inventario_y_combo()
         self.cargar_historial_ventas_bd()
 
 
@@ -723,18 +730,27 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.clases_registradas = {c.nombre: c for c in clases_list}
         self.clase_seleccionada_actual = self.clases_registradas.get(nombre, obj_clase)
 
-        # Insertar en Tabla Visual
-        row = self.tabla_clases.rowCount()
-        self.tabla_clases.insertRow(row)
-        self.tabla_clases.setItem(row, 0, QTableWidgetItem(f"{obj_clase.obtener_icono_disciplina()} {disc}"))
-        self.tabla_clases.setItem(row, 1, QTableWidgetItem(nombre))
-        self.tabla_clases.setItem(row, 2, QTableWidgetItem(f"0 / {cupos_max} (0%)"))
-        self.tabla_clases.setItem(row, 3, QTableWidgetItem(sala))
-        self.tabla_clases.setItem(row, 4, QTableWidgetItem("🟢 Disponible"))
-
-        # Renderizar mapa de sala
+        # Refrescar tabla visual completa
+        self.actualizar_tabla_clases_bd()
         self.renderizar_mapa_sala(obj_clase)
         QMessageBox.information(self, "Clase Creada", f"¡Clase '{nombre}' ({disc}) creada en {sala} con {cupos_max} puestos!")
+
+    def actualizar_tabla_clases_bd(self):
+        """Redibuja la tabla visual de clases dirigidas con la información de SQLite."""
+        if not hasattr(self, 'tabla_clases'):
+            return
+        self.tabla_clases.setRowCount(0)
+        for obj_clase in self.clases_registradas.values():
+            row = self.tabla_clases.rowCount()
+            self.tabla_clases.insertRow(row)
+            disc = obj_clase.__class__.__name__.replace("Clase", "")
+            icono = obj_clase.obtener_icono_disciplina()
+            self.tabla_clases.setItem(row, 0, QTableWidgetItem(f"{icono} {disc}"))
+            self.tabla_clases.setItem(row, 1, QTableWidgetItem(obj_clase.nombre))
+            self.tabla_clases.setItem(row, 2, QTableWidgetItem(f"{obj_clase.cupos_ocupados} / {obj_clase.cupo_maximo} ({obj_clase.porcentaje_ocupacion:.0f}%)"))
+            self.tabla_clases.setItem(row, 3, QTableWidgetItem(obj_clase.sala))
+            estado = "🔴 Llena" if obj_clase.cupos_disponibles == 0 else "🟢 Disponible"
+            self.tabla_clases.setItem(row, 4, QTableWidgetItem(estado))
 
     def al_seleccionar_clase_tabla(self):
         items = self.tabla_clases.selectedItems()
@@ -943,10 +959,10 @@ class VentanaPrincipalPowerFit(QMainWindow):
     def actualizar_inventario_y_combo(self):
         """Carga y refresca dinámicamente el stock en el combo y en la tabla de inventario derecha."""
         productos_defecto = [
-            ("1", "Proteína Whey Gold 1kg ($45 USD)", 45.0, 100),
-            ("2", "Creatina Monohidratada 500g ($25 USD)", 25.0, 100),
-            ("3", "Pre-Entreno C4 300g ($30 USD)", 30.0, 100),
-            ("4", "BCAA Aminoácidos 400g ($20 USD)", 20.0, 100)
+            ("1", "Proteína Whey Gold 1kg", 45.0, 100),
+            ("2", "Creatina Monohidratada 500g", 25.0, 100),
+            ("3", "Pre-Entreno C4 300g", 30.0, 100),
+            ("4", "BCAA Aminoácidos 400g", 20.0, 100)
         ]
 
         # Asegurar catálogo inicial en SQLite si no existen
