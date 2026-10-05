@@ -1,3 +1,17 @@
+## [1.0.0] - 2026-10-05
+
+### 🚀 Añadido (Fase 5 - Evaluación Sumativa 2)
+- **Persistencia (SQLite & DAO)**:
+  - Implementación completa de operaciones CRUD transaccionales a través del patrón DAO en `src/dao/`.
+  - Base de datos relacional `powerfit.db` gestionada automáticamente y prevención contra inyección SQL usando consultas preparadas (`?`).
+  - Almacenamiento seguro de transacciones como Venta y Detalles de Venta.
+- **Seguridad y Validación (Excepciones Propias)**:
+  - Creación del archivo `src/models/excepciones.py` conteniendo las reglas de negocio como excepciones controladas (`SinCupoException`, `MembresiaVencidaException`).
+  - Validación fuerte en setters con `ValueError` (ej. al instanciar un RUT inválido o un stock negativo).
+  - Captura y manejo visual de todas las excepciones con bloques `try/except` en `src/gui/app_window.py` mostrando avisos amigables (`QMessageBox`) sin detener el programa.
+- **Uso de IA documentado**:
+  - Actualización del `README.md` documentando el caso práctico de adaptación del algoritmo de validación Módulo 11 sugerido por IA, integrando lanzamiento de excepciones (`ValueError`) en lugar de detención abrupta (`sys.exit()`).
+
 # 📜 Changelog - PowerFit
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.

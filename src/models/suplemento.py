@@ -70,7 +70,9 @@ class Suplemento:
 
     @stock.setter
     def stock(self, nuevo_stock: int):
-        self._stock = max(0, nuevo_stock)
+        if nuevo_stock < 0:
+            raise ValueError("El stock de un suplemento no puede ser negativo.")
+        self._stock = nuevo_stock
 
     @property
     def stockMinimo(self) -> int:

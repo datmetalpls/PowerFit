@@ -1,5 +1,10 @@
 # 🏋️ PowerFit - Sistema de Gestión de Gimnasio
 
+**Negocio Asignado:** PowerFit (Gimnasio y Venta de Suplementos)
+**Integrantes del Equipo:**
+- César Guerrero Acevedo
+- Jose Luis Arriagada
+
 Sistema desarrollado en Python bajo el paradigma de **Programación Orientada a Objetos (POO)** para la asignatura de POO. El proyecto implementa los requerimientos de negocio y diseño estructural UML especificados en la arquitectura del sistema.
 
 ---
@@ -296,3 +301,28 @@ python main.py
 ```
 
 
+
+---
+
+## 🔒 Decisiones de Seguridad y Persistencia
+
+En el desarrollo de PowerFit, se tomaron las siguientes medidas para asegurar la integridad de la aplicación:
+
+1. **Prevención de Inyección SQL:** Todas las consultas a la base de datos (SQLite) ubicadas en la carpeta `src/dao/` se realizan utilizando sentencias preparadas y parametrizadas (`?`). Nunca se concatena entrada del usuario directamente en la consulta.
+2. **Validación de Entradas (Setters):** Las entradas de los usuarios se validan estrictamente mediante el uso de propiedades y setters (ej. validación del Algoritmo Módulo 11 en el setter de `rut` dentro de `Persona`). Los datos inválidos lanzan excepciones (`ValueError`, `SinCupoException`, `MembresiaVencidaException`) que son capturadas de manera controlada por la interfaz gráfica (`try/except`), mostrando advertencias amigables sin interrumpir o "crashear" la ejecución del programa.
+
+---
+
+## 🤖 Uso de Inteligencia Artificial (IA) en el Desarrollo
+
+Durante la construcción del sistema, se utilizaron asistentes de IA bajo criterio técnico, documentando adopciones, modificaciones o descartes:
+
+### Ejemplo Concreto:
+**Solicitud a la IA:** *"Genera un método para validar si un RUT chileno es correcto usando el algoritmo módulo 11".*
+
+**Sugerencia de la IA:**
+La IA entregó un código que calculaba el Módulo 11 iterando los dígitos e incluía una validación basada en `sys.exit()` si el RUT fallaba.
+
+**Decisión Técnica (Modificado):**
+- **Adoptado:** La lógica matemática pura para calcular el dígito verificador y el recorrido en reversa de la cadena (`reversed()`).
+- **Modificado/Descartado:** Se descartó el uso de `sys.exit()` o `print()`, ya que detendrían la ejecución de la aplicación GUI de manera abrupta. En su lugar, adaptamos el código para integrarlo como una propiedad protegida dentro de la clase `Persona`, lanzando un `ValueError` en el setter (`rut.setter`), permitiendo que PySide6 atrape la excepción limpiamente con un `try/except` y muestre un `QMessageBox`.

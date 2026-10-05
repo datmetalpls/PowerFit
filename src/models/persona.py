@@ -14,7 +14,9 @@ class Persona(ABC):
         telefono: str = "",
         correoElectronico: str = "",
     ):
-        self._rut = rut
+        self._rut = ""
+        if rut:
+            self.rut = rut
         self._nombres = nombres
         self._apellidoPaterno = apellidoPaterno
         self._apellidoMaterno = apellidoMaterno
@@ -24,6 +26,14 @@ class Persona(ABC):
     @property
     def rut(self) -> str:
         return self._rut
+
+    @rut.setter
+    def rut(self, nuevo_rut: str):
+        viejo_rut = self._rut
+        self._rut = nuevo_rut
+        if not self.validarRut():
+            self._rut = viejo_rut
+            raise ValueError(f"El RUT '{nuevo_rut}' no es válido.")
 
     @property
     def nombres(self) -> str:

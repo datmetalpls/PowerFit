@@ -502,17 +502,21 @@ class VentanaPrincipalPowerFit(QMainWindow):
             activo = False
 
         # Crear y guardar objeto Socio en el dominio POO
-        nuevo_socio = Socio(
-            idSocio=0,
-            rut=rut,
-            nombres=nombres,
-            apellidoPaterno=apellidos,
-            fechaVencimientoMembresia=fecha_venc,
-            estadoActivo=activo,
-            apellidoMaterno="",
-            telefono=telefono,
-            correoElectronico=self.input_correo.text().strip(),
-        )
+        try:
+            nuevo_socio = Socio(
+                idSocio=0,
+                rut=rut,
+                nombres=nombres,
+                apellidoPaterno=apellidos,
+                fechaVencimientoMembresia=fecha_venc,
+                estadoActivo=activo,
+                apellidoMaterno="",
+                telefono=telefono,
+                correoElectronico=self.input_correo.text().strip(),
+            )
+        except ValueError as ve:
+            QMessageBox.critical(self, "Error de Validación", str(ve))
+            return
         nuevo_socio.direccion = obj_direccion
 
         if isinstance(self.usuario_actual, Recepcionista):
@@ -547,7 +551,14 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.tabla_socios.setItem(row, 3, QTableWidgetItem(comuna_nombre))
             self.tabla_socios.setItem(row, 4, QTableWidgetItem(vivienda_tipo))
 
-            lbl_estado = "🟢 Al Día" if (socio.estadoActivo and socio.permitirIngreso()) else ("🔴 Vencida / Impago" if socio.estadoActivo else "⚪ Plan Cancelado")
+            lbl_estado = "⚪ Plan Cancelado"
+            if socio.estadoActivo:
+                from src.models.excepciones import MembresiaVencidaException
+                try:
+                    if socio.permitirIngreso():
+                        lbl_estado = "🟢 Al Día"
+                except MembresiaVencidaException:
+                    lbl_estado = "🔴 Vencida / Impago"
             self.tabla_socios.setItem(row, 5, QTableWidgetItem(lbl_estado))
 
         self.actualizar_combo_socios_inscripcion()
@@ -816,12 +827,15 @@ class VentanaPrincipalPowerFit(QMainWindow):
             socio = self.socios_registrados[idx_socio]
 
             # Regla de Bloqueo #2 (UML): socio.permitirIngreso()
-            if not socio.permitirIngreso():
+            from src.models.excepciones import MembresiaVencidaException, SinCupoException
+            try:
+                socio.permitirIngreso()
+            except MembresiaVencidaException as e:
                 QMessageBox.critical(
                     self,
                     "Acceso Denegado (Membresía Vencida)",
-                    f"⛔ El socio {socio.getNombres()} ({socio.getRut()}) tiene la membresía VENCIDA.\n"
-                    f"La Recepcionista debe realizar el pago/cobro de mensualidad antes de otorgar un cupo."
+                    f"⛔ El socio {socio.getNombres()} ({socio.getRut()}) tiene un problema de membresía:\n\n{str(e)}\n\n"
+                    f"Se debe regularizar el pago de mensualidad."
                 )
                 return
 
@@ -832,7 +846,11 @@ class VentanaPrincipalPowerFit(QMainWindow):
                     QMessageBox.warning(self, "Asistencia Rechazada", f"No se pudo validar asistencia para {socio.getNombres()} en la clase.")
                     return
 
-            exito = self.clase_seleccionada_actual.inscribir_socio(socio, posicion)
+            try:
+                exito = self.clase_seleccionada_actual.inscribir_socio(socio, posicion)
+            except SinCupoException as e:
+                QMessageBox.critical(self, "Sin Cupo Físico", f"⛔ Error: {str(e)}")
+                return
             if exito:
                 # Guardar inscripción permanente en SQLite
                 codigo_raw = str(getattr(self.clase_seleccionada_actual, 'codigo', '1'))
@@ -1333,9 +1351,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
             return
 
         # Invocar formalmente la regla de negocio UML: Socio.permitirIngreso()
-        permitido = socio.permitirIngreso()
-
-        if permitido:
+        from src.models.excepciones import MembresiaVencidaException
+        try:
+            permitido = socio.permitirIngreso()
             self.lbl_icono_torniquete.setText("🟢 PASE CONCEDIDO")
             self.lbl_estado_molinete.setText("TORNIQUETE DESBLOQUEADO - ¡BIENVENIDO/A!")
             self.lbl_estado_molinete.setStyleSheet("font-size: 18px; font-weight: bold; color: #2ECC71;")
@@ -1351,7 +1369,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 f"¡Pase Concedido!\nSocio: {socio.getNombres()} {socio.getApellidoPaterno()}\n"
                 f"Vigencia: Hasta {socio.fechaVencimientoMembresia}"
             )
-        else:
+        except MembresiaVencidaException as e:
             self.lbl_icono_torniquete.setText("🔴 ACCESO DENEGADO")
             self.lbl_estado_molinete.setText("TORNIQUETE BLOQUEADO - MEMBRESÍA VENCIDA / PLAN CANCELADO")
             self.lbl_estado_molinete.setStyleSheet("font-size: 18px; font-weight: bold; color: #E74C3C;")

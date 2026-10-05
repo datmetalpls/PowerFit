@@ -30,6 +30,8 @@ class Clase(ABC):
         return self._duracionMin
 
 
+from src.models.excepciones import SinCupoException
+
 class ClaseDirigida(Clase, ABC):
     """Clase abstracta ClaseDirigida que hereda de Clase."""
 
@@ -99,13 +101,15 @@ class ClaseDirigida(Clase, ABC):
 
     def reservarCupo(self) -> bool:
         """Incrementa los inscritos si hay cupo disponible."""
-        if self.hayCupo():
-            self._inscritos += 1
-            return True
-        return False
+        if not self.hayCupo():
+            raise SinCupoException(f"No quedan cupos físicos en la clase {self._nombre}.")
+        self._inscritos += 1
+        return True
 
     def inscribir_socio(self, socio: Socio, posicion: int) -> bool:
         """Inscribe a un socio en una posición visual específica de la sala."""
+        if not self.hayCupo():
+            raise SinCupoException(f"No hay recursos físicos disponibles para inscribir en la clase {self._nombre}.")
         if 0 <= posicion < self._cupoMaximo:
             if self._lista_socios[posicion] is None:
                 self._lista_socios[posicion] = socio

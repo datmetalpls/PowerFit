@@ -2,6 +2,7 @@
 from datetime import date, timedelta
 from typing import Optional
 from src.models.persona import Persona
+from src.models.excepciones import MembresiaVencidaException
 
 
 class Socio(Persona):
@@ -57,9 +58,11 @@ class Socio(Persona):
 
     def permitirIngreso(self) -> bool:
         """Regla de Bloqueo UML: Retorna True solo si está activo y la membresía no ha vencido."""
-        if not self._estadoActivo or self._fechaVencimientoMembresia is None:
-            return False
-        return self._fechaVencimientoMembresia >= date.today()
+        if not self._estadoActivo:
+            raise MembresiaVencidaException("El socio tiene su plan cancelado/desactivado.")
+        if self._fechaVencimientoMembresia is None or self._fechaVencimientoMembresia < date.today():
+            raise MembresiaVencidaException("La membresía del socio se encuentra vencida.")
+        return True
 
     def renovarMembresia(self, dias: int = 30) -> None:
         """UML: + renovarMembresia(dias: int): void - Extiende la membresía y activa el estado."""
