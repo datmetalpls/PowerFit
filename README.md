@@ -1,24 +1,101 @@
 # 🏋️ PowerFit - Sistema de Gestión de Gimnasio
 
+**Negocio Asignado:** PowerFit (Gimnasio y Venta de Suplementos)
+**Integrantes del Equipo:**
+- César Guerrero Acevedo
+- Jose Luis Arriagada
+
 Sistema desarrollado en Python bajo el paradigma de **Programación Orientada a Objetos (POO)** para la asignatura de POO. El proyecto implementa los requerimientos de negocio y diseño estructural UML especificados en la arquitectura del sistema.
 
 ---
 
 ## 🗺️ Roadmap de Desarrollo del Proyecto
 
-![Roadmap del Proyecto PowerFit](roadmap_powerfit.jpg)
+![Roadmap del Proyecto PowerFit](docs/roadmap_powerfit.jpg)
 
 El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas en el modelo de clases UML y el levantamiento de requerimientos:
 
 | Fase | Módulo / Componente | Estado | Descripción clave |
 | :--- | :--- | :---: | :--- |
-| **Fase 1** | **Fundamentos & Modelos Base** | 🟢 Completada | `Persona` (RUT Módulo 11), `Direccion` (tipos de vivienda) y `test.py`. |
-| **Fase 2** | **Jerarquía de Usuarios & Roles** | 🟡 Próxima | `Socio`, `Trabajador` y roles (`Instructor`, `Recepcionista`, `Administrador`). |
-| **Fase 3** | **Motor de Clases & Membresías** | ⚪ Pendiente | `Clase` (`Yoga`, `Spinning`, `Crossfit`), cálculo de cupos, `InscripcionMensual` y `MembresiaMensual`. |
-| **Fase 4** | **Punto de Venta & API Dólar** | ⚪ Pendiente | `Suplemento`, control de stock, `IndicadorDolar` (conversión CLP) y `Venta`. |
-| **Fase 5** | **Interfaz CLI & Entrega Final** | ⚪ Pendiente | Menú interactivo por consola según perfil, QA integral y documentación final. |
+| **Fase 1** | **Fundamentos & Modelos Base** | 🟢 Completada | `Persona` (RUT Módulo 11), `Direccion` y `Comuna` (346 comunas INE ordenadas A-Z). |
+| **Fase 2** | **Jerarquía de Usuarios & Roles** | 🟢 Completada | `Socio` (`permitirIngreso()`), `Trabajador` (`tienePermiso()`), `Instructor` (`dictarClase()`) y `Recepcionista` (`cobrarMensualidad()`). |
+| **Fase 3** | **Motor de Clases & Membresías** | 🟢 Completada | `ClaseDirigida` (`hayCupo()`), `Yoga` (`colchonetas`), `Spinning` (`bicicletas`), `Crossfit` (`estacionesTrabajo`) y `InscripcionMensual`. |
+| **Fase 4** | **Punto de Venta & API Dólar** | 🟢 Completada | `Suplemento` (`calcularPrecioCLP()`), control de stock y `IndicadorDolar` (API `mindicador.cl`). |
+| **Fase 5** | **Interfaz CLI & QA Final** | 🟡 En Desarrollo | Menú interactivo por consola según perfil, suite pytest e integración final. |
+
+### 📌 Backlog / Próximas Tareas a Implementar (Fase 3 en adelante)
+- [ ] **Modelos de Dominio de Clases Dirigidas (`src/models/`):**
+  - Crear clase base `Clase` con atributos comunes (código, nombre, horario, cupo máximo, instructor asignado).
+  - Implementar subclases especializadas: `Yoga`, `Spinning` y `Crossfit`.
+  - Crear modelo `Membresia` con tipos de planes, vigencia y reglas de acceso.
+- [ ] **Lógica de Negocio y Cupos:**
+  - Control dinámico de inscripción de socios a clases verificando cupos disponibles.
+  - Validación de solapamiento de horarios e instructores.
+- [ ] **Punto de Venta e Inventario (Fase 4):**
+  - Modelo `Suplemento` y registro transaccional `Venta`.
+  - Servicio de conversión de divisas en vivo consumiendo la API de `mindicador.cl`.
+- [ ] **Consola CLI y QA (Fase 5):**
+  - Menú interactivo por consola adaptado según rol RBAC del usuario autenticado.
+  - Ampliación de la suite de pruebas unitarias (`pytest`).
 
 ---
+
+---
+
+## 🎨 Roadmap de Interfaz Gráfica GUI (PySide6)
+
+![Roadmap GUI PowerFit](docs/roadmap_gui_powerfit.jpg)
+
+| Hito | Módulo Visual | Estado | Descripción clave |
+| :--- | :--- | :---: | :--- |
+| **Hito 1** | **Marco Principal & Navegación** | 🟢 Completada | `QMainWindow` (800x600), menú horizontal `QHBoxLayout`, botones con CSS y `QStackedWidget`. |
+| **Hito 2** | **Módulo de Gestión de Socios** | 🟢 Completada | Formulario `QFormLayout`, combobox con las 346 comunas de Chile ordenadas alfabéticamente (A-Z), campos UML de dirección y alertas. |
+| **Hito 3** | **Mapa Visual de Salas & Clases Dirigidas** | 🟢 Completada | Formulario para Yoga, Spinning y Crossfit, control de cupos personalizados y **Mapa Interactivo de Puestos en Vivo** (Bicicletas 🚲, Mats 🧘, Estaciones 🏋️). |
+| **Hito 4** | **Punto de Venta & API Dólar en Vivo** | 🟢 Completada | Catálogo de suplementos y consulta en tiempo real a API `mindicador.cl` autocompletando CLP. |
+| **Hito 5** | **Tablas `QTableWidget` en Tiempo Real** | 🟢 Completada | Tablas dinámicas interactivas agregando registros en vivo en Socios, Clases y Ventas. |
+| **Hito 6** | **Perfilamiento, Roles & Autenticación** | 🟢 Completada | Pantalla de Login, autenticación y control de acceso dinámico por rol (Admin, Recepción, Instructor). |
+| **Hito 7** | **Diseño Cyber-Gym & Dual-Theme Adaptable** | 🟢 Completada | Rediseño visual QSS estilo Dark Slate/Neon Orange y conmutador en vivo para **Modo Claro** y **Modo Oscuro** (macOS/Windows). |
+| **Hito 8** | **Modularización de Capa GUI (`src/gui/`)** | 🟢 Completada | Desacople de la ventana principal a `src/gui/app_window.py` y `styles.py`, dejando `main.py` como un bootstrap limpio. |
+
+
+
+---
+
+## 📋 Roadmap Sumativa 2: Requisitos de Negocio & Tareas Faltantes
+
+![Roadmap Sumativa 2 PowerFit](docs/roadmap_sumativa2.jpg)
+
+Plan de acción basado estrictamente en el modelo oficial del profesor y los flujos operacionales del gimnasio:
+
+| Módulo | Actor / Área | Estado | Descripción clave |
+| :--- | :--- | :---: | :--- |
+| **Módulo 1** | **🛎️ Recepcionista** | 🟢 Completada | `cobrarMensualidad()` extendiendo vigencia +30d. Estados "Al Día", "Vencida/Impago", "Plan Cancelado". |
+| **Módulo 2** | **🚪 Control Portería** | 🟢 Completada | Simulador interactivo de torniquete con `Socio.permitirIngreso()` y **Popups de Alerta Flotantes (`QMessageBox.critical`)**. |
+| **Módulo 3** | **🛒 Punto de Venta** | 🟢 Completada | `Suplemento.hayStock()`, descuento físico de stock en bodega y cálculo en CLP vía API Dólar. |
+| **Módulo 4** | **🏋️ Instructor** | 🟢 Completada | `marcarAsistencia(socio, clase)` validando estado de membresía desde mapa de puestos. |
+| **Módulo 5** | **✍️ Transacciones** | 🟢 Completada | Objeto `InscripcionMensual` agrupando `DetalleInscripcion` (Composición 1 a 1..*) y `Venta` con `DetalleVenta`. |
+| **Módulo 6** | **💾 Base de Datos** | ⚪ Pendiente | Persistencia relacional local con `sqlite3` y patrón DAO. |
+
+---
+
+## 🔐 Matriz de Perfilamiento y Control de Acceso por Roles (RBAC)
+
+![Matriz de Roles y Permisos RBAC PowerFit](docs/powerfit_rbac_profiles.jpg)
+
+| Módulo / Funcionalidad | Administrador 👔 | Recepcionista 🛎️ | Instructor 🏋️ |
+| :--- | :---: | :---: | :---: |
+| **Gestión de Socios (Alta y Cobro)** | 🟢 Sí | 🟢 Sí | 🔴 **No** |
+| **Clases Dirigidas & Asistencia** | 🟢 Sí | 🔴 **No** | 🟢 **Sí (Exclusivo)** |
+| **Punto de Venta (Dólar API)** | 🟢 Sí | 🟢 Sí | 🔴 **No** |
+| **Alta de Personal (RBAC)** | 🟢 **Sí (Exclusivo)** | 🔴 **No** | 🔴 **No** |
+| **Torniquete de Portería** | 🟢 Sí | 🟢 Sí | 🔴 **No** |
+
+> [!NOTE]
+> Al iniciar sesión como **Instructor**, el sistema redirige automáticamente a la vista de **Clases Dirigidas**, ocultando el torniquete, ventas, personal y socios. El marcado de puesto desde su perfil ejecuta formalmente la validación `Instructor.marcarAsistencia(socio, clase)`.
+
+---
+
+
 
 ## 📌 Estado de la Clase `Persona` (`persona.py`)
 
@@ -93,89 +170,28 @@ Se cuenta con una suite de pruebas unitarias ([`test.py`](./test.py)) para valid
 ### Ejecución de Pruebas
 Para ejecutar las pruebas en la consola:
 ```bash
-python3 test.py
+python3 main.py
 ```
+
+### Ejecución de la Interfaz Gráfica (PySide6)
+
+> [!IMPORTANT]
+> **Versión de Python Requerida:** Python **3.10**, **3.11** o **a lo más Python 3.12** (Estable).
+> **NO utilizar versiones experimentales o de bleeding-edge como Python 3.14**, ya que carecen de soporte binario C++ de la plataforma Qt/PySide6 en macOS y ocasionan fallos de inicialización `cocoa`.
+
+La aplicación cuenta con una interfaz gráfica basada en **PySide6**. Para abrir la ventana de registro:
+```bash
+source .venv/bin/activate
+python main.py
+```
+*(Asegúrate de tener instalado `PySide6` ejecutando `pip install PySide6` dentro del `.venv` de Python 3.12)*.
+
+---
 
 Las pruebas cubren 19 escenarios en total:
 - **RUT (10 casos)**: RUTs válidos con formato completo (`12.345.678-5`), sin puntos/guiones (`123456785`), DV `'K'`/`'k'`, repetitivos, incorrectos, con letras, vacíos o demasiado cortos.
 - **Teléfono (4 casos)**: Formato chileno con prefijo (`+56 9...`), 9 dígitos, cadenas cortas y cadenas vacías.
 - **Correo Electrónico (5 casos)**: Formato estándar, dominios cortos, correos sin `@`, sin dominio y vacíos.
-
----
-
-## 🚀 Ejecución y Activación de la API REST (`FastAPI`)
-
-El proyecto incluye un servidor de API REST desarrollado con **FastAPI** ubicado en la carpeta [`api/api.py`](./api/api.py).
-
-A continuación se detallan las instrucciones para crear el entorno virtual, instalar dependencias e iniciar el servidor según tu sistema operativo:
-
-### 🍏 macOS & 🐧 Linux
-
-1. Abrir la terminal y navegar a la carpeta de la API:
-   ```bash
-   cd api
-   ```
-2. Crear el entorno virtual e instalar dependencias:
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   ```
-3. Iniciar el servidor de la API:
-   ```bash
-   uvicorn api:app --reload --port 8000
-   ```
-
----
-
-### 🪟 Windows (PowerShell / CMD)
-
-#### Usando PowerShell:
-1. Navegar a la carpeta de la API:
-   ```powershell
-   cd api
-   ```
-2. Crear y activar el entorno virtual:
-   ```powershell
-   python -m venv .venv
-   .\.venv\Scripts\Activate.ps1
-   pip install -r requirements.txt
-   ```
-   *(Nota: Si PowerShell bloquea los scripts por políticas de ejecución, ejecuta antes `Set-ExecutionPolicy Unrestricted -Scope Process`)*.
-3. Iniciar el servidor de la API:
-   ```powershell
-   uvicorn api:app --reload --port 8000
-   ```
-
-#### Usando Símbolo del Sistema (CMD):
-1. Navegar a la carpeta de la API:
-   ```cmd
-   cd api
-   ```
-2. Crear y activar el entorno virtual:
-   ```cmd
-   python -m venv .venv
-   .venv\Scripts\activate.bat
-   pip install -r requirements.txt
-   ```
-3. Iniciar el servidor de la API:
-   ```cmd
-   uvicorn api:app --reload --port 8000
-   ```
-
----
-
-### 🌐 Documentación Interactiva (Swagger / ReDoc)
-Una vez iniciado el servidor, accede desde cualquier navegador a:
-- **Documentación Swagger UI (Interactiva)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- **Documentación ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
-
-### 📌 Endpoints Principales Disponibles
-- `POST /socios`: Registrar un nuevo socio.
-- `GET /socios/{rut}`: Obtener detalles de un socio por RUT.
-- `POST /clases`: Crear una nueva clase dirigida (`yoga`, `spinning`, `crossfit`).
-- `POST /clases/{codigo}/inscripcion`: Inscribir socio a una clase con validación de cupos.
-- `POST /ventas`: Registrar venta de suplementos y productos.
 
 ---
 
@@ -222,14 +238,91 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
    - Se implementaron las validaciones con expresiones regulares para `validarTelefono()` y `validarCorreoElectronico()` en `Persona`.
    - Se amplió `test.py` a 19 pruebas unitarias automatizadas cubriendo los 3 métodos de validación.
 
+10. **Reorganización Profesional del Proyecto en Arquitectura por Capas (POO):**
+    - Se estructuraron los modelos del dominio en `src/models/` (`persona.py`, `comuna.py`, `direccion.py`).
+    - Se centralizaron las pruebas unitarias automatizadas en `tests/test_persona.py`.
+    - Se reunió la documentación, diagramas UML y requerimientos en `docs/` (`docs/requirements/`, `docs/uml/`).
+    - Se mantuvieron scripts experimentales en `scratch/`.
+    - Se simplificó `main.py` como punto de entrada único invocando los modelos de `src.models`.
+
+11. **Inicio de la Interfaz Gráfica con PySide6 (`main.py`):**
+    - Se implementó la clase `VentanaRegistro` heredando de `QWidget` en `main.py`.
+    - Se diseñó el layout vertical (`QVBoxLayout`) con controles de entrada (`QLabel`, `QLineEdit`, `QPushButton`).
+    - Se integró el bucle principal de eventos de `QApplication` y la respuesta visual interactiva con `QMessageBox.information`.
+
 ---
 
 ## 📁 Estructura del Repositorio
 
-- `persona.py`: Implementación de la clase base `Persona` (RUT Módulo 11, validación regex de teléfono y correo).
-- `direccion.py`: Implementación de la clase `Direccion` con validación de tipo de vivienda.
-- `test.py`: Suite de 19 pruebas unitarias automatizadas para validar `Persona`.
-- `CHANGELOG.md`: Registro formal de cambios y control de versiones del proyecto.
-- `roadmap_powerfit.jpg`: Infografía visual del Roadmap y fases de desarrollo del proyecto.
-- `UML/ProyectGym.drawio`: Diagrama UML de clases oficial del proyecto.
-- `Requirements/`: Documentación del levantamiento de requerimientos y auditoría del diseño UML.
+- `src/models/`: Clases del dominio POO desacopladas (1 archivo = 1 clase):
+  - `persona.py`: Clase abstracta base `Persona` con Algoritmo Módulo 11 para RUT.
+  - `socio.py`: Clase `Socio` (`fechaVencimientoMembresia`, `estadoActivo`, `permitirIngreso()`, `renovarMembresia()`, `cancelarPlan()`).
+  - `trabajador.py`: Clase abstracta base `Trabajador` (`autenticar()`, `tienePermiso()`).
+  - `administrador.py`: Subclase `Administrador` (`crearTrabajador()`, `crearClase()`, `reponerStock()`).
+  - `instructor.py`: Subclase `Instructor` (`dictarClase()`, `marcarAsistencia()`).
+  - `recepcionista.py`: Subclase `Recepcionista` (`registrarSocio()`, `cobrarMensualidad()`, `crearInscripcion()`, `registrarVenta()`).
+  - `clase.py`: Clase base `Clase`, `ClaseDirigida` y especializaciones `Yoga`, `Spinning`, `Crossfit`.
+  - `direccion.py` y `comuna.py`: Ubicación postal e integración de las 346 comunas INE de Chile.
+  - `inscripcion.py` y `suplemento.py`: Transacciones de reserva y punto de venta con API Dólar.
+- `src/gui/`: Capa de interfaz gráfica modularizada (`app_window.py` para la ventana principal PySide6 y `styles.py` para hojas de estilo QSS).
+- `tests/`: Suite de pruebas unitarias automatizadas (`test_persona.py`).
+- `uml/`: Diagramas estructurales (`posiblediagrama.drawio.xml`).
+- `docs/`: Documentación del proyecto, diagramas e infografías de arquitectura.
+- `main.py`: Punto de entrada limpio que arranca la aplicación visual PySide6.
+- `requirements.txt`: Dependencias del proyecto (`PySide6`, etc.).
+- `CHANGELOG.md`: Registro formal de versiones y cambios del proyecto.
+
+---
+
+## ⚡ Instalación y Ejecución por Sistema Operativo
+
+### 🍎 En macOS (Apple Silicon / Intel)
+Debido a las políticas de seguridad de librerías dinámicas (`dyld`) en macOS para plugins C++ de Qt, se recomienda instalar y ejecutar directamente con Python 3.12 del sistema:
+
+```bash
+# Instalar dependencias globales del sistema
+python3 -m pip install -r requirements.txt
+
+# Iniciar la interfaz gráfica GUI
+python3 main.py
+```
+
+### 🪟 En Windows
+En Windows los entornos virtuales `.venv` funcionan sin restricciones de seguridad de plugins Qt:
+
+```cmd
+:: Crear e instalar en entorno virtual
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+
+:: Iniciar la interfaz gráfica GUI
+python main.py
+```
+
+
+
+---
+
+## 🔒 Decisiones de Seguridad y Persistencia
+
+En el desarrollo de PowerFit, se tomaron las siguientes medidas para asegurar la integridad de la aplicación:
+
+1. **Prevención de Inyección SQL:** Todas las consultas a la base de datos (SQLite) ubicadas en la carpeta `src/dao/` se realizan utilizando sentencias preparadas y parametrizadas (`?`). Nunca se concatena entrada del usuario directamente en la consulta.
+2. **Validación de Entradas (Setters):** Las entradas de los usuarios se validan estrictamente mediante el uso de propiedades y setters (ej. validación del Algoritmo Módulo 11 en el setter de `rut` dentro de `Persona`). Los datos inválidos lanzan excepciones (`ValueError`, `SinCupoException`, `MembresiaVencidaException`) que son capturadas de manera controlada por la interfaz gráfica (`try/except`), mostrando advertencias amigables sin interrumpir o "crashear" la ejecución del programa.
+
+---
+
+## 🤖 Uso de Inteligencia Artificial (IA) en el Desarrollo
+
+Durante la construcción del sistema, se utilizaron asistentes de IA bajo criterio técnico, documentando adopciones, modificaciones o descartes:
+
+### Ejemplo Concreto:
+**Solicitud a la IA:** *"Genera un método para validar si un RUT chileno es correcto usando el algoritmo módulo 11".*
+
+**Sugerencia de la IA:**
+La IA entregó un código que calculaba el Módulo 11 iterando los dígitos e incluía una validación basada en `sys.exit()` si el RUT fallaba.
+
+**Decisión Técnica (Modificado):**
+- **Adoptado:** La lógica matemática pura para calcular el dígito verificador y el recorrido en reversa de la cadena (`reversed()`).
+- **Modificado/Descartado:** Se descartó el uso de `sys.exit()` o `print()`, ya que detendrían la ejecución de la aplicación GUI de manera abrupta. En su lugar, adaptamos el código para integrarlo como una propiedad protegida dentro de la clase `Persona`, lanzando un `ValueError` en el setter (`rut.setter`), permitiendo que PySide6 atrape la excepción limpiamente con un `try/except` y muestre un `QMessageBox`.

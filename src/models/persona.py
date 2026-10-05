@@ -1,0 +1,123 @@
+"""PowerFit - Modelo Base Abstracto Persona."""
+from abc import ABC, abstractmethod
+
+
+class Persona(ABC):
+    """Clase abstracta base con validación de RUT por Algoritmo Módulo 11."""
+
+    def __init__(
+        self,
+        rut: str,
+        nombres: str,
+        apellidoPaterno: str = "",
+        apellidoMaterno: str = "",
+        telefono: str = "",
+        correoElectronico: str = "",
+    ):
+        self._rut = ""
+        if rut:
+            self.rut = rut
+        self._nombres = nombres
+        self._apellidoPaterno = apellidoPaterno
+        self._apellidoMaterno = apellidoMaterno
+        self._telefono = telefono
+        self._correoElectronico = correoElectronico
+
+    @property
+    def rut(self) -> str:
+        return self._rut
+
+    @rut.setter
+    def rut(self, nuevo_rut: str):
+        viejo_rut = self._rut
+        self._rut = nuevo_rut
+        if not self.validarRut():
+            self._rut = viejo_rut
+            raise ValueError(f"El RUT '{nuevo_rut}' no es válido.")
+
+    @property
+    def nombres(self) -> str:
+        return self._nombres
+
+    @property
+    def nombre(self) -> str:
+        """Alias 'nombre' exigido por el UML Oficial."""
+        if self._apellidoPaterno:
+            return f"{self._nombres} {self._apellidoPaterno}"
+        return self._nombres
+
+    @property
+    def apellidoPaterno(self) -> str:
+        return self._apellidoPaterno
+
+    @property
+    def apellidoMaterno(self) -> str:
+        return self._apellidoMaterno
+
+    @property
+    def telefono(self) -> str:
+        return self._telefono
+
+    @property
+    def correoElectronico(self) -> str:
+        return self._correoElectronico
+
+    def getRut(self) -> str:
+        return self._rut
+
+    def getNombres(self) -> str:
+        return self._nombres
+
+    def getApellidoPaterno(self) -> str:
+        return self._apellidoPaterno
+
+    def validarRut(self) -> bool:
+        """Valida la autenticidad del RUT mediante el Algoritmo Módulo 11."""
+        if not self._rut or not isinstance(self._rut, str):
+            return False
+
+        rut_limpio = self._rut.replace(".", "").replace("-", "").replace(" ", "").upper()
+        if len(rut_limpio) < 2:
+            return False
+
+        cuerpo = rut_limpio[:-1]
+        dv_ingresado = rut_limpio[-1]
+
+        if not cuerpo.isdigit():
+            return False
+
+        suma = 0
+        multiplicador = 2
+
+        for digito in reversed(cuerpo):
+            suma += int(digito) * multiplicador
+            multiplicador = 2 if multiplicador == 7 else multiplicador + 1
+
+        resto = suma % 11
+        resultado = 11 - resto
+
+        if resultado == 11:
+            dv_esperado = "0"
+        elif resultado == 10:
+            dv_esperado = "K"
+        else:
+            dv_esperado = str(resultado)
+
+        return dv_ingresado == dv_esperado
+
+    def validarTelefono(self) -> bool:
+        """Valida formato telefónico (entre 8 y 15 dígitos)."""
+        import re
+        if not self._telefono or not isinstance(self._telefono, str):
+            return False
+        digitos = re.sub(r"[^0-9]", "", self._telefono)
+        return 8 <= len(digitos) <= 15
+
+    def validarCorreoElectronico(self) -> bool:
+        """Valida formato de correo electrónico."""
+        import re
+        if not self._correoElectronico or not isinstance(self._correoElectronico, str):
+            return False
+        patron = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
+        return bool(re.match(patron, self._correoElectronico))
+
