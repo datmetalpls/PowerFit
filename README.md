@@ -21,20 +21,20 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | **Fase 2** | **Jerarquía de Usuarios & Roles** | 🟢 Completada | `Socio` (`permitirIngreso()`), `Trabajador` (`tienePermiso()`), `Instructor` (`dictarClase()`) y `Recepcionista` (`cobrarMensualidad()`). |
 | **Fase 3** | **Motor de Clases & Membresías** | 🟢 Completada | `ClaseDirigida` (`hayCupo()`), `Yoga` (`colchonetas`), `Spinning` (`bicicletas`), `Crossfit` (`estacionesTrabajo`) y `InscripcionMensual`. |
 | **Fase 4** | **Punto de Venta & API Dólar** | 🟢 Completada | `Suplemento` (`calcularPrecioCLP()`), control de stock y `IndicadorDolar` (API `mindicador.cl`). |
-| **Fase 5** | **Interfaz CLI & QA Final** | 🟡 En Desarrollo | Menú interactivo por consola según perfil, suite pytest e integración final. |
+| **Fase 5** | **Interfaz CLI & QA Final** | 🟢 Completada | Menú interactivo por consola según perfil, suite pytest e integración final. |
 
 ### 📌 Backlog / Próximas Tareas a Implementar (Fase 3 en adelante)
-- [ ] **Modelos de Dominio de Clases Dirigidas (`src/models/`):**
+- [x] **Modelos de Dominio de Clases Dirigidas (`src/models/`):**
   - Crear clase base `Clase` con atributos comunes (código, nombre, horario, cupo máximo, instructor asignado).
   - Implementar subclases especializadas: `Yoga`, `Spinning` y `Crossfit`.
   - Crear modelo `Membresia` con tipos de planes, vigencia y reglas de acceso.
-- [ ] **Lógica de Negocio y Cupos:**
+- [x] **Lógica de Negocio y Cupos:**
   - Control dinámico de inscripción de socios a clases verificando cupos disponibles.
   - Validación de solapamiento de horarios e instructores.
-- [ ] **Punto de Venta e Inventario (Fase 4):**
+- [x] **Punto de Venta e Inventario (Fase 4):**
   - Modelo `Suplemento` y registro transaccional `Venta`.
   - Servicio de conversión de divisas en vivo consumiendo la API de `mindicador.cl`.
-- [ ] **Consola CLI y QA (Fase 5):**
+- [x] **Consola CLI y QA (Fase 5):**
   - Menú interactivo por consola adaptado según rol RBAC del usuario autenticado.
   - Ampliación de la suite de pruebas unitarias (`pytest`).
 
@@ -74,7 +74,7 @@ Plan de acción basado estrictamente en el modelo oficial del profesor y los flu
 | **Módulo 3** | **🛒 Punto de Venta** | 🟢 Completada | `Suplemento.hayStock()`, descuento físico de stock en bodega y cálculo en CLP vía API Dólar. |
 | **Módulo 4** | **🏋️ Instructor** | 🟢 Completada | `marcarAsistencia(socio, clase)` validando estado de membresía desde mapa de puestos. |
 | **Módulo 5** | **✍️ Transacciones** | 🟢 Completada | Objeto `InscripcionMensual` agrupando `DetalleInscripcion` (Composición 1 a 1..*) y `Venta` con `DetalleVenta`. |
-| **Módulo 6** | **💾 Base de Datos** | ⚪ Pendiente | Persistencia relacional local con `sqlite3` y patrón DAO. |
+| **Módulo 6** | **💾 Base de Datos** | 🟢 Completada | Persistencia relacional local con `sqlite3` y patrón DAO. |
 
 ---
 
