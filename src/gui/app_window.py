@@ -955,6 +955,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         self.pantallas.addWidget(self.vista_ventas)
         self.actualizar_inventario_y_combo()
+        self.cargar_historial_ventas_bd()
 
     def actualizar_inventario_y_combo(self):
         """Carga y refresca dinámicamente el stock en el combo y en la tabla de inventario derecha."""
