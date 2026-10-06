@@ -21,12 +21,23 @@ class ClaseDAO(BaseDAO):
         codigo_str = str(row['id_clase'])
         cupo = row['cupo_maximo']
 
-        if "spinning" in nombre_lower:
-            clase = Spinning(codigo=codigo_str, nombre=nombre, cupoMaximo=cupo, instructor=instructor)
-        elif "yoga" in nombre_lower:
-            clase = Yoga(codigo=codigo_str, nombre=nombre, cupoMaximo=cupo, instructor=instructor)
+        tipo_disciplina = row['tipo_disciplina'] or ''
+        recurso = row['recurso_fisico'] or cupo
+
+        if tipo_disciplina.lower() == "spinning":
+            clase = Spinning(codigo=codigo_str, nombre=nombre, cupoMaximo=cupo, instructor=instructor, bicicletas=recurso)
+        elif tipo_disciplina.lower() == "yoga":
+            clase = Yoga(codigo=codigo_str, nombre=nombre, cupoMaximo=cupo, instructor=instructor, colchonetas=recurso)
+        elif tipo_disciplina.lower() == "crossfit":
+            clase = Crossfit(codigo=codigo_str, nombre=nombre, cupoMaximo=cupo, instructor=instructor, estacionesTrabajo=recurso)
         else:
-            clase = Crossfit(codigo=codigo_str, nombre=nombre, cupoMaximo=cupo, instructor=instructor)
+            # Fallback legacy
+            if "spinning" in nombre_lower:
+                clase = Spinning(codigo=codigo_str, nombre=nombre, cupoMaximo=cupo, instructor=instructor)
+            elif "yoga" in nombre_lower:
+                clase = Yoga(codigo=codigo_str, nombre=nombre, cupoMaximo=cupo, instructor=instructor)
+            else:
+                clase = Crossfit(codigo=codigo_str, nombre=nombre, cupoMaximo=cupo, instructor=instructor)
 
         clase.horario = row['horario']
         return clase
@@ -57,6 +68,18 @@ class ClaseDAO(BaseDAO):
 
         horario_str = getattr(entidad, 'horario', None) or f"{getattr(entidad, 'duracionMin', 60)} min - {getattr(entidad, 'sala', 'Sala 1')}"
 
+        tipo_disciplina = ""
+        recurso_fisico = entidad.cupoMaximo
+        if isinstance(entidad, Spinning):
+            tipo_disciplina = "Spinning"
+            recurso_fisico = entidad.bicicletas
+        elif isinstance(entidad, Yoga):
+            tipo_disciplina = "Yoga"
+            recurso_fisico = entidad.colchonetas
+        elif isinstance(entidad, Crossfit):
+            tipo_disciplina = "Crossfit"
+            recurso_fisico = entidad.estacionesTrabajo
+
         with ConexionDB.obt_conexion() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT id_clase FROM clases WHERE id_clase = ?;", (id_clase_num,))
@@ -65,14 +88,14 @@ class ClaseDAO(BaseDAO):
             if existe and id_clase_num > 0: 
                 cursor.execute("""
                     UPDATE clases
-                    SET nombre = ?, horario = ?, cupo_maximo = ?, id_instructor = ?
+                    SET nombre = ?, horario = ?, cupo_maximo = ?, id_instructor = ?, tipo_disciplina = ?, recurso_fisico = ?
                     WHERE id_clase = ?;
-                """, (entidad.nombre, horario_str, entidad.cupoMaximo, id_instructor, id_clase_num))
+                """, (entidad.nombre, horario_str, entidad.cupoMaximo, id_instructor, tipo_disciplina, recurso_fisico, id_clase_num))
             else: 
                 cursor.execute("""
-                    INSERT INTO clases (nombre, horario, cupo_maximo, id_instructor)
-                    VALUES (?, ?, ?, ?);
-                """, (entidad.nombre, horario_str, entidad.cupoMaximo, id_instructor))
+                    INSERT INTO clases (nombre, horario, cupo_maximo, id_instructor, tipo_disciplina, recurso_fisico)
+                    VALUES (?, ?, ?, ?, ?, ?);
+                """, (entidad.nombre, horario_str, entidad.cupoMaximo, id_instructor, tipo_disciplina, recurso_fisico))
 
             conn.commit()
             return True

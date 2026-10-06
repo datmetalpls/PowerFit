@@ -13,7 +13,7 @@ class VentaDAO(BaseDAO):
         with ConexionDB.obt_conexion() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT v.id_venta, v.numero, v.fecha, v.total_clp,
+                SELECT v.id_venta, v.numero, v.fecha, v.total_clp, v.tasa_cambio_usd,
                        dv.id_suplemento, dv.cantidad, dv.precio_unitario_clp,
                        s.nombre AS nombre_suplemento
                 FROM ventas v
@@ -29,6 +29,7 @@ class VentaDAO(BaseDAO):
                     "numero": row['numero'],
                     "fecha": row['fecha'],
                     "total_clp": row['total_clp'],
+                    "tasa_cambio_usd": row['tasa_cambio_usd'] or 0.0,
                     "nombre_producto": row['nombre_suplemento'] or "Suplemento",
                     "cantidad": row['cantidad'] or 0,
                     "precio_unitario": row['precio_unitario_clp'] or 0.0
@@ -45,12 +46,17 @@ class VentaDAO(BaseDAO):
     def guardar(self, entidad: Venta) -> bool:
         """Guarda la venta y sus detalles en SQLite."""
         fecha_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Extract tasa_cambio_usd (which is stored in suplemento for today)
+        tasa_usd = 0.0
+        if entidad.detalles:
+            tasa_usd = entidad.detalles[0].suplemento.precio_clp / entidad.detalles[0].suplemento.precio_usd if entidad.detalles[0].suplemento.precio_usd > 0 else 0.0
+
         with ConexionDB.obt_conexion() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO ventas (numero, fecha, total_clp)
-                VALUES (?, ?, ?);
-            """, (entidad.numero, fecha_str, entidad.totalCLP))
+                INSERT INTO ventas (numero, fecha, total_clp, tasa_cambio_usd)
+                VALUES (?, ?, ?, ?);
+            """, (entidad.numero, fecha_str, entidad.totalCLP, tasa_usd))
             id_venta = cursor.lastrowid
 
             for det in entidad.detalles:
@@ -59,6 +65,11 @@ class VentaDAO(BaseDAO):
                     INSERT INTO detalles_ventas (id_venta, id_suplemento, cantidad, precio_unitario_clp)
                     VALUES (?, ?, ?, ?);
                 """, (id_venta, id_sup, det.cantidad, det.precioUnitarioCLP))
+                
+                # Descontar stock (Point 4)
+                cursor.execute("""
+                    UPDATE suplementos SET stock = stock - ? WHERE id_suplemento = ?;
+                """, (det.cantidad, id_sup))
 
             conn.commit()
             return True

@@ -16,8 +16,6 @@ from src.models.clase import (
     ClaseSpinning,
     ClaseCrossfit,
 )
-from src.models.direccion import Direccion
-from src.models.comuna import Comuna, cargar_comunas_ine
 from src.models.inscripcion import InscripcionMensual, DetalleInscripcion
 from src.models.suplemento import (
     Suplemento,
@@ -43,7 +41,6 @@ __all__ = [
     "ClaseCrossfit",
     "Direccion",
     "Comuna",
-    "cargar_comunas_ine",
     "InscripcionMensual",
     "DetalleInscripcion",
     "Suplemento",

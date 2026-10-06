@@ -25,7 +25,7 @@ class IndicadorDolar:
         try:
             url = "https://mindicador.cl/api/dolar"
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=3) as response:
+            with urllib.request.urlopen(req, timeout=5) as response:
                 data = json.loads(response.read().decode())
                 self._valorDolar = float(data["serie"][0]["valor"])
                 self._fecha = date.today()

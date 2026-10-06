@@ -86,6 +86,14 @@ class ConexionDB:
                 );
             """)
 
+
+            # Auto-migrar columnas si la tabla clases ya existia
+            cursor.execute("PRAGMA table_info(clases);")
+            columnas_existentes_clases = [col['name'] for col in cursor.fetchall()]
+            if 'tipo_disciplina' not in columnas_existentes_clases:
+                cursor.execute("ALTER TABLE clases ADD COLUMN tipo_disciplina TEXT DEFAULT '';")
+            if 'recurso_fisico' not in columnas_existentes_clases:
+                cursor.execute("ALTER TABLE clases ADD COLUMN recurso_fisico INTEGER DEFAULT 0;")
             # 4. Tabla Inscripciones (Relación Socio - Clase)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS inscripciones (
@@ -121,6 +129,12 @@ class ConexionDB:
                 );
             """)
 
+
+            # Auto-migrar ventas
+            cursor.execute("PRAGMA table_info(ventas);")
+            columnas_existentes_ventas = [col['name'] for col in cursor.fetchall()]
+            if 'tasa_cambio_usd' not in columnas_existentes_ventas:
+                cursor.execute("ALTER TABLE ventas ADD COLUMN tasa_cambio_usd REAL DEFAULT 0.0;")
             # 7. Tabla Detalle Ventas
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS detalles_ventas (

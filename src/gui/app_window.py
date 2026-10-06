@@ -57,6 +57,7 @@ from src.models import (
 class VentanaPrincipalPowerFit(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.intentos_login = 0
         self.setWindowTitle("PowerFit - Sistema de Gestión de Gimnasio")
         self.resize(980, 700)
         
@@ -335,6 +336,10 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.pantallas.addWidget(self.vista_login)
 
     def iniciar_sesion(self):
+        if getattr(self, 'intentos_login', 0) >= 3:
+            QMessageBox.critical(self, "Sistema Bloqueado", "Superó los 3 intentos. Acceso bloqueado.")
+            return
+
         usr = self.input_login_usuario.text().strip()
         pwd = self.input_login_password.text().strip()
 
@@ -343,6 +348,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
             return
 
         if usr in self.usuarios_sistema and self.usuarios_sistema[usr].autenticar(pwd):
+            self.intentos_login = 0  # Reset
             self.usuario_actual = self.usuarios_sistema[usr]
             rol = self.usuario_actual.getRol()
 
@@ -399,7 +405,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
         form_socios = QFormLayout()
         self.input_rut = QLineEdit()
         self.input_nombres = QLineEdit()
-        self.input_apellidos = QLineEdit()
+        self.input_apellido_paterno = QLineEdit()
+        self.input_apellido_materno = QLineEdit()
         self.input_telefono = QLineEdit()
         self.input_correo = QLineEdit()
 
@@ -420,7 +427,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         form_socios.addRow("RUT: ", self.input_rut)
         form_socios.addRow("Nombres: ", self.input_nombres)
-        form_socios.addRow("Apellidos: ", self.input_apellidos)
+        form_socios.addRow("Apellido Paterno: ", self.input_apellido_paterno)
+        form_socios.addRow("Apellido Materno: ", self.input_apellido_materno)
         form_socios.addRow("Teléfono: ", self.input_telefono)
         form_socios.addRow("Correo Electrónico: ", self.input_correo)
         form_socios.addRow("Estado Inicial Membresía: ", self.combo_estado_inicial)
@@ -439,7 +447,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         self.tabla_socios = QTableWidget()
         self.tabla_socios.setColumnCount(6)
-        self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombre Completo", "Teléfono", "Comuna", "Vivienda", "Membresía"])
+        self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombres", "Ap. Paterno", "Ap. Materno", "Teléfono", "Membresía"])
         layout_socios.addWidget(self.tabla_socios)
 
         # Botones de Recepción para Cobro y Cancelación
@@ -507,17 +515,16 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 idSocio=0,
                 rut=rut,
                 nombres=nombres,
-                apellidoPaterno=apellidos,
-                fechaVencimientoMembresia=fecha_venc,
-                estadoActivo=activo,
-                apellidoMaterno="",
+                apellidoPaterno=apellido_pat, 
+                apellidoMaterno=apellido_mat,
                 telefono=telefono,
                 correoElectronico=self.input_correo.text().strip(),
+                fechaVencimientoMembresia=fecha_venc,
+                estadoActivo=activo
             )
         except ValueError as ve:
             QMessageBox.critical(self, "Error de Validación", str(ve))
             return
-        nuevo_socio.direccion = obj_direccion
 
         if isinstance(self.usuario_actual, Recepcionista):
             self.usuario_actual.registrarSocio(nuevo_socio)
@@ -531,7 +538,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
         QMessageBox.information(
             self,
             "Socio Registrado",
-            f"¡Socio {nombres} {apellidos} registrado exitosamente y guardado en SQLite!\n"
+            f"¡Socio {nombres} {apellido_pat} registrado exitosamente y guardado en SQLite!\n"
             f"Vigencia: Hasta {fecha_venc}"
         )
 
@@ -1159,7 +1166,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
         form_personal = QFormLayout()
         self.input_trab_rut = QLineEdit()
         self.input_trab_nombres = QLineEdit()
-        self.input_trab_apellidos = QLineEdit()
+        self.input_trab_apellido_pat = QLineEdit()
+        self.input_trab_apellido_mat = QLineEdit()
         self.input_trab_usuario = QLineEdit()
         self.input_trab_pass = QLineEdit()
         self.input_trab_pass.setEchoMode(QLineEdit.Password)
@@ -1170,7 +1178,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
         form_personal.addRow("Rol a Asignar: ", self.combo_trab_rol)
         form_personal.addRow("RUT: ", self.input_trab_rut)
         form_personal.addRow("Nombres: ", self.input_trab_nombres)
-        form_personal.addRow("Apellidos: ", self.input_trab_apellidos)
+        form_personal.addRow("Apellido Paterno: ", self.input_trab_apellido_pat)
+        form_personal.addRow("Apellido Materno: ", self.input_trab_apellido_mat)
         form_personal.addRow("Nombre Usuario: ", self.input_trab_usuario)
         form_personal.addRow("Contraseña: ", self.input_trab_pass)
 
@@ -1211,7 +1220,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
         rol = self.combo_trab_rol.currentText()
         rut = self.input_trab_rut.text().strip()
         nombres = self.input_trab_nombres.text().strip()
-        apellidos = self.input_trab_apellidos.text().strip()
+        apellido_pat = self.input_trab_apellido_pat.text().strip()
+        apellido_mat = self.input_trab_apellido_mat.text().strip()
         usr = self.input_trab_usuario.text().strip()
         pwd = self.input_trab_pass.text().strip()
 
@@ -1222,15 +1232,15 @@ class VentanaPrincipalPowerFit(QMainWindow):
         nuevo_id = "0"
         if rol == "Recepcionista":
             nuevo_t = Recepcionista(
-                idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellidos, usuario=usr, passHash=pwd
+                idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellido_pat, apellidoMaterno=apellido_mat, usuario=usr, passHash=pwd
             )
         elif rol == "Instructor":
             nuevo_t = Instructor(
-                especialidad="Fitness", idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellidos, usuario=usr, passHash=pwd
+                especialidad="Fitness", idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellido_pat, apellidoMaterno=apellido_mat, usuario=usr, passHash=pwd
             )
         else:
             nuevo_t = Administrador(
-                nivelAcceso="General", idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellidos, usuario=usr, passHash=pwd
+                nivelAcceso="General", idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellido_pat, apellidoMaterno=apellido_mat, usuario=usr, passHash=pwd
             )
 
         try:
@@ -1252,7 +1262,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 # Limpiar entradas de texto
                 self.input_trab_rut.clear()
                 self.input_trab_nombres.clear()
-                self.input_trab_apellidos.clear()
+                self.input_trab_apellido_pat.clear()
+                self.input_trab_apellido_mat.clear()
                 self.input_trab_usuario.clear()
                 self.input_trab_pass.clear()
 
