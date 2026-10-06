@@ -812,6 +812,11 @@ class VentanaPrincipalPowerFit(QMainWindow):
                     QMessageBox.warning(self, "Asistencia Rechazada", f"No se pudo validar asistencia para {socio.getNombres()} en la clase.")
                     return
 
+            ya_inscrito = any(s is not None and s.idSocio == socio.idSocio for s in self.clase_seleccionada_actual.cupos)
+            if ya_inscrito:
+                QMessageBox.warning(self, "Doble Inscripción", f"El socio {socio.getNombres()} ya está inscrito en esta clase.")
+                return
+
             try:
                 exito = self.clase_seleccionada_actual.inscribir_socio(socio, posicion)
             except SinCupoException as e:
@@ -1066,12 +1071,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         precio_clp = obj_suplemento.calcularPrecioCLP(valor_dolar)
 
-        # Descontar stock y actualizar SQLite
-        obj_suplemento.descontarStock(cant)
-        self.suplemento_dao.guardar(obj_suplemento)
 
-        # Refrescar vista del combo y la tabla de inventario en tiempo real
-        self.actualizar_inventario_y_combo()
 
         # 3. Crear DetalleVenta y Venta compuesta (UML)
         obj_detalle = DetalleVenta(cantidad=cant, precioUnitarioCLP=precio_clp, suplemento=obj_suplemento)
@@ -1088,6 +1088,16 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.venta_dao.guardar(obj_venta)
 
         self.cargar_historial_ventas_bd()
+
+        # Refrescar vista del combo guardando el indice
+        idx_previo = self.combo_producto.currentIndex()
+        self.actualizar_inventario_y_combo()
+        if idx_previo >= 0 and idx_previo < self.combo_producto.count():
+            self.combo_producto.setCurrentIndex(idx_previo)
+
+        if not exito:
+            QMessageBox.warning(self, "Error", "No se pudo agregar el detalle de venta (Posible falta de stock local).")
+            return
 
         QMessageBox.information(
             self,
