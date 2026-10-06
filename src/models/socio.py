@@ -19,6 +19,7 @@ class Socio(Persona):
         apellidoMaterno: str = "",
         telefono: str = "",
         correoElectronico: str = "",
+        fechaIngreso: str = "",
     ):
         super().__init__(
             rut=rut,
