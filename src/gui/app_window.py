@@ -207,6 +207,26 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         # 2. Cargar clases dirigidas desde SQLite y refrescar tabla visual
         clases_list = self.clase_dao.obtener_todos()
+        
+        from src.dao.inscripcion_dao import InscripcionDAO
+        insc_dao = InscripcionDAO()
+        for clase in clases_list:
+            id_clase_num = int(''.join(filter(str.isdigit, str(clase.codigo))) or '0')
+            inscripciones = insc_dao.obtener_inscripciones_por_clase(id_clase_num)
+            
+            puesto = 0
+            for ins in inscripciones:
+                socio_obj = self.socio_dao.obtener_por_id(ins['id_socio'])
+                if socio_obj:
+                    # Buscar asiento libre
+                    while puesto < clase.cupoMaximo and clase.cupos[puesto] is not None:
+                        puesto += 1
+                    
+                    if puesto < clase.cupoMaximo:
+                        clase.inscribir_socio(socio_obj, puesto)
+                        if ins['asistio']:
+                            clase.marcar_asistencia(puesto, True)
+
         self.clases_registradas = {clase.nombre: clase for clase in clases_list}
         if hasattr(self, 'actualizar_tabla_clases_bd'):
             self.actualizar_tabla_clases_bd()
