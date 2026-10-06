@@ -249,6 +249,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
             t.desbloquear()
             if hasattr(self, 'trabajador_dao'):
                 self.trabajador_dao.guardar(t)
+            if hasattr(self, 'intentos_login_dict') and usuario_sel in self.intentos_login_dict:
+                self.intentos_login_dict[usuario_sel] = 0
             self.actualizar_tabla_personal()
             QMessageBox.information(self, "Éxito", f"Cuenta de '{usuario_sel}' desbloqueada exitosamente.")
 
@@ -407,6 +409,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
                     u_obj.bloquear()
                     if hasattr(self, 'trabajador_dao'):
                         self.trabajador_dao.guardar(u_obj)
+                    if hasattr(self, 'actualizar_tabla_personal'):
+                        self.actualizar_tabla_personal()
                 QMessageBox.critical(self, "Cuenta Bloqueada", "Cuenta bloqueada, contacte al administrador")
                 return
 
