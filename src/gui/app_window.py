@@ -34,10 +34,20 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from src.models import (
+    Persona,
+    Trabajador,
     Administrador,
     Instructor,
     Recepcionista,
     Socio,
+    ClaseSpinning,
+    ClaseYoga,
+    ClaseCrossfit,
+    Suplemento,
+    IndicadorDolar,
+    Venta,
+    DetalleVenta,
+    InscripcionMensual,
 )
 
 
