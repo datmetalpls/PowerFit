@@ -348,10 +348,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.pantallas.addWidget(self.vista_login)
 
     def iniciar_sesion(self):
-        if getattr(self, 'intentos_login', 0) >= 3:
-            QMessageBox.critical(self, "Sistema Bloqueado", "Superó los 3 intentos. Acceso bloqueado.")
-            return
-
         usr = self.input_login_usuario.text().strip()
         pwd = self.input_login_password.text().strip()
 
@@ -365,7 +361,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
             return
 
         if usr in self.usuarios_sistema and self.usuarios_sistema[usr].autenticar(pwd):
-            self.intentos_login = 0  # Reset
+            if hasattr(self, 'intentos_login_dict'):
+                self.intentos_login_dict[usr] = 0
             self.usuario_actual = self.usuarios_sistema[usr]
             rol = self.usuario_actual.getRol()
 
@@ -398,13 +395,20 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.statusBar().showMessage(f"🟢 Sesión iniciada como {self.usuario_actual.getNombres()} ({rol})")
             QMessageBox.information(self, "Acceso Concedido", f"¡Bienvenido/a {self.usuario_actual.getNombres()}!\nRol: {rol}")
         else:
-            self.intentos_login = getattr(self, 'intentos_login', 0) + 1
-            if self.intentos_login < 3:
+            if not hasattr(self, 'intentos_login_dict'):
+                self.intentos_login_dict = {}
+            self.intentos_login_dict[usr] = self.intentos_login_dict.get(usr, 0) + 1
+            
+            if self.intentos_login_dict[usr] < 3:
                 QMessageBox.warning(self, "Error de Autenticación", "Intento erroneo")
             else:
+                if usr in self.usuarios_sistema:
+                    u_obj = self.usuarios_sistema[usr]
+                    u_obj.bloquear()
+                    if hasattr(self, 'trabajador_dao'):
+                        self.trabajador_dao.guardar(u_obj)
                 QMessageBox.critical(self, "Cuenta Bloqueada", "Cuenta bloqueada, contacte al administrador")
-                import sys
-                sys.exit(0)
+                return
 
     def cerrar_sesion(self):
         self.usuario_actual = None
