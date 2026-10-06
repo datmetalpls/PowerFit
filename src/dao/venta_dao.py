@@ -49,7 +49,7 @@ class VentaDAO(BaseDAO):
         # Extract tasa_cambio_usd (which is stored in suplemento for today)
         tasa_usd = 0.0
         if entidad.detalles:
-            tasa_usd = entidad.detalles[0].suplemento.precio_clp / entidad.detalles[0].suplemento.precio_usd if entidad.detalles[0].suplemento.precio_usd > 0 else 0.0
+            tasa_usd = entidad.detalles[0].precioUnitarioCLP / entidad.detalles[0].suplemento.precioUSD if entidad.detalles[0].suplemento.precioUSD > 0 else 0.0
 
         with ConexionDB.obt_conexion() as conn:
             cursor = conn.cursor()
