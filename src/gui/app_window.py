@@ -1012,7 +1012,13 @@ class VentanaPrincipalPowerFit(QMainWindow):
             ("1", "Proteína Whey Gold 1kg", 45.0, 100),
             ("2", "Creatina Monohidratada 500g", 25.0, 100),
             ("3", "Pre-Entreno C4 300g", 30.0, 100),
-            ("4", "BCAA Aminoácidos 400g", 20.0, 100)
+            ("4", "BCAA Aminoácidos 400g", 20.0, 100),
+            ("5", "Quemador de Grasa Lipo 6", 35.0, 50),
+            ("6", "Ganador de Masa Serious Mass", 55.0, 40),
+            ("7", "Multivitamínico Opti-Men", 22.0, 80),
+            ("8", "Barras de Proteína (Caja x12)", 28.0, 200),
+            ("9", "Shaker Metálico PowerFit", 12.0, 150),
+            ("10", "Glutamina Micronizada 300g", 18.0, 60)
         ]
 
         # Asegurar catálogo inicial en SQLite si no existen
