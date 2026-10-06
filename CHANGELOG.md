@@ -1,7 +1,24 @@
-## [1.0.0] - 2026-10-05
+# 📜 Changelog - PowerFit
 
-### 🚀 Añadido (Fase 5 - Evaluación Sumativa 2)
-- **Persistencia (SQLite & DAO)**:
+Todos los cambios notables en este proyecto serán documentados en este archivo.
+
+El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/)
+y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [1.1.0] - 2026-10-06
+
+### 🚀 Añadido (Fase de Correcciones y Defensas POO)
+- **Control de Acceso y Bloqueo Persistente**: Sistema de intentos de login que bloquea físicamente la cuenta en la base de datos (SQLite) tras 3 intentos fallidos por usuario.
+- **Panel de Administrador (Desbloqueo)**: La pestaña Gestión de Personal ahora muestra en tiempo real el Estado (Activo / Bloqueado 🔴) y permite al administrador desbloquear cuentas con un clic.
+- **Validación de Cupos Unicos**: Se implementó una verificación exhaustiva para evitar que un socio se inscriba dos veces en la misma clase dirigida.
+
+### 🐛 Solucionado
+- **Actualización Simultánea de Ventas e Inventario**: Se corrigió un AttributeError en `VentaDAO`, ahora el cálculo de USD se realiza correctamente contra el `precioUSD` del objeto `Suplemento`, se guarda el registro de la venta en SQLite y se descuenta el stock físico en la misma transacción.
+- **Refresco de GUI**: Reparado el reseteo involuntario del ComboBox tras realizar una venta. Ahora mantiene la selección del usuario. La tabla de personal también se actualiza instantáneamente tras un bloqueo.
+- **Manejo de Apellidos**: Se separó lógicamente y en base de datos el Apellido Paterno y Materno para las Personas.
+
   - Implementación completa de operaciones CRUD transaccionales a través del patrón DAO en `src/dao/`.
   - Base de datos relacional `powerfit.db` gestionada automáticamente y prevención contra inyección SQL usando consultas preparadas (`?`).
   - Almacenamiento seguro de transacciones como Venta y Detalles de Venta.
@@ -12,11 +29,8 @@
 - **Uso de IA documentado**:
   - Actualización del `README.md` documentando el caso práctico de adaptación del algoritmo de validación Módulo 11 sugerido por IA, integrando lanzamiento de excepciones (`ValueError`) en lugar de detención abrupta (`sys.exit()`).
 
-# 📜 Changelog - PowerFit
 
-Todos los cambios notables en este proyecto serán documentados en este archivo.
 
-El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
