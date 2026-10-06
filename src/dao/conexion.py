@@ -44,14 +44,15 @@ class ConexionDB:
                     telefono TEXT DEFAULT '',
                     correo_electronico TEXT DEFAULT '',
                     fecha_vencimiento TEXT NOT NULL,
-                    estado_activo INTEGER NOT NULL DEFAULT 1
+                    estado_activo INTEGER NOT NULL DEFAULT 1,
+                    fecha_ingreso TEXT DEFAULT (datetime('now', 'localtime'))
                 );
             """)
 
             cursor.execute("PRAGMA table_info(socios);")
             columnas_existentes = [col['name'] for col in cursor.fetchall()]
             if 'fecha_ingreso' not in columnas_existentes:
-                cursor.execute("ALTER TABLE socios ADD COLUMN fecha_ingreso TEXT DEFAULT CURRENT_TIMESTAMP;")
+                cursor.execute("ALTER TABLE socios ADD COLUMN fecha_ingreso TEXT;")
 
             # 2. Tabla Trabajadores (Administrador, Recepcionista, Instructor)
             cursor.execute("""

@@ -75,8 +75,8 @@ class SocioDAO(BaseDAO):
                    ))
               else: 
                    cursor.execute("""
-                   INSERT INTO socios (rut, nombres, apellido_paterno, apellido_materno, telefono, correo_electronico, fecha_vencimiento, estado_activo)
-                    VALUES (?,?,?,?,?,?,?,?);
+                   INSERT INTO socios (rut, nombres, apellido_paterno, apellido_materno, telefono, correo_electronico, fecha_vencimiento, estado_activo, fecha_ingreso)
+                    VALUES (?,?,?,?,?,?,?,?, datetime('now', 'localtime'));
                     """,(
                          entidad.rut, entidad.nombres, entidad.apellidoPaterno, entidad.apellidoMaterno,
                          entidad.telefono, entidad.correoElectronico, fecha_str,
