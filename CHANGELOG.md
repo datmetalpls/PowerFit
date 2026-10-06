@@ -13,6 +13,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - **Control de Acceso y Bloqueo Persistente**: Sistema de intentos de login que bloquea físicamente la cuenta en la base de datos (SQLite) tras 3 intentos fallidos por usuario.
 - **Panel de Administrador (Desbloqueo)**: La pestaña Gestión de Personal ahora muestra en tiempo real el Estado (Activo / Bloqueado 🔴) y permite al administrador desbloquear cuentas con un clic.
 - **Validación de Cupos Unicos**: Se implementó una verificación exhaustiva para evitar que un socio se inscriba dos veces en la misma clase dirigida.
+- **Gestión de Asistencia por Instructor**: Los instructores ahora pueden hacer clic en asientos ocupados de su clase para marcar/revocar la asistencia en tiempo real. La interfaz cambia a un color dorado (✔️) y el estado se guarda persistentemente en SQLite (`inscripciones.asistio`).
 
 ### 🐛 Solucionado
 - **Actualización Simultánea de Ventas e Inventario**: Se corrigió un AttributeError en `VentaDAO`, ahora el cálculo de USD se realiza correctamente contra el `precioUSD` del objeto `Suplemento`, se guarda el registro de la venta en SQLite y se descuenta el stock físico en la misma transacción.
