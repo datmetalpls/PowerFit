@@ -805,11 +805,20 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 btn_puesto.clicked.connect(lambda checked=False, p=pos: self.hacer_clic_puesto(p, inscribir=True))
             else:
                 # Puesto Ocupado
-                btn_puesto.setText(f"🔴\nPuesto {pos+1}\n{socio.getNombres()}")
-                btn_puesto.setStyleSheet(
-                    "background-color: #E74C3C; color: white; font-weight: bold; border-radius: 6px; padding: 10px;"
-                )
-                btn_puesto.setToolTip(f"Ocupado por: {socio.getNombres()} ({socio.getRut()})\nHaga clic para liberar puesto.")
+                asistio = getattr(obj_clase, 'asistencias', {}).get(pos, False)
+                if asistio:
+                    btn_puesto.setText(f"✔️\nPuesto {pos+1}\n{socio.getNombres()}")
+                    btn_puesto.setStyleSheet(
+                        "background-color: #F1C40F; color: black; font-weight: bold; border-radius: 6px; padding: 10px;"
+                    )
+                    btn_puesto.setToolTip(f"Asistencia CONFIRMADA: {socio.getNombres()} ({socio.getRut()})\nClic para modificar.")
+                else:
+                    btn_puesto.setText(f"🔴\nPuesto {pos+1}\n{socio.getNombres()}")
+                    btn_puesto.setStyleSheet(
+                        "background-color: #E74C3C; color: white; font-weight: bold; border-radius: 6px; padding: 10px;"
+                    )
+                    btn_puesto.setToolTip(f"Ocupado por: {socio.getNombres()} ({socio.getRut()})\nClic para gestionar.")
+                
                 btn_puesto.clicked.connect(lambda checked=False, p=pos: self.hacer_clic_puesto(p, inscribir=False))
 
             self.layout_grid_puestos.addWidget(btn_puesto, row, col)
