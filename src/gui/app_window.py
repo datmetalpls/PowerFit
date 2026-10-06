@@ -35,9 +35,6 @@ from PySide6.QtCore import Qt
 
 from src.models import (
     Persona,
-    Direccion,
-    Comuna,
-    cargar_comunas_ine,
     Trabajador,
     Administrador,
     Instructor,
@@ -410,17 +407,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.input_telefono = QLineEdit()
         self.input_correo = QLineEdit()
 
-        self.combo_tipo_direccion = QComboBox()
-        self.combo_tipo_direccion.addItems(["Casa", "Departamento", "Block", "Otro"])
 
-        self.input_calle = QLineEdit()
-        self.input_numero = QLineEdit()
-        self.input_referencia = QLineEdit()
 
-        self.combo_comunas = QComboBox()
-        comunas_dict = cargar_comunas_ine()
-        for id_c, nombre_c in comunas_dict.items():
-            self.combo_comunas.addItem(f"{nombre_c} (ID: {id_c})")
 
         self.combo_estado_inicial = QComboBox()
         self.combo_estado_inicial.addItems(["🟢 Al Día (Vigente 30 días)", "🔴 Vencida / Impago (Requiere Cobro)", "⚪ Plan Cancelado / Inactivo"])
@@ -432,11 +420,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
         form_socios.addRow("Teléfono: ", self.input_telefono)
         form_socios.addRow("Correo Electrónico: ", self.input_correo)
         form_socios.addRow("Estado Inicial Membresía: ", self.combo_estado_inicial)
-        form_socios.addRow("Tipo Vivienda: ", self.combo_tipo_direccion)
-        form_socios.addRow("Calle: ", self.input_calle)
-        form_socios.addRow("Número: ", self.input_numero)
-        form_socios.addRow("Referencia: ", self.input_referencia)
-        form_socios.addRow("Comuna (Chile): ", self.combo_comunas)
 
         layout_socios.addLayout(form_socios)
 
@@ -469,32 +452,13 @@ class VentanaPrincipalPowerFit(QMainWindow):
     def guardar_socio(self):
         rut = self.input_rut.text().strip()
         nombres = self.input_nombres.text().strip()
-        apellidos = self.input_apellidos.text().strip()
+        apellido_pat = self.input_apellido_paterno.text().strip()
+        apellido_mat = self.input_apellido_materno.text().strip()
         telefono = self.input_telefono.text().strip()
-        comuna = self.combo_comunas.currentText()
-        tipo_direccion = self.combo_tipo_direccion.currentText()
 
-        if not rut or not nombres or not apellidos:
-            QMessageBox.warning(self, "Campos Incompletos", "Por favor completa al menos RUT, Nombres y Apellidos")
+        if not rut or not nombres or not apellido_pat:
+            QMessageBox.warning(self, "Campos Incompletos", "Por favor completa al menos RUT, Nombres y Apellido Paterno")
             return
-
-        # Crear objetos Comuna y Direccion integrados
-        from src.models import Comuna
-        nombre_comuna = comuna.split(" (ID:")[0]
-        obj_comuna = Comuna(idComuna=13101, nombre=nombre_comuna)
-
-        tipo_dir_mapeo = tipo_direccion.lower()
-        if tipo_dir_mapeo not in ["casa", "dpto", "block"]:
-            tipo_dir_mapeo = "casa"
-
-        obj_direccion = Direccion(
-            idDireccion=len(self.socios_registrados) + 1,
-            tipoDireccion=tipo_dir_mapeo,
-            calle=self.input_calle.text().strip() or "Sin Calle",
-            numero=self.input_numero.text().strip() or "S/N",
-            referencia=self.input_referencia.text().strip(),
-            comuna=obj_comuna,
-        )
 
         # Evaluar estado inicial seleccionado
         estado_sel = self.combo_estado_inicial.currentText()
@@ -549,15 +513,10 @@ class VentanaPrincipalPowerFit(QMainWindow):
             row = self.tabla_socios.rowCount()
             self.tabla_socios.insertRow(row)
             self.tabla_socios.setItem(row, 0, QTableWidgetItem(socio.rut))
-            self.tabla_socios.setItem(row, 1, QTableWidgetItem(f"{socio.nombres} {socio.apellidoPaterno}"))
-            self.tabla_socios.setItem(row, 2, QTableWidgetItem(socio.telefono))
-
-            comuna_nombre = socio.direccion.comuna.nombre if getattr(socio, 'direccion', None) and getattr(socio.direccion, 'comuna', None) else "N/A"
-            vivienda_tipo = socio.direccion.tipoDireccion if getattr(socio, 'direccion', None) else "N/A"
-
-            self.tabla_socios.setItem(row, 3, QTableWidgetItem(comuna_nombre))
-            self.tabla_socios.setItem(row, 4, QTableWidgetItem(vivienda_tipo))
-
+            self.tabla_socios.setItem(row, 1, QTableWidgetItem(socio.nombres))
+            self.tabla_socios.setItem(row, 2, QTableWidgetItem(socio.apellidoPaterno))
+            self.tabla_socios.setItem(row, 3, QTableWidgetItem(socio.apellidoMaterno))
+            self.tabla_socios.setItem(row, 4, QTableWidgetItem(socio.telefono))
             lbl_estado = "⚪ Plan Cancelado"
             if socio.estadoActivo:
                 from src.models.excepciones import MembresiaVencidaException
