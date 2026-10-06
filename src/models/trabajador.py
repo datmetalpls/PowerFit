@@ -31,12 +31,23 @@ class Trabajador(Persona, ABC):
         self._idTrabajador = str(idTrabajador)
         self._usuario = usuario or nombres.lower().replace(" ", "")
         self._passHash = passHash
+        self._cuenta_bloqueada = False
         self._rol = rol
         self._permisos = set()
 
     @property
     def idTrabajador(self) -> str:
         return self._idTrabajador
+
+    @property
+    def cuenta_bloqueada(self) -> bool:
+        return self._cuenta_bloqueada
+
+    def bloquear(self):
+        self._cuenta_bloqueada = True
+
+    def desbloquear(self):
+        self._cuenta_bloqueada = False
 
     @property
     def usuario(self) -> str:

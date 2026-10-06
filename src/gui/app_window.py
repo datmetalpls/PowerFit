@@ -237,6 +237,21 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.cargar_historial_ventas_bd()
 
 
+    def desbloquear_trabajador_admin(self):
+        filas = self.tabla_personal.selectionModel().selectedRows()
+        if not filas:
+            QMessageBox.warning(self, "Selección Vacía", "Debes seleccionar un trabajador de la tabla para desbloquear.")
+            return
+        
+        usuario_sel = self.tabla_personal.item(filas[0].row(), 1).text()
+        if usuario_sel in self.usuarios_sistema:
+            t = self.usuarios_sistema[usuario_sel]
+            t.desbloquear()
+            if hasattr(self, 'trabajador_dao'):
+                self.trabajador_dao.guardar(t)
+            self.actualizar_tabla_personal()
+            QMessageBox.information(self, "Éxito", f"Cuenta de '{usuario_sel}' desbloqueada exitosamente.")
+
     def alternar_tema(self):
         self.modo_oscuro_activo = not self.modo_oscuro_activo
         if self.modo_oscuro_activo:
@@ -342,6 +357,11 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         if not usr or not pwd:
             QMessageBox.warning(self, "Campos Vacíos", "Por favor ingresa usuario y contraseña.")
+            return
+
+        # Check if user is locked
+        if usr in self.usuarios_sistema and self.usuarios_sistema[usr].cuenta_bloqueada:
+            QMessageBox.critical(self, "Cuenta Bloqueada", "Cuenta bloqueada, contacte al administrador")
             return
 
         if usr in self.usuarios_sistema and self.usuarios_sistema[usr].autenticar(pwd):
@@ -1166,9 +1186,14 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout_personal.addWidget(self.btn_guardar_trabajador)
 
         self.tabla_personal = QTableWidget()
-        self.tabla_personal.setColumnCount(4)
-        self.tabla_personal.setHorizontalHeaderLabels(["ID", "Usuario", "Nombre Completo", "Rol"])
+        self.tabla_personal.setColumnCount(5)
+        self.tabla_personal.setHorizontalHeaderLabels(["ID", "Usuario", "Nombre Completo", "Rol", "Estado"])
         layout_personal.addWidget(self.tabla_personal)
+
+        self.btn_desbloquear_trabajador = QPushButton("🔓 Desbloquear Trabajador")
+        self.btn_desbloquear_trabajador.setStyleSheet("background-color: #27AE60; color: white; padding: 10px; font-weight: bold;")
+        self.btn_desbloquear_trabajador.clicked.connect(self.desbloquear_trabajador_admin)
+        layout_personal.addWidget(self.btn_desbloquear_trabajador)
 
         # Cargar trabajadores por defecto
         for u in self.usuarios_sistema.values():
@@ -1264,6 +1289,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.tabla_personal.setItem(r, 1, QTableWidgetItem(u.usuario))
             self.tabla_personal.setItem(r, 2, QTableWidgetItem(f"{u.nombres} {u.apellidoPaterno}"))
             self.tabla_personal.setItem(r, 3, QTableWidgetItem(u.getRol()))
+            estado = "Bloqueado 🔴" if u.cuenta_bloqueada else "Activo"
+            self.tabla_personal.setItem(r, 4, QTableWidgetItem(estado))
 
 
 
