@@ -874,15 +874,36 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 )
 
         else:
-            # Liberar puesto
-            respuesta = QMessageBox.question(
-                self,
-                "Liberar Puesto",
-                f"¿Deseas cancelar la reserva del Puesto {posicion+1}?",
-                QMessageBox.Yes | QMessageBox.No
-            )
-            if respuesta == QMessageBox.Yes:
-                self.clase_seleccionada_actual.liberar_posicion(posicion)
+            socio_puesto = self.clase_seleccionada_actual.cupos[posicion]
+            codigo_raw = str(getattr(self.clase_seleccionada_actual, 'codigo', '1'))
+            id_clase_num = int(''.join(filter(str.isdigit, codigo_raw)) or '1')
+            
+            if isinstance(self.usuario_actual, Instructor):
+                # Flujo Instructor: Marcar/Desmarcar Asistencia
+                asistio_actual = getattr(self.clase_seleccionada_actual, 'asistencias', {}).get(posicion, False)
+                nuevo_estado = not asistio_actual
+                accion_str = "CONFIRMAR ASISTENCIA de" if nuevo_estado else "REVOCAR ASISTENCIA de"
+                
+                respuesta = QMessageBox.question(
+                    self,
+                    "Control de Asistencia",
+                    f"¿Deseas {accion_str} {socio_puesto.getNombres()}?",
+                    QMessageBox.Yes | QMessageBox.No
+                )
+                if respuesta == QMessageBox.Yes:
+                    self.clase_seleccionada_actual.marcar_asistencia(posicion, nuevo_estado)
+                    self.inscripcion_dao.marcar_asistencia(socio_puesto.idSocio, id_clase_num, asistio=nuevo_estado)
+            else:
+                # Flujo Admin/Recepcionista: Liberar puesto
+                respuesta = QMessageBox.question(
+                    self,
+                    "Liberar Puesto",
+                    f"¿Deseas cancelar la reserva del Puesto {posicion+1} para {socio_puesto.getNombres()}?",
+                    QMessageBox.Yes | QMessageBox.No
+                )
+                if respuesta == QMessageBox.Yes:
+                    self.clase_seleccionada_actual.liberar_posicion(posicion)
+                    self.inscripcion_dao.eliminar_inscripcion_por_relacion(socio_puesto.idSocio, id_clase_num)
 
         # Actualizar vista y tabla
         self.actualizar_fila_tabla_clase(self.clase_seleccionada_actual)

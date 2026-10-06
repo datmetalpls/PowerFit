@@ -13,6 +13,13 @@ class InscripcionDAO(BaseDAO):
         self._socio_dao = SocioDAO()
         self._clase_dao = ClaseDAO()
 
+    def obtener_inscripciones_por_clase(self, id_clase: int) -> List[dict]:
+        with ConexionDB.obt_conexion() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id_socio, asistio, id_inscripcion FROM inscripciones WHERE id_clase = ? ORDER BY id_inscripcion ASC;", (id_clase,))
+            filas = cursor.fetchall()
+            return [{'id_socio': row['id_socio'], 'asistio': bool(row['asistio']), 'id_inscripcion': row['id_inscripcion']} for row in filas]
+
     def obtener_todos(self) -> List[dict]:
         """Obtiene el historial completo de inscripciones."""
         with ConexionDB.obt_conexion() as conn:
@@ -69,6 +76,13 @@ class InscripcionDAO(BaseDAO):
                 SET asistio = ?
                 WHERE id_socio = ? AND id_clase = ?;
             """, (1 if asistio else 0, id_socio, id_clase))
+            conn.commit()
+            return cursor.rowcount > 0
+
+    def eliminar_inscripcion_por_relacion(self, id_socio: int, id_clase: int) -> bool:
+        with ConexionDB.obt_conexion() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM inscripciones WHERE id_socio = ? AND id_clase = ?;", (id_socio, id_clase))
             conn.commit()
             return cursor.rowcount > 0
 

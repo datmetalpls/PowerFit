@@ -50,6 +50,7 @@ class ClaseDirigida(Clase, ABC):
         self._instructor = instructor
         self._sala = sala
         self._lista_socios: List[Optional[Socio]] = [None] * self._cupoMaximo
+        self.asistencias = {}
 
     @property
     def cupoMaximo(self) -> int:
@@ -123,8 +124,13 @@ class ClaseDirigida(Clase, ABC):
             if self._lista_socios[posicion] is not None:
                 self._lista_socios[posicion] = None
                 self._inscritos = max(0, self._inscritos - 1)
+                self.asistencias.pop(posicion, None)
                 return True
         return False
+
+    def marcar_asistencia(self, posicion: int, asistio: bool = True):
+        self.asistencias[posicion] = asistio
+
 
     @abstractmethod
     def obtener_icono_disciplina(self) -> str:
