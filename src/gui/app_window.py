@@ -378,7 +378,13 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.statusBar().showMessage(f"🟢 Sesión iniciada como {self.usuario_actual.getNombres()} ({rol})")
             QMessageBox.information(self, "Acceso Concedido", f"¡Bienvenido/a {self.usuario_actual.getNombres()}!\nRol: {rol}")
         else:
-            QMessageBox.critical(self, "Acceso Denegado", "Usuario o contraseña incorrectos.")
+            self.intentos_login = getattr(self, 'intentos_login', 0) + 1
+            if self.intentos_login < 3:
+                QMessageBox.warning(self, "Error de Autenticación", "Intento erroneo")
+            else:
+                QMessageBox.critical(self, "Cuenta Bloqueada", "Cuenta bloqueada, contacte al administrador")
+                import sys
+                sys.exit(0)
 
     def cerrar_sesion(self):
         self.usuario_actual = None
