@@ -48,6 +48,11 @@ class ConexionDB:
                 );
             """)
 
+            cursor.execute("PRAGMA table_info(socios);")
+            columnas_existentes = [col['name'] for col in cursor.fetchall()]
+            if 'fecha_ingreso' not in columnas_existentes:
+                cursor.execute("ALTER TABLE socios ADD COLUMN fecha_ingreso TEXT DEFAULT (datetime('now', 'localtime'));")
+
             # 2. Tabla Trabajadores (Administrador, Recepcionista, Instructor)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS trabajadores (
