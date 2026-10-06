@@ -32,6 +32,7 @@ class Socio(Persona):
         # Si no se indica fecha, por defecto se otorga 30 días de vigencia
         self._fechaVencimientoMembresia = fechaVencimientoMembresia or date.today()
         self._estadoActivo = estadoActivo
+        self._fechaIngreso = fechaIngreso
 
     @property
     def idSocio(self) -> int:
@@ -73,3 +74,7 @@ class Socio(Persona):
     def cancelarPlan(self) -> None:
         """Marca la cuenta/plan como cancelado/desactivado."""
         self._estadoActivo = False
+
+    @property
+    def fechaIngreso(self) -> str:
+        return self._fechaIngreso
