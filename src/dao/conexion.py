@@ -61,7 +61,8 @@ class ConexionDB:
                     rol TEXT NOT NULL,
                     especialidad TEXT DEFAULT '',
                     usuario TEXT DEFAULT '',
-                    pass_hash TEXT DEFAULT ''
+                    pass_hash TEXT DEFAULT '',
+                    cuenta_bloqueada INTEGER DEFAULT 0
                 );
             """)
 
@@ -72,6 +73,8 @@ class ConexionDB:
                 cursor.execute("ALTER TABLE trabajadores ADD COLUMN usuario TEXT DEFAULT '';")
             if 'pass_hash' not in columnas_existentes:
                 cursor.execute("ALTER TABLE trabajadores ADD COLUMN pass_hash TEXT DEFAULT '';")
+            if 'cuenta_bloqueada' not in columnas_existentes:
+                cursor.execute("ALTER TABLE trabajadores ADD COLUMN cuenta_bloqueada INTEGER DEFAULT 0;")
 
 
             # 3. Tabla Clases

@@ -29,11 +29,16 @@ class TrabajadorDAO(BaseDAO):
             passHash=pwd
         )
         if rol == 'Administrador':
-            return Administrador(**datos_base, nivelAcceso='General')
+            t = Administrador(**datos_base, nivelAcceso='General')
         elif rol == 'Instructor':
-            return Instructor(**datos_base, especialidad=row['especialidad'] or 'General')
+            t = Instructor(**datos_base, especialidad=row['especialidad'] or 'General')
         else: #Recepcionista o por defecto
-            return Recepcionista(**datos_base)
+            t = Recepcionista(**datos_base)
+            
+        bloqueado_val = row['cuenta_bloqueada'] if 'cuenta_bloqueada' in row.keys() else 0
+        if bool(bloqueado_val):
+            t.bloquear()
+        return t
 
     def obtener_todos(self) -> List[Trabajador]:
         """Obtiene todos los trabajadores registrados."""
