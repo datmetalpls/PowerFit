@@ -23,6 +23,7 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | **Fase 4** | **Punto de Venta & API Dólar** | 🟢 Completada | `Suplemento` (`calcularPrecioCLP()`), control de stock y `IndicadorDolar` (API `mindicador.cl`). |
 | **Fase 5** | **Interfaz GUI & Base de Datos** | 🟢 Completada | Implementación de `PyQt6` para ventanas interactivas, base de datos `SQLite` con patrón `DAO`. |
 | **Fase 6** | **Seguridad Avanzada & Control UI** | 🟢 Completada | Bloqueo físico en SQLite (RBAC) tras 3 intentos, validación de doble inscripción en UI. |
+| **Fase 7** | **Trazabilidad y Asistencia** | 🟢 Completada | Check de asistencia por instructor, timestamp persistente y persistencia en memoria POO. |
 
 ### 📌 Backlog / Próximas Tareas a Implementar (Fase 3 en adelante)
 - [x] **Modelos de Dominio de Clases Dirigidas (`src/models/`):**

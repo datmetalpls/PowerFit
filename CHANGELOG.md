@@ -7,6 +7,21 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.1] - 2026-10-06
+
+### 🚀 Añadido (Mejoras Finales y Semilla)
+- **Expansión de Catálogo**: Se aumentó el inventario semilla de suplementos por defecto a 10 productos para facilitar simulaciones en el Punto de Venta.
+- **Historial de Socios**: Se añadió el atributo `fechaIngreso` (con migración en base de datos `fecha_ingreso` con `CURRENT_TIMESTAMP`) al modelo `Socio`.
+- **UI Ampliada**: La tabla de gestión de socios ahora muestra dinámicamente el "Estado" (Membresía), la "Fecha de Vencimiento" y la "Fecha de Ingreso".
+
+### 🐛 Solucionado
+- **Persistencia de Hidratación en Clases**: Se corrigió un fallo donde las clases dirigidas perdían la información en memoria de sus socios inscritos y asistencias tras reiniciar la aplicación. Ahora `ClaseDAO` y `InscripcionDAO` se coordinan al arranque para re-sentar físicamente a los alumnos.
+- **Limpieza de Imports**: Se aplicó una limpieza quirúrgica de dependencias y modelos huérfanos abstractos en `app_window.py` que generaban advertencias lógicas en el linter.
+- **SQLite Defaults Constantes**: Se reemplazó el uso de funciones no permitidas (`datetime`) por constantes (`CURRENT_TIMESTAMP` / inserción manual en DAO) para evitar el `OperationalError` al realizar `ALTER TABLE`.
+- **Limpieza de Scripts**: Se purgaron del historial de Git scripts auxiliares temporales.
+
+
+
 ## [1.1.0] - 2026-10-06
 
 ### 🚀 Añadido (Fase de Correcciones y Defensas POO)
