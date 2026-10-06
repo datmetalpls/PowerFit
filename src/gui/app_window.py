@@ -459,8 +459,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout_socios.addWidget(self.btn_guardar_socio)
 
         self.tabla_socios = QTableWidget()
-        self.tabla_socios.setColumnCount(7)
-        self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombres", "Ap. Paterno", "Ap. Materno", "Teléfono", "Membresía", "Ingreso"])
+        self.tabla_socios.setColumnCount(8)
+        self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombres", "Ap. Paterno", "Ap. Materno", "Teléfono", "Membresía", "Vencimiento", "Ingreso"])
         layout_socios.addWidget(self.tabla_socios)
 
         # Botones de Recepción para Cobro y Cancelación
@@ -552,8 +552,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
             f_ingreso = getattr(socio, 'fechaIngreso', '')
             if f_ingreso and len(f_ingreso) > 16:
                 f_ingreso = f_ingreso[:16] # YYYY-MM-DD HH:MM
-            self.tabla_socios.setItem(row, 6, QTableWidgetItem(f_ingreso))
-
             lbl_estado = "⚪ Plan Cancelado"
             if socio.estadoActivo:
                 from src.models.excepciones import MembresiaVencidaException
@@ -562,7 +560,10 @@ class VentanaPrincipalPowerFit(QMainWindow):
                         lbl_estado = "🟢 Al Día"
                 except MembresiaVencidaException:
                     lbl_estado = "🔴 Vencida / Impago"
+            
             self.tabla_socios.setItem(row, 5, QTableWidgetItem(lbl_estado))
+            self.tabla_socios.setItem(row, 6, QTableWidgetItem(str(socio.fechaVencimientoMembresia)))
+            self.tabla_socios.setItem(row, 7, QTableWidgetItem(f_ingreso))
 
         self.actualizar_combo_socios_inscripcion()
 

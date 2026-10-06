@@ -24,7 +24,8 @@ class SocioDAO(BaseDAO):
         telefono=row['telefono'],
         correoElectronico=row['correo_electronico'],
         fechaVencimientoMembresia=fecha_venc,
-        estadoActivo=bool(row['estado_activo'])
+        estadoActivo=bool(row['estado_activo']),
+        fechaIngreso=row['fecha_ingreso'] if 'fecha_ingreso' in row.keys() else ''
     )
 
     def obtener_todos (self) -> List[Socio]:
