@@ -84,19 +84,19 @@ class TrabajadorDAO(BaseDAO):
                     UPDATE trabajadores
                     SET rut = ?, nombres = ?, apellido_paterno = ?, apellido_materno = ?,
                         telefono = ?, correo_electronico = ?, rol = ?, especialidad = ?,
-                        usuario = ?, pass_hash = ?
+                        usuario = ?, pass_hash = ?, cuenta_bloqueada = ?
                     WHERE id_trabajador = ?;
                 """, (
                     entidad.rut, entidad.nombres, entidad.apellidoPaterno, entidad.apellidoMaterno,
-                    entidad.telefono, entidad.correoElectronico, rol, especialidad, usr, pwd, id_trab_num
+                    entidad.telefono, entidad.correoElectronico, rol, especialidad, usr, pwd, int(entidad.cuenta_bloqueada), id_trab_num
                 ))
             else: 
                 cursor.execute("""
-                    INSERT INTO trabajadores (rut, nombres, apellido_paterno, apellido_materno, telefono, correo_electronico, rol, especialidad, usuario, pass_hash)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    INSERT INTO trabajadores (rut, nombres, apellido_paterno, apellido_materno, telefono, correo_electronico, rol, especialidad, usuario, pass_hash, cuenta_bloqueada)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """, (
                     entidad.rut, entidad.nombres, entidad.apellidoPaterno, entidad.apellidoMaterno,
-                    entidad.telefono, entidad.correoElectronico, rol, especialidad, usr, pwd
+                    entidad.telefono, entidad.correoElectronico, rol, especialidad, usr, pwd, int(entidad.cuenta_bloqueada)
                 ))
 
             conn.commit()
