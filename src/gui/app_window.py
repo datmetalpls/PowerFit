@@ -498,9 +498,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.tabla_socios.setColumnCount(8)
         self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombres", "Ap. Paterno", "Ap. Materno", "Teléfono", "Membresía", "Vencimiento", "Ingreso"])
         
-        # Conectar clic en la tabla directamente a cargar formulario
-        self.tabla_socios.itemSelectionChanged.connect(self.cargar_socio_en_formulario)
-        
+        # (La carga automática ha sido removida. Ahora se usará el botón explícitamente)
         # Opcional: hacer que las columnas ocupen todo el espacio
         from PySide6.QtWidgets import QHeaderView
         self.tabla_socios.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -634,6 +632,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
     def cargar_socio_en_formulario(self):
         items = self.tabla_socios.selectedItems()
         if not items:
+            QMessageBox.warning(self, "Selección Requerida", "Por favor selecciona un socio en la tabla primero.")
             return
 
         row = items[0].row()
@@ -641,24 +640,33 @@ class VentanaPrincipalPowerFit(QMainWindow):
         socio = next((s for s in self.socios_registrados if s.rut == rut_socio), None)
 
         if socio:
-            self.input_rut.setText(socio.rut)
-            # Para evitar que le cambien el RUT por error al modificar, podemos ponerlo readonly (opcional)
-            self.input_rut.setReadOnly(True) 
-            self.input_rut.setStyleSheet("background-color: #E2E8F0; color: #64748B;")
+            respuesta = QMessageBox.question(
+                self, 
+                "Confirmar Modificación", 
+                f"Estás seleccionando al usuario {socio.nombres} {socio.apellidoPaterno} ({socio.rut}) y vas a modificar sus datos.\n\n¿Deseas continuar?",
+                QMessageBox.Yes | QMessageBox.No, 
+                QMessageBox.No
+            )
             
-            self.input_nombres.setText(socio.nombres)
-            self.input_apellido_paterno.setText(socio.apellidoPaterno)
-            self.input_apellido_materno.setText(socio.apellidoMaterno or "")
-            self.input_telefono.setText(socio.telefono or "")
-            self.input_correo.setText(socio.correoElectronico or "")
-            
-            if socio.estadoActivo:
-                self.combo_estado_inicial.setCurrentIndex(0) # Al Día
-            else:
-                self.combo_estado_inicial.setCurrentIndex(2) # Cancelado
+            if respuesta == QMessageBox.Yes:
+                self.input_rut.setText(socio.rut)
+                # Para evitar que le cambien el RUT por error al modificar, podemos ponerlo readonly (opcional)
+                self.input_rut.setReadOnly(True) 
+                self.input_rut.setStyleSheet("background-color: #E2E8F0; color: #64748B;")
                 
-            self.btn_guardar_socio.setText("💾 Actualizar Socio Existente")
-            self.btn_guardar_socio.setStyleSheet("background-color: #F39C12; color: white; padding: 8px; font-weight: bold;")
+                self.input_nombres.setText(socio.nombres)
+                self.input_apellido_paterno.setText(socio.apellidoPaterno)
+                self.input_apellido_materno.setText(socio.apellidoMaterno or "")
+                self.input_telefono.setText(socio.telefono or "")
+                self.input_correo.setText(socio.correoElectronico or "")
+                
+                if socio.estadoActivo:
+                    self.combo_estado_inicial.setCurrentIndex(0) # Al Día
+                else:
+                    self.combo_estado_inicial.setCurrentIndex(2) # Cancelado
+                    
+                self.btn_guardar_socio.setText("💾 Actualizar Socio Existente")
+                self.btn_guardar_socio.setStyleSheet("background-color: #F39C12; color: white; padding: 8px; font-weight: bold;")
 
     def limpiar_formulario_socio(self):
         self.input_rut.clear()
