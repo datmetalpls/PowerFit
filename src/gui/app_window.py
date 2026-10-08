@@ -689,22 +689,23 @@ class VentanaPrincipalPowerFit(QMainWindow):
         socio = next((s for s in self.socios_registrados if s.rut == rut_socio), None)
 
         if socio: 
-            #Se invoca recepcionista.cobra mensualdiad
+            # Si el usuario es Recepcionista, puede aplicar la regla del método cobrarMensualidad
+            from src.models.recepcionista import Recepcionista
             if isinstance(self.usuario_actual, Recepcionista):
                 self.usuario_actual.cobrarMensualidad(socio, 35000)
 
-                socio.renovarMembresia(dias=30)
+            # Para cualquier rol permitido (incluyendo Admin), se efectúa la renovación física:
+            socio.renovarMembresia(dias=30)
 
-                #Persistir cambio en Sqlite
-                self.socio_dao.guardar(socio)
-                self.actualizar_tabla_socios()
+            # Persistir cambio en SQLite
+            self.socio_dao.guardar(socio)
+            self.actualizar_tabla_socios()
 
-                QMessageBox.information(
-                    self, 
-                    "Membresia Renovada",
-                    f"¡Cobro realizado! La membresía del socio {socio.nombres} {socio.apellidoPaterno} ha sido renovada en la base de datos hasta {socio.fechaVencimientoMembresia}. "
-
-                )
+            QMessageBox.information(
+                self, 
+                "Membresia Renovada",
+                f"¡Cobro realizado! La membresía del socio {socio.nombres} {socio.apellidoPaterno} ha sido renovada en la base de datos hasta {socio.fechaVencimientoMembresia}. "
+            )
 
     def cancelar_plan_socio(self):
         items = self.tabla_socios.selectedItems()
