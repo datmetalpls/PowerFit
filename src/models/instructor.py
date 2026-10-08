@@ -50,5 +50,6 @@ class Instructor(Trabajador):
     def marcarAsistencia(self, socio: Socio, clase) -> bool:
         """Registra la presencia del socio en la clase."""
         if socio.permitirIngreso() and clase.hayCupo():
-            return clase.reservarCupo()
+            # Evita el doble incremento de inscritos, ya que inscribir_socio se encarga de eso.
+            return True
         return False

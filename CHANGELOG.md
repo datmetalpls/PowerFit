@@ -7,6 +7,18 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.2] - 2026-10-07
+
+### 🔐 Seguridad y Control de Acceso (RBAC)
+- **Bloqueo Visual de Interfaz para Instructores**: Se aplicó una restricción estricta en `app_window.py` para ocultar el formulario de creación de clases al iniciar sesión con perfil de `Instructor`.
+- **Validación Estricta de Admin**: Ahora la función de crear clases invoca obligatoriamente `Administrador.crearClase()` validando la sesión activa, cumpliendo al 100% con los permisos dictados en el modelo UML.
+
+### 🐛 Solucionado
+- **Doble Consumo de Cupos**: Se arregló un bug crítico donde el Instructor, al inscribir a un alumno, consumía 2 cupos físicos en lugar de 1. Se desacopló la reserva de cupo del método `Instructor.marcarAsistencia()`, delegándolo íntegramente a `clase.inscribir_socio()` para evitar duplicidad, permitiendo inscripciones estables aunque queden pocos lugares.
+- **Limpieza de Workspace**: Se eliminaron archivos basura (`__pycache__`, `.pytest_cache`, scripts auxiliares, `.DS_Store`) que figuraban en el control de seguimiento (*untracked*).
+
+
+
 ## [1.1.1] - 2026-10-06
 
 ### 🚀 Añadido (Mejoras Finales y Semilla)
@@ -160,6 +172,20 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Incorporación de botón conmutador en la barra superior de navegación (`btn_toggle_tema`) que conmuta en tiempo real la paleta de colores sin perder el estado de los formularios ni del usuario en sesión.
 - **Optimización de Navegación & RBAC**:
   - Resaltado dinámico de la pestaña activa en la barra superior de acuerdo al tema cargado.
+
+## [0.5.1] - 2026-10-08
+
+### ✨ Mejoras de UX/UI y Funcionalidad
+- **Gestión de Socios (CRUD)**:
+  - Nueva interacción que carga automáticamente los datos del socio seleccionado en la tabla hacia el formulario principal.
+  - Bloqueo de seguridad en el campo `RUT` al editar (ReadOnly) para prevenir modificaciones accidentales de la llave primaria.
+  - El botón de guardado cambia contextualmente a **"Actualizar Socio Existente"** y ejecuta una operación `UPDATE` basada en el ID, en lugar de duplicar el registro.
+  - Agregado botón **"Limpiar Formulario"** para reiniciar la vista y crear nuevos registros fácilmente.
+  - Reestructuración del panel lateral: los botones de acción se reubicaron en un panel vertical a la derecha de la tabla.
+  - Aplicación de `Stretch` a las columnas de la tabla de socios para aprovechar el espacio visual de la pantalla.
+- **Módulo de Venta (Respaldo API Dólar)**:
+  - Implementación de un mecanismo de caché offline (`dolar_backup.txt`) para el valor del dólar.
+  - En caso de caída de internet o error de la API `mindicador.cl`, el sistema carga automáticamente el último valor conocido (posición `[1]` teórica) para proteger los márgenes de venta y mostrar una advertencia de "Modo Offline".
 
 ## [0.5.0] - 2026-09-19
 

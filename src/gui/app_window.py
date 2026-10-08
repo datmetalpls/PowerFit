@@ -410,6 +410,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 self.btn_torniquete.setVisible(False)  # 🔒 Ocultar Torniquete al Instructor
                 self.ir_a_pantalla(2)  # Ir exclusivamente a Clases Dirigidas
 
+            if hasattr(self, 'panel_crear_clase'):
+                self.panel_crear_clase.setVisible(rol == "Administrador")
+
             self.statusBar().showMessage(f"🟢 Sesión iniciada como {self.usuario_actual.getNombres()} ({rol})")
             QMessageBox.information(self, "Acceso Concedido", f"¡Bienvenido/a {self.usuario_actual.getNombres()}!\nRol: {rol}")
         else:
@@ -473,29 +476,66 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         layout_socios.addLayout(form_socios)
 
+        # Layout para botones del formulario
+        layout_botones_form = QHBoxLayout()
+        
         self.btn_guardar_socio = QPushButton("💾 Guardar Socio")
         self.btn_guardar_socio.setStyleSheet("background-color: #27AE60; color: white; padding: 8px; font-weight: bold;")
         self.btn_guardar_socio.clicked.connect(self.guardar_socio)
-        layout_socios.addWidget(self.btn_guardar_socio)
+        layout_botones_form.addWidget(self.btn_guardar_socio)
+        
+        self.btn_limpiar_form = QPushButton("🧹 Limpiar Formulario (Nuevo Registro)")
+        self.btn_limpiar_form.setStyleSheet("background-color: #7F8C8D; color: white; padding: 8px; font-weight: bold;")
+        self.btn_limpiar_form.clicked.connect(self.limpiar_formulario_socio)
+        layout_botones_form.addWidget(self.btn_limpiar_form)
+        
+        layout_socios.addLayout(layout_botones_form)
 
+        # Contenedor horizontal para la tabla (izquierda) y botones (derecha)
+        layout_tabla_acciones = QHBoxLayout()
+        
         self.tabla_socios = QTableWidget()
         self.tabla_socios.setColumnCount(8)
         self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombres", "Ap. Paterno", "Ap. Materno", "Teléfono", "Membresía", "Vencimiento", "Ingreso"])
-        layout_socios.addWidget(self.tabla_socios)
+        
+        # Conectar clic en la tabla directamente a cargar formulario
+        self.tabla_socios.itemSelectionChanged.connect(self.cargar_socio_en_formulario)
+        
+        # Opcional: hacer que las columnas ocupen todo el espacio
+        from PySide6.QtWidgets import QHeaderView
+        self.tabla_socios.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        
+        layout_tabla_acciones.addWidget(self.tabla_socios, stretch=4) # La tabla toma más espacio
 
-        # Botones de Recepción para Cobro y Cancelación
-        layout_acciones_socio = QHBoxLayout()
-        self.btn_renovar_membresia = QPushButton("💵 Cobrar Mensualidad / Renovar (+30d) - Recepción")
-        self.btn_renovar_membresia.setStyleSheet("background-color: #2980B9; color: white; padding: 10px; font-weight: bold;")
+        # Botones de Recepción para Cobro, Cancelación y Modificación
+        layout_acciones_socio = QVBoxLayout()
+        
+        self.btn_renovar_membresia = QPushButton("💵 Cobrar / Renovar (+30d)")
+        self.btn_renovar_membresia.setStyleSheet("background-color: #2980B9; color: white; padding: 15px; font-weight: bold;")
         self.btn_renovar_membresia.clicked.connect(self.renovar_membresia_socio)
 
-        self.btn_cancelar_plan = QPushButton("🚫 Cancelar / Desactivar Plan - Recepción")
-        self.btn_cancelar_plan.setStyleSheet("background-color: #C0392B; color: white; padding: 10px; font-weight: bold;")
+        self.btn_cancelar_plan = QPushButton("🚫 Cancelar / Desactivar Plan")
+        self.btn_cancelar_plan.setStyleSheet("background-color: #C0392B; color: white; padding: 15px; font-weight: bold;")
         self.btn_cancelar_plan.clicked.connect(self.cancelar_plan_socio)
 
+        self.btn_modificar_socio = QPushButton("✏️ Cargar a Formulario")
+        self.btn_modificar_socio.setStyleSheet("background-color: #F39C12; color: white; padding: 15px; font-weight: bold; border: 2px solid #D68910;")
+        self.btn_modificar_socio.clicked.connect(self.cargar_socio_en_formulario)
+
+        # Agregar botones a su columna y empujarlos hacia arriba
         layout_acciones_socio.addWidget(self.btn_renovar_membresia)
         layout_acciones_socio.addWidget(self.btn_cancelar_plan)
-        layout_socios.addLayout(layout_acciones_socio)
+        
+        # Un espaciador para separar un poco el botón de modificar
+        from PySide6.QtWidgets import QSpacerItem, QSizePolicy
+        layout_acciones_socio.addItem(QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed))
+        
+        layout_acciones_socio.addWidget(self.btn_modificar_socio)
+        layout_acciones_socio.addStretch() # Empuja los botones hacia arriba
+
+        layout_tabla_acciones.addLayout(layout_acciones_socio, stretch=1) # Panel lateral usa menos espacio
+        
+        layout_socios.addLayout(layout_tabla_acciones)
 
         self.pantallas.addWidget(self.vista_socios)
 
@@ -523,10 +563,14 @@ class VentanaPrincipalPowerFit(QMainWindow):
             fecha_venc = date.today()
             activo = False
 
+        # Evaluar si es actualización o nuevo (basado en RUT)
+        socio_existente = next((s for s in self.socios_registrados if s.rut == rut), None)
+        id_asignar = socio_existente.idSocio if socio_existente else 0
+
         # Crear y guardar objeto Socio en el dominio POO
         try:
             nuevo_socio = Socio(
-                idSocio=0,
+                idSocio=id_asignar,
                 rut=rut,
                 nombres=nombres,
                 apellidoPaterno=apellido_pat, 
@@ -586,6 +630,53 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.tabla_socios.setItem(row, 7, QTableWidgetItem(f_ingreso))
 
         self.actualizar_combo_socios_inscripcion()
+
+    def cargar_socio_en_formulario(self):
+        items = self.tabla_socios.selectedItems()
+        if not items:
+            return
+
+        row = items[0].row()
+        rut_socio = self.tabla_socios.item(row, 0).text()
+        socio = next((s for s in self.socios_registrados if s.rut == rut_socio), None)
+
+        if socio:
+            self.input_rut.setText(socio.rut)
+            # Para evitar que le cambien el RUT por error al modificar, podemos ponerlo readonly (opcional)
+            self.input_rut.setReadOnly(True) 
+            self.input_rut.setStyleSheet("background-color: #E2E8F0; color: #64748B;")
+            
+            self.input_nombres.setText(socio.nombres)
+            self.input_apellido_paterno.setText(socio.apellidoPaterno)
+            self.input_apellido_materno.setText(socio.apellidoMaterno or "")
+            self.input_telefono.setText(socio.telefono or "")
+            self.input_correo.setText(socio.correoElectronico or "")
+            
+            if socio.estadoActivo:
+                self.combo_estado_inicial.setCurrentIndex(0) # Al Día
+            else:
+                self.combo_estado_inicial.setCurrentIndex(2) # Cancelado
+                
+            self.btn_guardar_socio.setText("💾 Actualizar Socio Existente")
+            self.btn_guardar_socio.setStyleSheet("background-color: #F39C12; color: white; padding: 8px; font-weight: bold;")
+            
+            QMessageBox.information(self, "Formulario Cargado", f"Se han cargado los datos de {socio.nombres} en el formulario superior. Edita los campos (Teléfono, Correo) y haz clic en 'Actualizar Socio'.")
+
+    def limpiar_formulario_socio(self):
+        self.input_rut.clear()
+        self.input_rut.setReadOnly(False)
+        self.input_rut.setStyleSheet("")
+        
+        self.input_nombres.clear()
+        self.input_apellido_paterno.clear()
+        self.input_apellido_materno.clear()
+        self.input_telefono.clear()
+        self.input_correo.clear()
+        self.combo_estado_inicial.setCurrentIndex(0)
+        
+        self.btn_guardar_socio.setText("💾 Guardar Socio")
+        self.btn_guardar_socio.setStyleSheet("background-color: #27AE60; color: white; padding: 8px; font-weight: bold;")
+        self.tabla_socios.clearSelection()
 
     def renovar_membresia_socio(self):
         items = self.tabla_socios.selectedItems()
@@ -654,6 +745,11 @@ class VentanaPrincipalPowerFit(QMainWindow):
         lbl.setStyleSheet("font-size: 16px; font-weight: bold; color: #2C3E50;")
         layout_izquierdo.addWidget(lbl)
 
+        # Contenedor exclusivo para Admin (Creación de Clases)
+        self.panel_crear_clase = QWidget()
+        layout_crear_clase = QVBoxLayout(self.panel_crear_clase)
+        layout_crear_clase.setContentsMargins(0, 0, 0, 0)
+
         form_clases = QFormLayout()
         self.combo_disciplina = QComboBox()
         self.combo_disciplina.addItems(["Spinning", "Yoga", "Crossfit"])
@@ -669,12 +765,14 @@ class VentanaPrincipalPowerFit(QMainWindow):
         form_clases.addRow("Duración (minutos): ", self.input_duracion)
         form_clases.addRow("Sala: ", self.input_sala)
 
-        layout_izquierdo.addLayout(form_clases)
+        layout_crear_clase.addLayout(form_clases)
 
         self.btn_guardar_clase = QPushButton("📌 Crear Clase y Generar Sala")
         self.btn_guardar_clase.setStyleSheet("background-color: #D35400; color: white; padding: 8px; font-weight: bold;")
         self.btn_guardar_clase.clicked.connect(self.guardar_clase)
-        layout_izquierdo.addWidget(self.btn_guardar_clase)
+        layout_crear_clase.addWidget(self.btn_guardar_clase)
+
+        layout_izquierdo.addWidget(self.panel_crear_clase)
 
         # Sección para Inscribir Socio
         box_inscripcion = QGroupBox("✍️ Inscripción de Socio a Puesto")
@@ -728,6 +826,11 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 self.combo_socio_inscripcion.addItem(f"{s.getNombres()} {s.getApellidoPaterno()} ({s.getRut()})")
 
     def guardar_clase(self):
+        from src.models.administrador import Administrador
+        if not isinstance(self.usuario_actual, Administrador):
+            QMessageBox.critical(self, "Acceso Denegado", "Solo un Administrador puede crear clases.")
+            return
+
         disc = self.combo_disciplina.currentText()
         nombre = self.input_nombre_clase.text().strip()
         cupos_str = self.input_cupo_maximo.text().strip()
@@ -757,18 +860,22 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.clases_registradas[nombre] = obj_clase
         self.clase_seleccionada_actual = obj_clase
 
-        #Guardar en SQLIte permanentemente a través del DAO
-        self.clase_dao.guardar(obj_clase)
+        # Invocar formalmente Administrador.crearClase(clase)
+        if self.usuario_actual.crearClase(obj_clase):
+            # Guardar en SQLIte permanentemente a través del DAO
+            self.clase_dao.guardar(obj_clase)
 
-        #Actualizar clases desde la bbdd 
-        clases_list = self.clase_dao.obtener_todos()
-        self.clases_registradas = {c.nombre: c for c in clases_list}
-        self.clase_seleccionada_actual = self.clases_registradas.get(nombre, obj_clase)
+            # Actualizar clases desde la bbdd 
+            clases_list = self.clase_dao.obtener_todos()
+            self.clases_registradas = {c.nombre: c for c in clases_list}
+            self.clase_seleccionada_actual = self.clases_registradas.get(nombre, obj_clase)
 
-        # Refrescar tabla visual completa
-        self.actualizar_tabla_clases_bd()
-        self.renderizar_mapa_sala(obj_clase)
-        QMessageBox.information(self, "Clase Creada", f"¡Clase '{nombre}' ({disc}) creada en {sala} con {cupos_max} puestos!")
+            # Refrescar tabla visual completa
+            self.actualizar_tabla_clases_bd()
+            self.renderizar_mapa_sala(obj_clase)
+            QMessageBox.information(self, "Clase Creada", f"¡Clase '{nombre}' ({disc}) creada en {sala} con {cupos_max} puestos!")
+        else:
+            QMessageBox.critical(self, "Error", "El Administrador no pudo validar la creación de la clase.")
 
     def actualizar_tabla_clases_bd(self):
         """Redibuja la tabla visual de clases dirigidas con la información de SQLite."""
@@ -1116,16 +1223,29 @@ class VentanaPrincipalPowerFit(QMainWindow):
         )
 
     def cargar_dolar_api(self):
+        import os
+        backup_file = "dolar_backup.txt"
         try:
             url = "https://mindicador.cl/api/dolar"
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req) as response:
+            with urllib.request.urlopen(req, timeout=5) as response:
                 data = json.loads(response.read().decode())
+                # Valor normal si hay conexión
                 valor_dolar = data["serie"][0]["valor"]
                 self.input_valor_dolar.setText(str(valor_dolar))
-                QMessageBox.information(self, "API Dólar Cargar", f"Tasa Oficial del Dólar: ${valor_dolar} CLP")
+                QMessageBox.information(self, "API Dólar", f"Tasa Oficial del Dólar: ${valor_dolar} CLP")
+                # Guardar el respaldo
+                with open(backup_file, "w") as f:
+                    f.write(str(valor_dolar))
         except Exception as e:
-            QMessageBox.warning(self, "Error API Dólar", f"No se pudo consultar el valor del dólar: {e}")
+            # Si no hay internet (o falla la API), usar el valor respaldado
+            if os.path.exists(backup_file):
+                with open(backup_file, "r") as f:
+                    valor_respaldo = f.read().strip()
+                self.input_valor_dolar.setText(valor_respaldo)
+                QMessageBox.warning(self, "Modo Offline", f"Sin conexión a Internet. Se cargó el último valor de respaldo del dólar: ${valor_respaldo} CLP\n(Detalle: {e})")
+            else:
+                QMessageBox.warning(self, "Error API Dólar", f"No se pudo consultar el valor y no existe respaldo: {e}")
 
     def guardar_venta(self):
         cant_str = self.input_cantidad.text().strip()

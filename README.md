@@ -22,7 +22,7 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | **Fase 3** | **Motor de Clases & Membresías** | 🟢 Completada | `ClaseDirigida` (`hayCupo()`), `Yoga` (`colchonetas`), `Spinning` (`bicicletas`), `Crossfit` (`estacionesTrabajo`) y `InscripcionMensual`. |
 | **Fase 4** | **Punto de Venta & API Dólar** | 🟢 Completada | `Suplemento` (`calcularPrecioCLP()`), control de stock y `IndicadorDolar` (API `mindicador.cl`). |
 | **Fase 5** | **Interfaz GUI & Base de Datos** | 🟢 Completada | Implementación de `PyQt6` para ventanas interactivas, base de datos `SQLite` con patrón `DAO`. |
-| **Fase 6** | **Seguridad Avanzada & Control UI** | 🟢 Completada | Bloqueo físico en SQLite (RBAC) tras 3 intentos, validación de doble inscripción en UI. |
+| **Fase 6** | **Seguridad Avanzada & Control UI** | 🟢 Completada | Bloqueo físico en SQLite (RBAC) tras 3 intentos, validación de doble inscripción, corrección de cupos y restricciones estrictas de interfaz (RBAC) según UML. |
 | **Fase 7** | **Trazabilidad y Asistencia** | 🟢 Completada | Check de asistencia por instructor, timestamp persistente y persistencia en memoria POO. |
 
 ### 📌 Backlog / Próximas Tareas a Implementar (Fase 3 en adelante)
@@ -58,6 +58,7 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | **Hito 6** | **Perfilamiento, Roles & Autenticación** | 🟢 Completada | Pantalla de Login, autenticación y control de acceso dinámico por rol (Admin, Recepción, Instructor). |
 | **Hito 7** | **Diseño Cyber-Gym & Dual-Theme Adaptable** | 🟢 Completada | Rediseño visual QSS estilo Dark Slate/Neon Orange y conmutador en vivo para **Modo Claro** y **Modo Oscuro** (macOS/Windows). |
 | **Hito 8** | **Modularización de Capa GUI (`src/gui/`)** | 🟢 Completada | Desacople de la ventana principal a `src/gui/app_window.py` y `styles.py`, dejando `main.py` como un bootstrap limpio. |
+| **Hito 9** | **Mejoras UX/UI y Tolerancia a Fallos** | 🟢 Completada | Carga automática y segura de registros al formulario de Socios (bloqueando RUT para UPDATEs). Mecanismo de respaldo offline para la API del dólar. |
 
 
 
