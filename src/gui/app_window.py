@@ -659,8 +659,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 
             self.btn_guardar_socio.setText("💾 Actualizar Socio Existente")
             self.btn_guardar_socio.setStyleSheet("background-color: #F39C12; color: white; padding: 8px; font-weight: bold;")
-            
-            QMessageBox.information(self, "Formulario Cargado", f"Se han cargado los datos de {socio.nombres} en el formulario superior. Edita los campos (Teléfono, Correo) y haz clic en 'Actualizar Socio'.")
 
     def limpiar_formulario_socio(self):
         self.input_rut.clear()
