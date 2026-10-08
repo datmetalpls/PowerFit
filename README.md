@@ -58,7 +58,7 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | **Hito 6** | **Perfilamiento, Roles & Autenticación** | 🟢 Completada | Pantalla de Login, autenticación y control de acceso dinámico por rol (Admin, Recepción, Instructor). |
 | **Hito 7** | **Diseño Cyber-Gym & Dual-Theme Adaptable** | 🟢 Completada | Rediseño visual QSS estilo Dark Slate/Neon Orange y conmutador en vivo para **Modo Claro** y **Modo Oscuro** (macOS/Windows). |
 | **Hito 8** | **Modularización de Capa GUI (`src/gui/`)** | 🟢 Completada | Desacople de la ventana principal a `src/gui/app_window.py` y `styles.py`, dejando `main.py` como un bootstrap limpio. |
-| **Hito 9** | **Mejoras UX/UI y Tolerancia a Fallos** | 🟢 Completada | Carga automática y segura de registros al formulario de Socios (bloqueando RUT para UPDATEs). Mecanismo de respaldo offline para la API del dólar. |
+| **Hito 9** | **Mejoras UX/UI y Tolerancia a Fallos** | 🟢 Completada | Carga explícita y segura con validación de registros al formulario de Socios (bloqueando RUT para UPDATEs). Mecanismo de respaldo offline para la API del dólar (`database/dolar_backup.txt`). |
 
 
 

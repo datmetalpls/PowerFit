@@ -7,6 +7,21 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.3] - 2026-10-08
+
+### ✨ Mejoras de UX/UI y Funcionalidad
+- **Gestión de Socios (CRUD seguro)**:
+  - Rediseño de la interacción con la tabla de socios. Ahora se requiere presionar explícitamente "Cargar a Formulario" y confirmar mediante un cuadro de diálogo (`QMessageBox.question`) para evitar sobrescrituras accidentales.
+  - Bloqueo de seguridad en el campo `RUT` al editar (ReadOnly) previniendo modificaciones en la llave primaria.
+  - El botón de guardado muta contextualmente a **"Actualizar Socio Existente"**, efectuando un `UPDATE` transaccional.
+  - Botón **"Limpiar Formulario"** agregado para reiniciar la vista ágilmente.
+- **Módulo de Venta (Respaldo Offline API Dólar)**:
+  - Mecanismo de contingencia que guarda el último dólar en `database/dolar_backup.txt`.
+  - Ante caída de conexión con `mindicador.cl`, el sistema carga automáticamente este valor histórico (equivalente a la posición `[1]`) evitando que se rompa el margen de venta.
+
+### 🐛 Solucionado
+- **Bug de Renovación de Membresía para Administradores**: Se corrigió un error de indentación que impedía a los usuarios con rol `Administrador` aplicar la renovación de membresía (+30 días) desde la GUI, limitándolo erróneamente solo al rol `Recepcionista`.
+
 ## [1.1.2] - 2026-10-07
 
 ### 🔐 Seguridad y Control de Acceso (RBAC)
@@ -172,20 +187,6 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Incorporación de botón conmutador en la barra superior de navegación (`btn_toggle_tema`) que conmuta en tiempo real la paleta de colores sin perder el estado de los formularios ni del usuario en sesión.
 - **Optimización de Navegación & RBAC**:
   - Resaltado dinámico de la pestaña activa en la barra superior de acuerdo al tema cargado.
-
-## [0.5.1] - 2026-10-08
-
-### ✨ Mejoras de UX/UI y Funcionalidad
-- **Gestión de Socios (CRUD)**:
-  - Nueva interacción que carga automáticamente los datos del socio seleccionado en la tabla hacia el formulario principal.
-  - Bloqueo de seguridad en el campo `RUT` al editar (ReadOnly) para prevenir modificaciones accidentales de la llave primaria.
-  - El botón de guardado cambia contextualmente a **"Actualizar Socio Existente"** y ejecuta una operación `UPDATE` basada en el ID, en lugar de duplicar el registro.
-  - Agregado botón **"Limpiar Formulario"** para reiniciar la vista y crear nuevos registros fácilmente.
-  - Reestructuración del panel lateral: los botones de acción se reubicaron en un panel vertical a la derecha de la tabla.
-  - Aplicación de `Stretch` a las columnas de la tabla de socios para aprovechar el espacio visual de la pantalla.
-- **Módulo de Venta (Respaldo API Dólar)**:
-  - Implementación de un mecanismo de caché offline (`dolar_backup.txt`) para el valor del dólar.
-  - En caso de caída de internet o error de la API `mindicador.cl`, el sistema carga automáticamente el último valor conocido (posición `[1]` teórica) para proteger los márgenes de venta y mostrar una advertencia de "Modo Offline".
 
 ## [0.5.0] - 2026-09-19
 
