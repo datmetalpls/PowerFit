@@ -1224,7 +1224,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
     def cargar_dolar_api(self):
         import os
-        backup_file = "dolar_backup.txt"
+        backup_file = os.path.join("database", "dolar_backup.txt")
         try:
             url = "https://mindicador.cl/api/dolar"
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
