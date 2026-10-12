@@ -7,6 +7,17 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.6] - 2026-10-12
+
+### 📝 Retroalimentación de Evaluación Docente (Profesor Michael Arjel)
+Durante la sesión de evaluación presencial, el docente indicó las siguientes oportunidades de mejora y requerimientos de diseño:
+- **Modificación de Socio en Caliente en Base de Datos**:
+  - Requerimiento de diseño para permitir la modificación y actualización de datos de la clase `Socio` directamente "en caliente" contra la base de datos SQLite, garantizando sincronización bidireccional inmediata.
+- **Persistencia Histórica del Dólar sin Conexión (Modo Offline)**:
+  - Al operar sin acceso a Internet, el sistema no debe limitarse a un valor base estático o a la posición `[0]`; debe mantener la persistencia y consultar el último valor registrado en línea (por ejemplo, la cotización de ayer en la posición `[1]` de la serie histórica), asegurando continuidad y consistencia contable del indicador económico.
+
+---
+
 ## [1.1.5] - 2026-10-12
 
 ### 🐛 Correcciones Críticas (Persistencia y Sincronización)
