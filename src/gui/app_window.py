@@ -269,6 +269,41 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.actualizar_tabla_personal()
             QMessageBox.information(self, "Éxito", f"Cuenta de '{usuario_sel}' desbloqueada exitosamente.")
 
+    def restablecer_base_datos_admin(self):
+        """Permite al Administrador restablecer la base de datos a sus datos semilla oficiales."""
+        admin_autoridad = self.usuario_actual if isinstance(self.usuario_actual, Administrador) else self.usuarios_sistema.get("admin")
+        if not admin_autoridad or not isinstance(admin_autoridad, Administrador):
+            QMessageBox.warning(
+                self,
+                "Acceso Denegado",
+                "Solo un Administrador puede restablecer la base de datos a su estado inicial.",
+            )
+            return
+
+        respuesta = QMessageBox.question(
+            self,
+            "Confirmar Restauración de Base de Datos",
+            "⚠️ ¿Estás seguro de que deseas restablecer la base de datos a su estado inicial?\n\n"
+            "Esta acción limpiará todos los registros y cargará los datos semilla oficiales:\n"
+            "• 3 Cuentas de personal (admin, recepcion, instructor)\n"
+            "• 3 Socios de prueba (Al Día, Vencido, Cancelado)\n"
+            "• 3 Clases dirigidas (Spinning, Yoga, Crossfit)\n"
+            "• Catálogo completo de 10 suplementos con stock inicial\n\n"
+            "¿Deseas continuar?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+
+        if respuesta == QMessageBox.Yes:
+            ConexionDB.reiniciar_base_datos(con_semilla=True)
+            self.cargar_datos_desde_bd()
+            QMessageBox.information(
+                self,
+                "Base de Datos Restablecida",
+                "✅ ¡La base de datos SQLite ha sido restablecida con éxito a sus datos semilla oficiales!\n"
+                "Todas las tablas y pantallas se han sincronizado en tiempo real.",
+            )
+
     def alternar_tema(self):
         self.modo_oscuro_activo = not self.modo_oscuro_activo
         if self.modo_oscuro_activo:
@@ -1346,10 +1381,18 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.tabla_personal.setHorizontalHeaderLabels(["ID", "Usuario", "Nombre Completo", "Rol", "Estado"])
         layout_personal.addWidget(self.tabla_personal)
 
+        layout_acciones_admin = QHBoxLayout()
         self.btn_desbloquear_trabajador = QPushButton("🔓 Desbloquear Trabajador")
         self.btn_desbloquear_trabajador.setStyleSheet("background-color: #27AE60; color: white; padding: 10px; font-weight: bold;")
         self.btn_desbloquear_trabajador.clicked.connect(self.desbloquear_trabajador_admin)
-        layout_personal.addWidget(self.btn_desbloquear_trabajador)
+        layout_acciones_admin.addWidget(self.btn_desbloquear_trabajador)
+
+        self.btn_reset_db = QPushButton("🔄 Restablecer Datos de Demostración (Semilla)")
+        self.btn_reset_db.setStyleSheet("background-color: #D35400; color: white; padding: 10px; font-weight: bold;")
+        self.btn_reset_db.clicked.connect(self.restablecer_base_datos_admin)
+        layout_acciones_admin.addWidget(self.btn_reset_db)
+
+        layout_personal.addLayout(layout_acciones_admin)
 
         # Cargar trabajadores por defecto
         for u in self.usuarios_sistema.values():

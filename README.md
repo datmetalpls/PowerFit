@@ -191,6 +191,15 @@ python main.py
 ```
 *(Asegúrate de tener instalado `PySide6` ejecutando `pip install PySide6` dentro del `.venv` de Python 3.12)*.
 
+### 🔄 Restablecimiento y Poblado de Base de Datos (Modo Demostración)
+
+Para limpiar la base de datos SQLite y restaurarla a su estado de datos semilla oficiales (3 trabajadores, 3 socios de prueba con estados para torniquete, 3 clases dirigidas y 10 suplementos):
+
+```bash
+python3 scripts/reset_db.py
+```
+*También es posible ejecutar esta restauración en vivo desde la aplicación gráfica ingresando como Administrador (`admin` / `admin123`) en la pestaña **Gestión de Personal** presionando el botón **"🔄 Restablecer Datos de Demostración (Semilla)"**.*
+
 ---
 
 Las pruebas cubren 19 escenarios en total:

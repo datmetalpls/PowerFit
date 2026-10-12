@@ -28,6 +28,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
   - Métodos `Persona.limpiar_rut(rut)` y `Persona.coincide_rut(rut)` centralizados para comparaciones de RUT en torniquete y búsquedas.
   - Propiedades `Socio.estado_membresia` y `Socio.esta_al_dia` en el modelo.
   - Propiedades `Clase.id_numerico` y `Suplemento.id_numerico` para eliminar expresiones manuales de filtrado de dígitos en la GUI.
+- **Utilidad de Reinicio y Datos Semilla (*Database Seeding & Reset*)**:
+  - Implementación en `ConexionDB` de los métodos `reiniciar_tablas()`, `poblar_datos_semilla()` y `reiniciar_base_datos(con_semilla=True)`.
+  - Nuevo script CLI autónomo `scripts/reset_db.py` para restablecer el esquema y poblar 3 cuentas de personal, 3 socios de prueba (Al Día, Vencido, Cancelado), 3 clases dirigidas y 10 suplementos en un solo comando.
+  - Botón integrado en la GUI (*"🔄 Restablecer Datos de Demostración"*) dentro de la vista de Administrador para reiniciar el sistema en vivo durante presentaciones académicas con confirmación de seguridad.
 
 ## [1.1.3] - 2026-10-08
 
