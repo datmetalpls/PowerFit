@@ -7,6 +7,28 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.4] - 2026-10-12
+
+### ♻️ Refactorización y Arquitectura POO (Desacoplamiento GUI / Capa de Dominio)
+- **Desacoplamiento Estricto de Capas (Presentación vs. Dominio)**:
+  - Eliminación de toda lógica de red, cálculos de fechas y reglas de negocio duplicadas dentro de `src/gui/app_window.py`.
+  - La interfaz gráfica ahora asume estrictamente el rol de capa de presentación, delegando el 100% de operaciones en los modelos y DAOs.
+- **Centralización del Servicio del Dólar (`IndicadorDolar`)**:
+  - Toda la consulta a `mindicador.cl`, control de timeout, persistencia automática en disco (`database/dolar_backup.txt`) y modo de contingencia offline residen exclusivamente en `IndicadorDolar` (`src/models/suplemento.py`).
+  - Propiedades expuestas `es_offline` y `detalle_error` para que la GUI presente alertas informativas sin duplicar peticiones HTTP.
+- **Control de Acceso Polimórfico (RBAC con `Trabajador.tienePermiso()`)**:
+  - Eliminación de comprobaciones basadas en strings (`if rol == ...`) en la navegación GUI.
+  - El perfilamiento se resuelve polimórficamente mediante `usuario_actual.tienePermiso(modulo)` con permisos nativos en `Recepcionista`, `Instructor` y `Administrador`.
+  - Encapsulamiento del conteo de intentos fallidos de login y bloqueo automático a los 3 intentos dentro del método `Trabajador.autenticar()`.
+- **Patrones de Fábrica (*Factory Methods*)**:
+  - `ClaseDirigida.crear()` y `Administrador.construirClase()` para instanciación polimórfica de disciplinas deportivas (`Spinning`, `Yoga`, `Crossfit`).
+  - `Trabajador.crear()` y `Administrador.darDeAltaTrabajador()` para fabricación polimórfica de empleados según rol.
+  - `Socio.crear_con_estado()` para instanciación de socios calculando automáticamente sus fechas de vigencia.
+- **Encapsulamiento de Identidad y Membresía**:
+  - Métodos `Persona.limpiar_rut(rut)` y `Persona.coincide_rut(rut)` centralizados para comparaciones de RUT en torniquete y búsquedas.
+  - Propiedades `Socio.estado_membresia` y `Socio.esta_al_dia` en el modelo.
+  - Propiedades `Clase.id_numerico` y `Suplemento.id_numerico` para eliminar expresiones manuales de filtrado de dígitos en la GUI.
+
 ## [1.1.3] - 2026-10-08
 
 ### ✨ Mejoras de UX/UI y Funcionalidad

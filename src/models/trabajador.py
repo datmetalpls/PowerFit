@@ -32,6 +32,7 @@ class Trabajador(Persona, ABC):
         self._usuario = usuario or nombres.lower().replace(" ", "")
         self._passHash = passHash
         self._cuenta_bloqueada = False
+        self._intentos_fallidos = 0
         self._rol = rol
         self._permisos = set()
 
@@ -43,11 +44,27 @@ class Trabajador(Persona, ABC):
     def cuenta_bloqueada(self) -> bool:
         return self._cuenta_bloqueada
 
+    @property
+    def intentos_fallidos(self) -> int:
+        return self._intentos_fallidos
+
+    def registrar_intento_fallido(self) -> int:
+        """Registra un fallo de login y bloquea la cuenta al alcanzar 3 intentos."""
+        self._intentos_fallidos += 1
+        if self._intentos_fallidos >= 3:
+            self.bloquear()
+        return self._intentos_fallidos
+
+    def reiniciar_intentos(self):
+        """Restablece el contador de intentos fallidos."""
+        self._intentos_fallidos = 0
+
     def bloquear(self):
         self._cuenta_bloqueada = True
 
     def desbloquear(self):
         self._cuenta_bloqueada = False
+        self._intentos_fallidos = 0
 
     @property
     def usuario(self) -> str:
@@ -61,10 +78,69 @@ class Trabajador(Persona, ABC):
         return self._rol
 
     def autenticar(self, password_intent: str) -> bool:
-        return self._passHash == password_intent
+        """Valida las credenciales; si falla, computa el intento y bloquea a los 3 fallos."""
+        if self._cuenta_bloqueada:
+            return False
+        if self._passHash == password_intent:
+            self.reiniciar_intentos()
+            return True
+        self.registrar_intento_fallido()
+        return False
 
     def tienePermiso(self, accion: str) -> bool:
         """Verifica si el trabajador posee permiso para ejecutar una acción."""
         if self._rol == "Administrador":
             return True
-        return accion in self._permisos
+        return accion.lower() in self._permisos
+
+    @classmethod
+    def crear(
+        cls,
+        rol: str,
+        idTrabajador: str,
+        rut: str,
+        nombres: str,
+        apellidoPaterno: str = "",
+        apellidoMaterno: str = "",
+        usuario: str = "",
+        passHash: str = "",
+        **kwargs,
+    ) -> "Trabajador":
+        """Método de Fábrica (Factory Method) para instanciar subclases polimórficas de Trabajador."""
+        from src.models.administrador import Administrador
+        from src.models.recepcionista import Recepcionista
+        from src.models.instructor import Instructor
+
+        if rol == "Recepcionista":
+            return Recepcionista(
+                idTrabajador=idTrabajador,
+                rut=rut,
+                nombres=nombres,
+                apellidoPaterno=apellidoPaterno,
+                apellidoMaterno=apellidoMaterno,
+                usuario=usuario,
+                passHash=passHash,
+                **kwargs,
+            )
+        elif rol == "Instructor":
+            return Instructor(
+                especialidad=kwargs.get("especialidad", "Fitness"),
+                idTrabajador=idTrabajador,
+                rut=rut,
+                nombres=nombres,
+                apellidoPaterno=apellidoPaterno,
+                apellidoMaterno=apellidoMaterno,
+                usuario=usuario,
+                passHash=passHash,
+            )
+        else:
+            return Administrador(
+                nivelAcceso=kwargs.get("nivelAcceso", "General"),
+                idTrabajador=idTrabajador,
+                rut=rut,
+                nombres=nombres,
+                apellidoPaterno=apellidoPaterno,
+                apellidoMaterno=apellidoMaterno,
+                usuario=usuario,
+                passHash=passHash,
+            )

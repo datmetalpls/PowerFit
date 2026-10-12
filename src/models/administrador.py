@@ -49,9 +49,17 @@ class Administrador(Trabajador):
         """Crea o da de alta a un nuevo trabajador."""
         return True if t else False
 
+    def darDeAltaTrabajador(self, rol: str, idTrabajador: str, rut: str, nombres: str, **kwargs) -> Trabajador:
+        """Fabrica y da de alta a una instancia de personal según su rol."""
+        return Trabajador.crear(rol=rol, idTrabajador=idTrabajador, rut=rut, nombres=nombres, **kwargs)
+
     def crearClase(self, clase: ClaseDirigida) -> bool:
         """Registra una nueva clase dirigida."""
         return True if clase else False
+
+    def construirClase(self, disciplina: str, codigo: str, nombre: str, cupoMaximo: int, duracionMin: int = 60, sala: str = "Sala 1", **kwargs) -> ClaseDirigida:
+        """Fabrica una nueva clase polimórfica según la disciplina deportiva."""
+        return ClaseDirigida.crear(disciplina=disciplina, codigo=codigo, nombre=nombre, cupoMaximo=cupoMaximo, duracionMin=duracionMin, sala=sala, **kwargs)
 
     def modificarClase(self, clase: ClaseDirigida) -> bool:
         """Modifica parámetros de una clase dirigida."""

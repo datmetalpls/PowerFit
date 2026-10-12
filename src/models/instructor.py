@@ -33,6 +33,7 @@ class Instructor(Trabajador):
             correoElectronico=correoElectronico,
         )
         self._especialidad = especialidad
+        self._permisos = {"clases"}
         self._clases_dictadas = []
 
     @property

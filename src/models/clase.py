@@ -29,6 +29,12 @@ class Clase(ABC):
     def duracion_minutos(self) -> int:
         return self._duracionMin
 
+    @property
+    def id_numerico(self) -> int:
+        """Extrae el identificador numérico entero del código (ej: 'CLS-001' -> 1)."""
+        digitos = ''.join(filter(str.isdigit, str(self._codigo)))
+        return int(digitos) if digitos else 1
+
 
 from src.models.excepciones import SinCupoException
 
@@ -135,6 +141,47 @@ class ClaseDirigida(Clase, ABC):
     @abstractmethod
     def obtener_icono_disciplina(self) -> str:
         pass
+
+    @classmethod
+    def crear(
+        cls,
+        disciplina: str,
+        codigo: str,
+        nombre: str,
+        cupoMaximo: int,
+        duracionMin: int = 60,
+        sala: str = "Sala 1",
+        **kwargs,
+    ) -> "ClaseDirigida":
+        """Método de Fábrica (Factory Method) para instanciar subclases según disciplina."""
+        disc_lower = disciplina.lower()
+        if "spinning" in disc_lower:
+            return Spinning(
+                codigo=codigo,
+                nombre=nombre,
+                cupoMaximo=cupoMaximo,
+                duracionMin=duracionMin,
+                sala=sala,
+                **kwargs,
+            )
+        elif "yoga" in disc_lower:
+            return Yoga(
+                codigo=codigo,
+                nombre=nombre,
+                cupoMaximo=cupoMaximo,
+                duracionMin=duracionMin,
+                sala=sala,
+                **kwargs,
+            )
+        else:
+            return Crossfit(
+                codigo=codigo,
+                nombre=nombre,
+                cupoMaximo=cupoMaximo,
+                duracionMin=duracionMin,
+                sala=sala,
+                **kwargs,
+            )
 
 
 class Yoga(ClaseDirigida):

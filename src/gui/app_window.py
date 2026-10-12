@@ -38,10 +38,9 @@ from src.models import (
     Instructor,
     Recepcionista,
     Socio,
-    ClaseSpinning,
-    ClaseYoga,
-    ClaseCrossfit,
+    ClaseDirigida,
     Suplemento,
+    IndicadorDolar,
     Venta,
     DetalleVenta,
 )
@@ -211,7 +210,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
         from src.dao.inscripcion_dao import InscripcionDAO
         insc_dao = InscripcionDAO()
         for clase in clases_list:
-            id_clase_num = int(''.join(filter(str.isdigit, str(clase.codigo))) or '0')
+            id_clase_num = clase.id_numerico
             inscripciones = insc_dao.obtener_inscripciones_por_clase(id_clase_num)
             
             puesto = 0
@@ -373,65 +372,45 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Campos Vacíos", "Por favor ingresa usuario y contraseña.")
             return
 
-        # Check if user is locked
-        if usr in self.usuarios_sistema and self.usuarios_sistema[usr].cuenta_bloqueada:
+        # Verificar si la cuenta ya se encuentra bloqueada en el modelo
+        u_obj = self.usuarios_sistema.get(usr)
+        if u_obj and u_obj.cuenta_bloqueada:
             QMessageBox.critical(self, "Cuenta Bloqueada", "Cuenta bloqueada, contacte al administrador")
             return
 
-        if usr in self.usuarios_sistema and self.usuarios_sistema[usr].autenticar(pwd):
-            if hasattr(self, 'intentos_login_dict'):
-                self.intentos_login_dict[usr] = 0
-            self.usuario_actual = self.usuarios_sistema[usr]
+        if u_obj and u_obj.autenticar(pwd):
+            self.usuario_actual = u_obj
             rol = self.usuario_actual.getRol()
 
             self.lbl_usuario_status.setText(f"👤 {self.usuario_actual.getNombres()} | Rol: {rol}")
             self.barras_navegacion.setVisible(True)
 
-            # Control de Acceso por Roles (RBAC) estricto
-            if rol == "Administrador":
-                self.btn_socios.setVisible(True)
-                self.btn_clases.setVisible(True)
-                self.btn_ventas.setVisible(True)
-                self.btn_personal.setVisible(True)
-                self.btn_torniquete.setVisible(True)
+            # Control de Acceso por Roles (RBAC) polimórfico mediante tienePermiso
+            self.btn_socios.setVisible(self.usuario_actual.tienePermiso("socios"))
+            self.btn_clases.setVisible(self.usuario_actual.tienePermiso("clases"))
+            self.btn_ventas.setVisible(self.usuario_actual.tienePermiso("ventas"))
+            self.btn_personal.setVisible(self.usuario_actual.tienePermiso("personal"))
+            self.btn_torniquete.setVisible(self.usuario_actual.tienePermiso("torniquete"))
+
+            if self.usuario_actual.tienePermiso("socios"):
                 self.ir_a_pantalla(1)  # Ir a Socios
-            elif rol == "Recepcionista":
-                self.btn_socios.setVisible(True)
-                self.btn_clases.setVisible(False)
-                self.btn_ventas.setVisible(True)
-                self.btn_personal.setVisible(False)
-                self.btn_torniquete.setVisible(True)
-                self.ir_a_pantalla(1)  # Ir a Socios
-            elif rol == "Instructor":
-                self.btn_socios.setVisible(False)
-                self.btn_clases.setVisible(True)
-                self.btn_ventas.setVisible(False)
-                self.btn_personal.setVisible(False)
-                self.btn_torniquete.setVisible(False)  # 🔒 Ocultar Torniquete al Instructor
-                self.ir_a_pantalla(2)  # Ir exclusivamente a Clases Dirigidas
+            else:
+                self.ir_a_pantalla(2)  # Ir a Clases Dirigidas (ej: Instructor)
 
             if hasattr(self, 'panel_crear_clase'):
-                self.panel_crear_clase.setVisible(rol == "Administrador")
+                self.panel_crear_clase.setVisible(self.usuario_actual.tienePermiso("personal"))
 
             self.statusBar().showMessage(f"🟢 Sesión iniciada como {self.usuario_actual.getNombres()} ({rol})")
             QMessageBox.information(self, "Acceso Concedido", f"¡Bienvenido/a {self.usuario_actual.getNombres()}!\nRol: {rol}")
         else:
-            if not hasattr(self, 'intentos_login_dict'):
-                self.intentos_login_dict = {}
-            self.intentos_login_dict[usr] = self.intentos_login_dict.get(usr, 0) + 1
-            
-            if self.intentos_login_dict[usr] < 3:
-                QMessageBox.warning(self, "Error de Autenticación", "Intento erroneo")
-            else:
-                if usr in self.usuarios_sistema:
-                    u_obj = self.usuarios_sistema[usr]
-                    u_obj.bloquear()
-                    if hasattr(self, 'trabajador_dao'):
-                        self.trabajador_dao.guardar(u_obj)
-                    if hasattr(self, 'actualizar_tabla_personal'):
-                        self.actualizar_tabla_personal()
+            if u_obj and u_obj.cuenta_bloqueada:
+                if hasattr(self, 'trabajador_dao'):
+                    self.trabajador_dao.guardar(u_obj)
+                if hasattr(self, 'actualizar_tabla_personal'):
+                    self.actualizar_tabla_personal()
                 QMessageBox.critical(self, "Cuenta Bloqueada", "Cuenta bloqueada, contacte al administrador")
-                return
+            else:
+                QMessageBox.warning(self, "Error de Autenticación", "Intento erroneo")
 
     def cerrar_sesion(self):
         self.usuario_actual = None
@@ -548,38 +527,28 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Campos Incompletos", "Por favor completa al menos RUT, Nombres y Apellido Paterno")
             return
 
-        # Evaluar estado inicial seleccionado
-        estado_sel = self.combo_estado_inicial.currentText()
-        from datetime import date, timedelta
-        if "Al Día" in estado_sel:
-            fecha_venc = date.today() + timedelta(days=30)
-            activo = True
-        elif "Vencida" in estado_sel:
-            fecha_venc = date.today() - timedelta(days=1)  # Vencida ayer
-            activo = True
-        else:
-            fecha_venc = date.today()
-            activo = False
-
-        # Evaluar si es actualización o nuevo (basado en RUT)
-        socio_existente = next((s for s in self.socios_registrados if s.rut == rut), None)
+        # Evaluar si es actualización o nuevo (basado en RUT con método coincide_rut)
+        socio_existente = next((s for s in self.socios_registrados if s.coincide_rut(rut)), None)
         id_asignar = socio_existente.idSocio if socio_existente else 0
 
-        # Crear y guardar objeto Socio en el dominio POO
+        # Crear objeto Socio utilizando el método de fábrica del modelo POO
         try:
-            nuevo_socio = Socio(
+            nuevo_socio = Socio.crear_con_estado(
                 idSocio=id_asignar,
                 rut=rut,
                 nombres=nombres,
-                apellidoPaterno=apellido_pat, 
+                apellidoPaterno=apellido_pat,
                 apellidoMaterno=apellido_mat,
                 telefono=telefono,
                 correoElectronico=self.input_correo.text().strip(),
-                fechaVencimientoMembresia=fecha_venc,
-                estadoActivo=activo
+                tipo_estado=self.combo_estado_inicial.currentText(),
             )
         except ValueError as ve:
             QMessageBox.critical(self, "Error de Validación", str(ve))
+            return
+
+        if not nuevo_socio.validarRut():
+            QMessageBox.critical(self, "Error de Validación", f"El RUT '{rut}' no es válido según el Algoritmo Módulo 11.")
             return
 
         if isinstance(self.usuario_actual, Recepcionista):
@@ -595,7 +564,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self,
             "Socio Registrado",
             f"¡Socio {nombres} {apellido_pat} registrado exitosamente y guardado en SQLite!\n"
-            f"Vigencia: Hasta {fecha_venc}"
+            f"Vigencia: Hasta {nuevo_socio.fechaVencimientoMembresia}"
         )
 
     def actualizar_tabla_socios(self):
@@ -613,15 +582,15 @@ class VentanaPrincipalPowerFit(QMainWindow):
             # Formatear fecha ingreso (truncar microsegundos si existen)
             f_ingreso = getattr(socio, 'fechaIngreso', '')
             if f_ingreso and len(f_ingreso) > 16:
-                f_ingreso = f_ingreso[:16] # YYYY-MM-DD HH:MM
-            lbl_estado = "⚪ Plan Cancelado"
-            if socio.estadoActivo:
-                from src.models.excepciones import MembresiaVencidaException
-                try:
-                    if socio.permitirIngreso():
-                        lbl_estado = "🟢 Al Día"
-                except MembresiaVencidaException:
-                    lbl_estado = "🔴 Vencida / Impago"
+                f_ingreso = f_ingreso[:16]  # YYYY-MM-DD HH:MM
+
+            # Estado derivado directamente de la entidad Socio
+            if socio.estado_membresia == "Al Día":
+                lbl_estado = "🟢 Al Día"
+            elif socio.estado_membresia == "Vencida":
+                lbl_estado = "🔴 Vencida / Impago"
+            else:
+                lbl_estado = "⚪ Plan Cancelado"
             
             self.tabla_socios.setItem(row, 5, QTableWidgetItem(lbl_estado))
             self.tabla_socios.setItem(row, 6, QTableWidgetItem(str(socio.fechaVencimientoMembresia)))
@@ -637,7 +606,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         row = items[0].row()
         rut_socio = self.tabla_socios.item(row, 0).text()
-        socio = next((s for s in self.socios_registrados if s.rut == rut_socio), None)
+        socio = next((s for s in self.socios_registrados if s.coincide_rut(rut_socio)), None)
 
         if socio:
             respuesta = QMessageBox.question(
@@ -692,7 +661,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         row = items[0].row()
         rut_socio = self.tabla_socios.item(row, 0).text()
-        socio = next((s for s in self.socios_registrados if s.rut == rut_socio), None)
+        socio = next((s for s in self.socios_registrados if s.coincide_rut(rut_socio)), None)
 
         if socio: 
             # Si el usuario es Recepcionista, puede aplicar la regla del método cobrarMensualidad
@@ -721,7 +690,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         row = items [0].row()
         rut_socio = self.tabla_socios.item(row, 0).text()
-        socio = next((s for s in self.socios_registrados if s.rut == rut_socio), None)
+        socio = next((s for s in self.socios_registrados if s.coincide_rut(rut_socio)), None)
 
         if socio: 
             socio.cancelarPlan()
@@ -855,14 +824,16 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Valor Inválido", "Cupos y Duración deben ser números enteros.")
             return
 
-        # Instanciar según la disciplina (Patrón Polimórfico POO)
+        # Instanciar según la disciplina mediante el método de fábrica del Administrador
         codigo = f"CLS-{len(self.clases_registradas)+1:03d}"
-        if disc == "Spinning":
-            obj_clase = ClaseSpinning(codigo=codigo, nombre=nombre, cupoMaximo=cupos_max, duracionMin=duracion, sala=sala)
-        elif disc == "Yoga":
-            obj_clase = ClaseYoga(codigo=codigo, nombre=nombre, cupoMaximo=cupos_max, duracionMin=duracion, sala=sala)
-        else:
-            obj_clase = ClaseCrossfit(codigo=codigo, nombre=nombre, cupoMaximo=cupos_max, duracionMin=duracion, sala=sala)
+        obj_clase = self.usuario_actual.construirClase(
+            disciplina=disc,
+            codigo=codigo,
+            nombre=nombre,
+            cupoMaximo=cupos_max,
+            duracionMin=duracion,
+            sala=sala,
+        )
 
         self.clases_registradas[nombre] = obj_clase
         self.clase_seleccionada_actual = obj_clase
@@ -1005,8 +976,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 return
             if exito:
                 # Guardar inscripción permanente en SQLite
-                codigo_raw = str(getattr(self.clase_seleccionada_actual, 'codigo', '1'))
-                id_clase_num = int(''.join(filter(str.isdigit, codigo_raw)) or '1')
+                id_clase_num = self.clase_seleccionada_actual.id_numerico
                 self.inscripcion_dao.inscribir_socio(socio.idSocio, id_clase_num)
 
                 # Si es instructor, marcar asistencia en SQLite
@@ -1022,8 +992,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         else:
             socio_puesto = self.clase_seleccionada_actual.cupos[posicion]
-            codigo_raw = str(getattr(self.clase_seleccionada_actual, 'codigo', '1'))
-            id_clase_num = int(''.join(filter(str.isdigit, codigo_raw)) or '1')
+            id_clase_num = self.clase_seleccionada_actual.id_numerico
             
             if isinstance(self.usuario_actual, Instructor):
                 # Flujo Instructor: Marcar/Desmarcar Asistencia
@@ -1230,29 +1199,23 @@ class VentanaPrincipalPowerFit(QMainWindow):
         )
 
     def cargar_dolar_api(self):
-        import os
-        backup_file = os.path.join("database", "dolar_backup.txt")
-        try:
-            url = "https://mindicador.cl/api/dolar"
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=5) as response:
-                data = json.loads(response.read().decode())
-                # Valor normal si hay conexión
-                valor_dolar = data["serie"][0]["valor"]
-                self.input_valor_dolar.setText(str(valor_dolar))
-                QMessageBox.information(self, "API Dólar", f"Tasa Oficial del Dólar: ${valor_dolar} CLP")
-                # Guardar el respaldo
-                with open(backup_file, "w") as f:
-                    f.write(str(valor_dolar))
-        except Exception as e:
-            # Si no hay internet (o falla la API), usar el valor respaldado
-            if os.path.exists(backup_file):
-                with open(backup_file, "r") as f:
-                    valor_respaldo = f.read().strip()
-                self.input_valor_dolar.setText(valor_respaldo)
-                QMessageBox.warning(self, "Modo Offline", f"Sin conexión a Internet. Se cargó el último valor de respaldo del dólar: ${valor_respaldo} CLP\n(Detalle: {e})")
-            else:
-                QMessageBox.warning(self, "Error API Dólar", f"No se pudo consultar el valor y no existe respaldo: {e}")
+        indicador = IndicadorDolar()
+        valor_dolar = indicador.obtenerValorDolar()
+        self.input_valor_dolar.setText(str(valor_dolar))
+
+        if indicador.es_offline:
+            detalle = f"\n(Detalle: {indicador.detalle_error})" if indicador.detalle_error else ""
+            QMessageBox.warning(
+                self,
+                "Modo Offline",
+                f"Sin conexión a Internet. Se cargó el último valor de respaldo del dólar: ${valor_dolar} CLP{detalle}",
+            )
+        else:
+            QMessageBox.information(
+                self,
+                "API Dólar",
+                f"Tasa Oficial del Dólar: ${valor_dolar} CLP",
+            )
 
     def guardar_venta(self):
         cant_str = self.input_cantidad.text().strip()
@@ -1280,7 +1243,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
             return
 
         # Reconsultar el suplemento fresco desde SQLite para asegurar sincronía 100% real
-        id_sup_num = int(obj_suplemento.codigo) if str(obj_suplemento.codigo).isdigit() else 1
+        id_sup_num = obj_suplemento.id_numerico
         sup_actualizado = self.suplemento_dao.obtener_por_id(id_sup_num)
         if sup_actualizado:
             obj_suplemento = sup_actualizado
@@ -1292,12 +1255,14 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         precio_clp = obj_suplemento.calcularPrecioCLP(valor_dolar)
 
-
-
         # 3. Crear DetalleVenta y Venta compuesta (UML)
         obj_detalle = DetalleVenta(cantidad=cant, precioUnitarioCLP=precio_clp, suplemento=obj_suplemento)
         obj_venta = Venta(numero=self.tabla_ventas.rowCount() + 1)
         exito = obj_venta.agregarDetalle(obj_detalle)
+
+        if not exito:
+            QMessageBox.warning(self, "Error", "No se pudo agregar el detalle de venta (Posible falta de stock local).")
+            return
 
         # 4. Invocar Recepcionista.registrarVenta(venta) si corresponde (UML)
         recepcion_autoridad = self.usuario_actual if isinstance(self.usuario_actual, Recepcionista) else self.usuarios_sistema.get("recepcion")
@@ -1315,10 +1280,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.actualizar_inventario_y_combo()
         if idx_previo >= 0 and idx_previo < self.combo_producto.count():
             self.combo_producto.setCurrentIndex(idx_previo)
-
-        if not exito:
-            QMessageBox.warning(self, "Error", "No se pudo agregar el detalle de venta (Posible falta de stock local).")
-            return
 
         QMessageBox.information(
             self,
@@ -1424,21 +1385,19 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Campos Vacíos", "Por favor completa RUT, Nombres, Usuario y Contraseña.")
             return
 
-        nuevo_id = "0"
-        if rol == "Recepcionista":
-            nuevo_t = Recepcionista(
-                idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellido_pat, apellidoMaterno=apellido_mat, usuario=usr, passHash=pwd
-            )
-        elif rol == "Instructor":
-            nuevo_t = Instructor(
-                especialidad="Fitness", idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellido_pat, apellidoMaterno=apellido_mat, usuario=usr, passHash=pwd
-            )
-        else:
-            nuevo_t = Administrador(
-                nivelAcceso="General", idTrabajador=nuevo_id, rut=rut, nombres=nombres, apellidoPaterno=apellido_pat, apellidoMaterno=apellido_mat, usuario=usr, passHash=pwd
+        try:
+            # Fabricar instancia polimórfica mediante el Administrador
+            nuevo_t = admin_autoridad.darDeAltaTrabajador(
+                rol=rol,
+                idTrabajador="0",
+                rut=rut,
+                nombres=nombres,
+                apellidoPaterno=apellido_pat,
+                apellidoMaterno=apellido_mat,
+                usuario=usr,
+                passHash=pwd,
             )
 
-        try:
             # Invocar formalmente Administrador.crearTrabajador(t)
             exito = admin_autoridad.crearTrabajador(nuevo_t)
             if exito:
@@ -1548,7 +1507,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "RUT Vacío", "Por favor ingresa un RUT para validar el molinete.")
             return
 
-        socio = next((s for s in self.socios_registrados if s.getRut().replace(".", "").replace("-", "").upper() == rut.replace(".", "").replace("-", "").upper()), None)
+        socio = next((s for s in self.socios_registrados if s.coincide_rut(rut)), None)
 
         if not socio:
             self.lbl_icono_torniquete.setText("⚠️")
@@ -1582,7 +1541,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.lbl_estado_molinete.setText("TORNIQUETE BLOQUEADO - MEMBRESÍA VENCIDA / PLAN CANCELADO")
             self.lbl_estado_molinete.setStyleSheet("font-size: 18px; font-weight: bold; color: #E74C3C;")
             
-            motivo = "Membresía VENCIDA / IMPAGO" if socio.estadoActivo else "Plan CANCELADO / INACTIVO"
+            motivo = "Membresía VENCIDA / IMPAGO" if socio.estado_membresia == "Vencida" else "Plan CANCELADO / INACTIVO"
             self.lbl_detalle_socio_torniquete.setText(
                 f"Socio: {socio.getNombres()} {socio.getApellidoPaterno()} | RUT: {socio.getRut()}\n"
                 f"⛔ Estado: {motivo} ({socio.fechaVencimientoMembresia}). Pasar a Recepción a regularizar pago."

@@ -77,5 +77,54 @@ class Socio(Persona):
         self._estadoActivo = False
 
     @property
+    def estado_membresia(self) -> str:
+        """Determina el estado actual de la membresía ('Inactivo', 'Al Día' o 'Vencida')."""
+        if not self._estadoActivo:
+            return "Inactivo"
+        if self._fechaVencimientoMembresia and self._fechaVencimientoMembresia >= date.today():
+            return "Al Día"
+        return "Vencida"
+
+    @property
+    def esta_al_dia(self) -> bool:
+        """Indica si el socio se encuentra al día y con membresía vigente."""
+        return self.estado_membresia == "Al Día"
+
+    @classmethod
+    def crear_con_estado(
+        cls,
+        idSocio: int,
+        rut: str,
+        nombres: str,
+        apellidoPaterno: str = "",
+        apellidoMaterno: str = "",
+        telefono: str = "",
+        correoElectronico: str = "",
+        tipo_estado: str = "Al Día",
+    ) -> "Socio":
+        """Método de fábrica que construye un Socio calculando vigencia según el estado inicial."""
+        if "Al Día" in tipo_estado:
+            fecha_venc = date.today() + timedelta(days=30)
+            activo = True
+        elif "Vencida" in tipo_estado:
+            fecha_venc = date.today() - timedelta(days=1)
+            activo = True
+        else:
+            fecha_venc = date.today()
+            activo = False
+
+        return cls(
+            idSocio=idSocio,
+            rut=rut,
+            nombres=nombres,
+            apellidoPaterno=apellidoPaterno,
+            apellidoMaterno=apellidoMaterno,
+            telefono=telefono,
+            correoElectronico=correoElectronico,
+            fechaVencimientoMembresia=fecha_venc,
+            estadoActivo=activo,
+        )
+
+    @property
     def fechaIngreso(self) -> str:
         return self._fechaIngreso

@@ -14,9 +14,7 @@ class Persona(ABC):
         telefono: str = "",
         correoElectronico: str = "",
     ):
-        self._rut = ""
-        if rut:
-            self.rut = rut
+        self._rut = rut
         self._nombres = nombres
         self._apellidoPaterno = apellidoPaterno
         self._apellidoMaterno = apellidoMaterno
@@ -71,12 +69,20 @@ class Persona(ABC):
     def getApellidoPaterno(self) -> str:
         return self._apellidoPaterno
 
+    @staticmethod
+    def limpiar_rut(rut: str) -> str:
+        """Normaliza el RUT eliminando puntos, guiones y espacios en mayúsculas."""
+        if not rut or not isinstance(rut, str):
+            return ""
+        return rut.replace(".", "").replace("-", "").replace(" ", "").upper()
+
+    def coincide_rut(self, rut_comparar: str) -> bool:
+        """Compara si el RUT de esta persona coincide con otro RUT ingresado."""
+        return self.limpiar_rut(self._rut) == self.limpiar_rut(rut_comparar)
+
     def validarRut(self) -> bool:
         """Valida la autenticidad del RUT mediante el Algoritmo Módulo 11."""
-        if not self._rut or not isinstance(self._rut, str):
-            return False
-
-        rut_limpio = self._rut.replace(".", "").replace("-", "").replace(" ", "").upper()
+        rut_limpio = self.limpiar_rut(self._rut)
         if len(rut_limpio) < 2:
             return False
 

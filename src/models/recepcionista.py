@@ -36,6 +36,7 @@ class Recepcionista(Trabajador):
             correoElectronico=correoElectronico,
         )
         self._turno = turno
+        self._permisos = {"socios", "ventas", "torniquete"}
         self._socios_registrados = []
         self._ventas_procesadas = []
 
