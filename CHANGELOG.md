@@ -7,6 +7,19 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.7] - 2026-10-12
+
+### 🛡️ Hotfix de Seguridad y Dominio (Blindaje contra Cantidades Negativas en Ventas)
+- **Validación Estricta de Cantidad Positiva en Punto de Venta**:
+  - **Identificación de la vulnerabilidad de borde**: Si un usuario ingresaba una cantidad negativa (ej: `-2`), la comprobación `stock >= cantidad` (`10 >= -2`) resultaba `True`, y la operación `stock -= (-2)` incrementaba indebidamente el inventario y calculaba totales negativos.
+  - **Blindaje en Modelo `Suplemento`**: Métodos `hayStock(cantidad)` y `descontarStock(cantidad)` ahora exigen estrictamente `cantidad > 0`.
+  - **Blindaje en `DetalleVenta`**: El constructor y el setter `@cantidad.setter` lanzan `ValueError` si la cantidad no es estrictamente positiva.
+  - **Blindaje en `Venta.agregarDetalle`**: Verifica `detalle.cantidad > 0` antes de procesar el detalle.
+  - **Validación en Capa de Presentación (`app_window.py`)**: Diálogo de advertencia `QMessageBox.warning` bloqueando el formulario si la cantidad o el valor del dólar son menores o iguales a cero.
+  - **Defensa en Profundidad en `VentaDAO`**: Validación previa antes de ejecutar el `INSERT` y el `UPDATE` en SQLite.
+
+---
+
 ## [1.1.6] - 2026-10-12
 
 ### 📝 Retroalimentación de Evaluación Docente (Profesor Michael Arjel)

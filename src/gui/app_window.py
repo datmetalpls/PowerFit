@@ -1299,6 +1299,22 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Valor Inválido", "Cantidad debe ser entero y valor dólar numérico.")
             return
 
+        if cant <= 0:
+            QMessageBox.warning(
+                self,
+                "Cantidad Inválida",
+                f"La cantidad a vender debe ser estrictamente mayor a cero (ingresado: {cant})."
+            )
+            return
+
+        if valor_dolar <= 0:
+            QMessageBox.warning(
+                self,
+                "Valor Dólar Inválido",
+                "La tasa de cambio del dólar debe ser mayor a cero."
+            )
+            return
+
         obj_suplemento = self.combo_producto.currentData()
         if not obj_suplemento:
             idx = self.combo_producto.currentIndex()

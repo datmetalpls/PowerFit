@@ -126,11 +126,15 @@ class Suplemento:
         return round(self._precioUSD * valorDolar, 2)
 
     def hayStock(self, cantidad: int) -> bool:
-        """Verifica si existe inventario suficiente para la cantidad solicitada."""
+        """Verifica si existe inventario suficiente para la cantidad solicitada (debe ser > 0)."""
+        if cantidad <= 0:
+            return False
         return self._stock >= cantidad
 
     def descontarStock(self, cantidad: int) -> bool:
-        """Descuenta del stock físico si existe suficiente cantidad."""
+        """Descuenta del stock físico si la cantidad es positiva y existe suficiente inventario."""
+        if cantidad <= 0:
+            return False
         if self.hayStock(cantidad):
             self._stock -= cantidad
             return True
@@ -141,13 +145,21 @@ class DetalleVenta:
     """Detalle de una línea de venta asociada a un Suplemento."""
 
     def __init__(self, cantidad: int, precioUnitarioCLP: float, suplemento: Suplemento):
-        self._cantidad = cantidad
-        self._precioUnitarioCLP = precioUnitarioCLP
+        if cantidad <= 0:
+            raise ValueError(f"La cantidad de venta debe ser estrictamente mayor a cero (recibido: {cantidad}).")
+        self._cantidad = int(cantidad)
+        self._precioUnitarioCLP = float(precioUnitarioCLP)
         self._suplemento = suplemento
 
     @property
     def cantidad(self) -> int:
         return self._cantidad
+
+    @cantidad.setter
+    def cantidad(self, nueva_cantidad: int):
+        if nueva_cantidad <= 0:
+            raise ValueError(f"La cantidad debe ser mayor a cero (recibido: {nueva_cantidad}).")
+        self._cantidad = int(nueva_cantidad)
 
     @property
     def precioUnitarioCLP(self) -> float:
@@ -189,7 +201,7 @@ class Venta:
 
     def agregarDetalle(self, detalle: DetalleVenta) -> bool:
         """Agrega un detalle de venta y descuenta stock del suplemento."""
-        if detalle and detalle.suplemento and detalle.suplemento.descontarStock(detalle.cantidad):
+        if detalle and detalle.cantidad > 0 and detalle.suplemento and detalle.suplemento.descontarStock(detalle.cantidad):
             self._detalles.append(detalle)
             self._totalCLP = self.calcularTotal()
             return True

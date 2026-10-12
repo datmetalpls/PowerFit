@@ -60,6 +60,8 @@ class VentaDAO(BaseDAO):
             id_venta = cursor.lastrowid
 
             for det in entidad.detalles:
+                if det.cantidad <= 0:
+                    raise ValueError(f"No se puede registrar una venta con cantidad no positiva ({det.cantidad}).")
                 id_sup = int(det.suplemento.codigo) if det.suplemento.codigo.isdigit() else 1
                 cursor.execute("""
                     INSERT INTO detalles_ventas (id_venta, id_suplemento, cantidad, precio_unitario_clp)
