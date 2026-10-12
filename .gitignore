@@ -55,3 +55,11 @@ htmlcov/
 *.log
 database/*.db
 *.sqlite3
+
+# Documentos locales de Defensa y Presentación (Sumativa 3)
+Presentacion_Sumativa3_PowerFit.pptx
+docs/Informe_Defensa_Sumativa3_PowerFit.*
+docs/Flujo_Ejecucion_GUI_POO_DAO_PowerFit.*
+scripts/generar_presentacion.py
+scripts/generar_pdf.py
+scripts/generar_pdf_flujo.py
