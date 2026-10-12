@@ -1,6 +1,5 @@
 """PowerFit - Productos Suplemento, Venta, DetalleVenta e IndicadorDolar (UML posiblediagrama.drawio.xml)."""
 import json
-import os
 import urllib.request
 from datetime import date
 from pathlib import Path

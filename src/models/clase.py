@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 from src.models.socio import Socio
 from src.models.instructor import Instructor
+from src.models.excepciones import SinCupoException
 
 
 class Clase(ABC):
@@ -35,8 +36,6 @@ class Clase(ABC):
         digitos = ''.join(filter(str.isdigit, str(self._codigo)))
         return int(digitos) if digitos else 1
 
-
-from src.models.excepciones import SinCupoException
 
 class ClaseDirigida(Clase, ABC):
     """Clase abstracta ClaseDirigida que hereda de Clase."""

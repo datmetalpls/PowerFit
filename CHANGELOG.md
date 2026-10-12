@@ -7,6 +7,38 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.5] - 2026-10-12
+
+### 🐛 Correcciones Críticas (Persistencia y Sincronización)
+- **Persistencia Segura de Socios (Prevención de Sobrescritura Silenciosa)**:
+  - Corregido error en `guardar_socio()` donde ingresar un RUT coincidente con datos existentes sobrescribía silenciosamente la primera posición de la base de datos (`id_socio = 1`, Juan Carlos Pérez).
+  - Separación estricta entre **Nuevo Registro** (bloquea RUT duplicado con advertencia `QMessageBox.warning`) y **Edición Explícita** (`✏️ Cargar a Formulario`, que fija `id_socio_en_edicion`, bloquea el RUT en sólo lectura y cambia el botón a `💾 Actualizar Socio Existente`).
+  - Limpieza automática del formulario tras registrar o actualizar socios con reinicio de estado.
+  - Asignación inmediata de `cursor.lastrowid` a `entidad.idSocio` en `SocioDAO.guardar()` al ejecutar `INSERT`.
+- **Sincronización Limpia de Personal al Restablecer Base de Datos**:
+  - Corregido rezago en memoria de `self.usuarios_sistema` en `cargar_datos_desde_bd()` y `guardar_trabajador_admin()`. Ahora se ejecuta `.clear()` antes de recargar de SQLite, eliminando usuarios creados temporalmente al restablecer datos semilla.
+
+### 🧹 Limpieza Integral de Código y Estándares POO
+- **Eliminación Total de Importaciones No Utilizadas**:
+  - Eliminados imports huérfanos en `app_window.py` (`os`, `json`, `urllib.request`, `Optional`).
+  - Eliminado import `abstractmethod` no usado en `src/models/persona.py`.
+  - Eliminado import `Optional` no usado en `src/models/recepcionista.py`.
+  - Eliminado import `os` no usado en `src/models/suplemento.py`.
+  - Eliminado import `date` no usado en `src/dao/socio_dao.py`.
+  - Eliminados imports `DetalleVenta` y `Suplemento` no usados en `src/dao/venta_dao.py`.
+- **Eliminación de Código Muerto**:
+  - Removido el método vacío sin referencias `al_cambiar_producto_venta()` en `app_window.py`.
+- **Centralización PEP 8 de Importaciones y Reutilización de DAOs**:
+  - Eliminadas todas las importaciones inline dispersas dentro de métodos en `app_window.py`.
+  - Reutilización de la instancia existente `self.inscripcion_dao` en `cargar_datos_desde_bd()` en vez de crear nuevos objetos DAO dentro de bucles.
+  - Movida la importación de `SinCupoException` en `src/models/clase.py` a la cabecera del archivo.
+- **Contratos Públicos de Paquetes (`__init__.py`)**:
+  - `src/models/__init__.py`: Eliminadas referencias obsoletas (`"Direccion"`, `"Comuna"`) y expuestas formalmente las excepciones del dominio (`ReglaNegocioException`, `SinCupoException`, `MembresiaVencidaException`).
+  - `src/dao/__init__.py`: Exportación completa y limpia de todos los DAOs (`BaseDAO`, `ConexionDB`, `SocioDAO`, `TrabajadorDAO`, `ClaseDAO`, `SuplementoDAO`, `InscripcionDAO`, `VentaDAO`).
+- **Encapsulamiento POO**:
+  - Implementación de setters `@property` en `Persona` (`nombres`, `apellidoPaterno`, `apellidoMaterno`, `telefono`, `correoElectronico`).
+  - Implementación de setter `@property` en `Socio` para `idSocio`.
+
 ## [1.1.4] - 2026-10-12
 
 ### ♻️ Refactorización y Arquitectura POO (Desacoplamiento GUI / Capa de Dominio)

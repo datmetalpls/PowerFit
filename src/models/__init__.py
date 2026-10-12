@@ -23,6 +23,11 @@ from src.models.suplemento import (
     Venta,
     DetalleVenta,
 )
+from src.models.excepciones import (
+    ReglaNegocioException,
+    SinCupoException,
+    MembresiaVencidaException,
+)
 
 __all__ = [
     "Persona",
@@ -39,12 +44,13 @@ __all__ = [
     "ClaseYoga",
     "ClaseSpinning",
     "ClaseCrossfit",
-    "Direccion",
-    "Comuna",
     "InscripcionMensual",
     "DetalleInscripcion",
     "Suplemento",
     "IndicadorDolar",
     "Venta",
     "DetalleVenta",
+    "ReglaNegocioException",
+    "SinCupoException",
+    "MembresiaVencidaException",
 ]

@@ -39,6 +39,10 @@ class Socio(Persona):
     def idSocio(self) -> int:
         return self._idSocio
 
+    @idSocio.setter
+    def idSocio(self, nuevo_id: int):
+        self._idSocio = int(nuevo_id)
+
     @property
     def fechaVencimientoMembresia(self) -> date:
         return self._fechaVencimientoMembresia

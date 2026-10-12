@@ -1,5 +1,5 @@
 """PowerFit - Modelo Base Abstracto Persona."""
-from abc import ABC, abstractmethod
+from abc import ABC
 
 
 class Persona(ABC):
@@ -37,6 +37,10 @@ class Persona(ABC):
     def nombres(self) -> str:
         return self._nombres
 
+    @nombres.setter
+    def nombres(self, nuevo: str):
+        self._nombres = nuevo
+
     @property
     def nombre(self) -> str:
         """Alias 'nombre' exigido por el UML Oficial."""
@@ -48,17 +52,33 @@ class Persona(ABC):
     def apellidoPaterno(self) -> str:
         return self._apellidoPaterno
 
+    @apellidoPaterno.setter
+    def apellidoPaterno(self, nuevo: str):
+        self._apellidoPaterno = nuevo
+
     @property
     def apellidoMaterno(self) -> str:
         return self._apellidoMaterno
+
+    @apellidoMaterno.setter
+    def apellidoMaterno(self, nuevo: str):
+        self._apellidoMaterno = nuevo
 
     @property
     def telefono(self) -> str:
         return self._telefono
 
+    @telefono.setter
+    def telefono(self, nuevo: str):
+        self._telefono = nuevo
+
     @property
     def correoElectronico(self) -> str:
         return self._correoElectronico
+
+    @correoElectronico.setter
+    def correoElectronico(self, nuevo: str):
+        self._correoElectronico = nuevo
 
     def getRut(self) -> str:
         return self._rut

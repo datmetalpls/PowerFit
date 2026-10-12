@@ -3,7 +3,7 @@ from typing import List, Optional
 from datetime import datetime
 from src.dao.conexion import ConexionDB
 from src.dao.base_dao import BaseDAO
-from src.models.suplemento import Venta, DetalleVenta, Suplemento
+from src.models.suplemento import Venta
 
 class VentaDAO(BaseDAO):
     """Clase encargada del acceso a datos para las Ventas en SQLite."""

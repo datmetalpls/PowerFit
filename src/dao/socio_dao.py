@@ -1,18 +1,16 @@
 # DAO para Socio
-from datetime import datetime, date
+from datetime import datetime
 from typing import List, Optional
 from src.dao.conexion import ConexionDB
 from src.dao.base_dao import BaseDAO
 from src.models.socio import Socio
 
 class SocioDAO(BaseDAO):
-    """Clase encargada del acceso a datos para la entidad Socio en SQLite"""
-
+    """Clase encargada del acceso a datos para la entidad Socio en SQLite."""
 
     def _map_row_to_socio(self, row) -> Socio: 
         """Convierte una fila de la BD SQLite en un objeto Socio del modelo POO."""
-
-        #Convertimos la fecha guardada como exto 'YYYY-MM-DD' a date
+        # Convertimos la fecha guardada como texto 'YYYY-MM-DD' a date
         fecha_venc = datetime.strptime(row['fecha_vencimiento'], '%Y-%m-%d').date() if row['fecha_vencimiento'] else None
 
         return Socio (
@@ -55,23 +53,25 @@ class SocioDAO(BaseDAO):
     def guardar(self, entidad: Socio) -> bool: 
          """Inserta un nuevo socio o actualiza uno existente (UPSERT)."""
          fecha_str = entidad.fechaVencimientoMembresia.strftime('%Y-%m-%d') if entidad.fechaVencimientoMembresia else None
+         id_socio_num = int(entidad.idSocio) if entidad.idSocio and str(entidad.idSocio).isdigit() else 0
+
          with ConexionDB.obt_conexion() as conn: 
               cursor = conn.cursor()
 
-              #Si idSocio==0 o None, o si no existe en la BD -> INSERT, si no -> UPDATE
-              cursor.execute("SELECT id_socio from socios WHERE id_socio = ?;", (entidad.idSocio,))
+              # Si id_socio_num > 0 y existe en la BD -> UPDATE, si no -> INSERT
+              cursor.execute("SELECT id_socio FROM socios WHERE id_socio = ?;", (id_socio_num,))
               existe = cursor.fetchone()
 
-              if existe: 
+              if existe and id_socio_num > 0: 
                    cursor.execute("""
                     UPDATE socios
                     SET rut = ?, nombres = ?, apellido_paterno = ?, apellido_materno = ?,
-                    telefono =?, correo_electronico = ?, fecha_vencimiento = ?, estado_activo = ?
+                    telefono = ?, correo_electronico = ?, fecha_vencimiento = ?, estado_activo = ?
                     WHERE id_socio = ?;
                    """, (
                         entidad.rut, entidad.nombres, entidad.apellidoPaterno, entidad.apellidoMaterno,
                         entidad.telefono, entidad.correoElectronico, fecha_str,
-                        1 if entidad.estadoActivo else 0, entidad.idSocio
+                        1 if entidad.estadoActivo else 0, id_socio_num
                    ))
               else: 
                    cursor.execute("""
@@ -82,10 +82,12 @@ class SocioDAO(BaseDAO):
                          entidad.telefono, entidad.correoElectronico, fecha_str,
                          1 if entidad.estadoActivo else 0
                     ))
+                   if cursor.lastrowid:
+                        entidad.idSocio = cursor.lastrowid
               conn.commit()
               return True
-    def eliminar (self, id_entidad: int) -> bool:
-         """Elimina un socio por su ID primaro."""
+    def eliminar(self, id_entidad: int) -> bool:
+         """Elimina un socio por su ID primario."""
          with ConexionDB.obt_conexion() as conn:
               cursor = conn.cursor()
               cursor.execute("DELETE FROM socios WHERE id_socio = ?;", (id_entidad,))

@@ -1,6 +1,5 @@
 """Clase Recepcionista: Trabajador encargado de la atención, recepción y cobranza."""
 from datetime import date
-from typing import Optional
 from src.models.trabajador import Trabajador
 from src.models.socio import Socio
 from src.models.suplemento import Venta

@@ -1,48 +1,47 @@
-"""PowerFit - Punto de entrada principal con Autenticación y Control de Acceso por Roles (RBAC - Hito 6)."""
-import os
 import sys
-import json
-import urllib.request
 
-from src.dao.conexion import ConexionDB
-from src.dao.socio_dao import SocioDAO
-from src.dao.trabajador_dao import TrabajadorDAO
-from src.dao.clase_dao import ClaseDAO
-from src.dao.suplemento_dao import SuplementoDAO
-from src.dao.inscripcion_dao import InscripcionDAO
-from src.dao.venta_dao import VentaDAO
-
-
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication,
-    QWidget,
-    QMainWindow,
-    QLabel,
-    QLineEdit,
-    QVBoxLayout,
-    QPushButton,
-    QMessageBox,
-    QHBoxLayout,
-    QStackedWidget,
-    QFormLayout,
     QComboBox,
-    QTableWidget,
-    QTableWidgetItem,
+    QFormLayout,
     QGridLayout,
     QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QSizePolicy,
+    QSpacerItem,
+    QStackedWidget,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QWidget,
 )
-from PySide6.QtCore import Qt
 
+from src.dao.clase_dao import ClaseDAO
+from src.dao.conexion import ConexionDB
+from src.dao.inscripcion_dao import InscripcionDAO
+from src.dao.socio_dao import SocioDAO
+from src.dao.suplemento_dao import SuplementoDAO
+from src.dao.trabajador_dao import TrabajadorDAO
+from src.dao.venta_dao import VentaDAO
+from src.gui.styles import QSS_MODO_CLARO, QSS_MODO_OSCURO
 from src.models import (
     Administrador,
-    Instructor,
-    Recepcionista,
-    Socio,
-    ClaseDirigida,
-    Suplemento,
-    IndicadorDolar,
-    Venta,
     DetalleVenta,
+    IndicadorDolar,
+    Instructor,
+    MembresiaVencidaException,
+    Recepcionista,
+    SinCupoException,
+    Socio,
+    Suplemento,
+    Venta,
 )
 
 
@@ -57,7 +56,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.modo_oscuro_activo = True
 
         # Hojas de estilo QSS para Modo Oscuro y Modo Claro
-        from src.gui.styles import QSS_MODO_OSCURO, QSS_MODO_CLARO
         self.QSS_MODO_OSCURO = QSS_MODO_OSCURO
         self.QSS_MODO_CLARO = QSS_MODO_CLARO
 
@@ -124,6 +122,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.socios_registrados = []
         self.clases_registradas = {}  # dict: {nombre_clase: obj ClaseDirigida}
         self.clase_seleccionada_actual = None
+        self.id_socio_en_edicion = None
 
         # Layout Principal
         self.widget_central = QWidget()
@@ -206,12 +205,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         # 2. Cargar clases dirigidas desde SQLite y refrescar tabla visual
         clases_list = self.clase_dao.obtener_todos()
-        
-        from src.dao.inscripcion_dao import InscripcionDAO
-        insc_dao = InscripcionDAO()
         for clase in clases_list:
             id_clase_num = clase.id_numerico
-            inscripciones = insc_dao.obtener_inscripciones_por_clase(id_clase_num)
+            inscripciones = self.inscripcion_dao.obtener_inscripciones_por_clase(id_clase_num)
             
             puesto = 0
             for ins in inscripciones:
@@ -237,12 +233,19 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 self.trabajador_dao.guardar(user_obj)
             trabajadores_bd = self.trabajador_dao.obtener_todos()
 
+        self.usuarios_sistema.clear()
         pass_map = {"admin": "admin123", "recepcion": "rec123", "instructor": "ins123"}
         for t in trabajadores_bd:
             key_user = getattr(t, 'usuario', None) or t.nombres.lower().replace(" ", "")
             if key_user in pass_map:
                 t._passHash = pass_map[key_user]
             self.usuarios_sistema[key_user] = t
+
+        if self.usuario_actual:
+            key_act = getattr(self.usuario_actual, 'usuario', None)
+            if key_act and key_act in self.usuarios_sistema:
+                self.usuario_actual = self.usuarios_sistema[key_act]
+
         if hasattr(self, 'actualizar_tabla_personal'):
             self.actualizar_tabla_personal()
 
@@ -511,13 +514,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.tabla_socios = QTableWidget()
         self.tabla_socios.setColumnCount(8)
         self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombres", "Ap. Paterno", "Ap. Materno", "Teléfono", "Membresía", "Vencimiento", "Ingreso"])
-        
-        # (La carga automática ha sido removida. Ahora se usará el botón explícitamente)
-        # Opcional: hacer que las columnas ocupen todo el espacio
-        from PySide6.QtWidgets import QHeaderView
         self.tabla_socios.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         
-        layout_tabla_acciones.addWidget(self.tabla_socios, stretch=4) # La tabla toma más espacio
+        layout_tabla_acciones.addWidget(self.tabla_socios, stretch=4)
 
         # Botones de Recepción para Cobro, Cancelación y Modificación
         layout_acciones_socio = QVBoxLayout()
@@ -534,16 +533,11 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.btn_modificar_socio.setStyleSheet("background-color: #F39C12; color: white; padding: 15px; font-weight: bold; border: 2px solid #D68910;")
         self.btn_modificar_socio.clicked.connect(self.cargar_socio_en_formulario)
 
-        # Agregar botones a su columna y empujarlos hacia arriba
         layout_acciones_socio.addWidget(self.btn_renovar_membresia)
         layout_acciones_socio.addWidget(self.btn_cancelar_plan)
-        
-        # Un espaciador para separar un poco el botón de modificar
-        from PySide6.QtWidgets import QSpacerItem, QSizePolicy
         layout_acciones_socio.addItem(QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed))
-        
         layout_acciones_socio.addWidget(self.btn_modificar_socio)
-        layout_acciones_socio.addStretch() # Empuja los botones hacia arriba
+        layout_acciones_socio.addStretch()
 
         layout_tabla_acciones.addLayout(layout_acciones_socio, stretch=1) # Panel lateral usa menos espacio
         
@@ -557,14 +551,38 @@ class VentanaPrincipalPowerFit(QMainWindow):
         apellido_pat = self.input_apellido_paterno.text().strip()
         apellido_mat = self.input_apellido_materno.text().strip()
         telefono = self.input_telefono.text().strip()
+        correo = self.input_correo.text().strip()
 
         if not rut or not nombres or not apellido_pat:
             QMessageBox.warning(self, "Campos Incompletos", "Por favor completa al menos RUT, Nombres y Apellido Paterno")
             return
 
-        # Evaluar si es actualización o nuevo (basado en RUT con método coincide_rut)
-        socio_existente = next((s for s in self.socios_registrados if s.coincide_rut(rut)), None)
-        id_asignar = socio_existente.idSocio if socio_existente else 0
+        # Validar si es modo nuevo registro o modo edición explícita
+        if self.id_socio_en_edicion is None:
+            # Modo NUEVO REGISTRO: No permitir sobreescribir un socio existente por coincidencia de RUT
+            socio_existente = next((s for s in self.socios_registrados if s.coincide_rut(rut)), None)
+            if socio_existente:
+                QMessageBox.warning(
+                    self,
+                    "RUT Ya Registrado",
+                    f"El RUT '{rut}' ya se encuentra registrado en el sistema a nombre de:\n"
+                    f"• {socio_existente.nombres} {socio_existente.apellidoPaterno} {socio_existente.apellidoMaterno}\n\n"
+                    "Si deseas modificar los datos de este socio, selecciónalo en la tabla y pulsa '✏️ Cargar a Formulario'."
+                )
+                return
+            id_asignar = 0
+        else:
+            # Modo EDICIÓN: Usar el ID asignado para actualizar dicho registro
+            id_asignar = self.id_socio_en_edicion
+            # Verificar que no colisione con el RUT de otro socio distinto
+            otro_socio = next((s for s in self.socios_registrados if s.coincide_rut(rut) and s.idSocio != self.id_socio_en_edicion), None)
+            if otro_socio:
+                QMessageBox.warning(
+                    self,
+                    "RUT en Conflicto",
+                    f"El RUT '{rut}' ya pertenece a otro socio registrado ({otro_socio.nombres} {otro_socio.apellidoPaterno})."
+                )
+                return
 
         # Crear objeto Socio utilizando el método de fábrica del modelo POO
         try:
@@ -575,7 +593,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 apellidoPaterno=apellido_pat,
                 apellidoMaterno=apellido_mat,
                 telefono=telefono,
-                correoElectronico=self.input_correo.text().strip(),
+                correoElectronico=correo,
                 tipo_estado=self.combo_estado_inicial.currentText(),
             )
         except ValueError as ve:
@@ -586,21 +604,39 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.critical(self, "Error de Validación", f"El RUT '{rut}' no es válido según el Algoritmo Módulo 11.")
             return
 
-        if isinstance(self.usuario_actual, Recepcionista):
+        if telefono and not nuevo_socio.validarTelefono():
+            QMessageBox.warning(self, "Teléfono Inválido", "El teléfono debe contener entre 8 y 15 dígitos numéricos.")
+            return
+
+        if correo and not nuevo_socio.validarCorreoElectronico():
+            QMessageBox.warning(self, "Correo Inválido", "El formato del correo electrónico no es válido.")
+            return
+
+        if isinstance(self.usuario_actual, Recepcionista) and self.id_socio_en_edicion is None:
             self.usuario_actual.registrarSocio(nuevo_socio)
 
         # Guardar en SQLite permanente y actualizar GUI
+        es_edicion = (self.id_socio_en_edicion is not None)
         self.socio_dao.guardar(nuevo_socio)
         self.socios_registrados = self.socio_dao.obtener_todos()
         self.actualizar_tabla_socios()
-        self.actualizar_combo_socios_inscripcion()
 
-        QMessageBox.information(
-            self,
-            "Socio Registrado",
-            f"¡Socio {nombres} {apellido_pat} registrado exitosamente y guardado en SQLite!\n"
-            f"Vigencia: Hasta {nuevo_socio.fechaVencimientoMembresia}"
-        )
+        if es_edicion:
+            QMessageBox.information(
+                self,
+                "Socio Actualizado",
+                f"¡Datos del socio {nombres} {apellido_pat} actualizados exitosamente en SQLite!\n"
+                f"Vigencia: Hasta {nuevo_socio.fechaVencimientoMembresia}"
+            )
+        else:
+            QMessageBox.information(
+                self,
+                "Socio Registrado",
+                f"¡Socio {nombres} {apellido_pat} registrado exitosamente y guardado en SQLite!\n"
+                f"Vigencia: Hasta {nuevo_socio.fechaVencimientoMembresia}"
+            )
+
+        self.limpiar_formulario_socio()
 
     def actualizar_tabla_socios(self):
         """Puebla la QTableWidget visual con los socios guardados en SQLite."""
@@ -653,8 +689,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
             )
             
             if respuesta == QMessageBox.Yes:
+                self.id_socio_en_edicion = socio.idSocio
                 self.input_rut.setText(socio.rut)
-                # Para evitar que le cambien el RUT por error al modificar, podemos ponerlo readonly (opcional)
+                # Para evitar que le cambien el RUT por error al modificar, se bloquea en sólo lectura
                 self.input_rut.setReadOnly(True) 
                 self.input_rut.setStyleSheet("background-color: #E2E8F0; color: #64748B;")
                 
@@ -664,8 +701,10 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 self.input_telefono.setText(socio.telefono or "")
                 self.input_correo.setText(socio.correoElectronico or "")
                 
-                if socio.estadoActivo:
+                if socio.estado_membresia == "Al Día":
                     self.combo_estado_inicial.setCurrentIndex(0) # Al Día
+                elif socio.estado_membresia == "Vencida":
+                    self.combo_estado_inicial.setCurrentIndex(1) # Vencida
                 else:
                     self.combo_estado_inicial.setCurrentIndex(2) # Cancelado
                     
@@ -673,6 +712,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 self.btn_guardar_socio.setStyleSheet("background-color: #F39C12; color: white; padding: 8px; font-weight: bold;")
 
     def limpiar_formulario_socio(self):
+        self.id_socio_en_edicion = None
         self.input_rut.clear()
         self.input_rut.setReadOnly(False)
         self.input_rut.setStyleSheet("")
@@ -700,7 +740,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         if socio: 
             # Si el usuario es Recepcionista, puede aplicar la regla del método cobrarMensualidad
-            from src.models.recepcionista import Recepcionista
             if isinstance(self.usuario_actual, Recepcionista):
                 self.usuario_actual.cobrarMensualidad(socio, 35000)
 
@@ -837,7 +876,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 self.combo_socio_inscripcion.addItem(f"{s.getNombres()} {s.getApellidoPaterno()} ({s.getRut()})")
 
     def guardar_clase(self):
-        from src.models.administrador import Administrador
         if not isinstance(self.usuario_actual, Administrador):
             QMessageBox.critical(self, "Acceso Denegado", "Solo un Administrador puede crear clases.")
             return
@@ -980,7 +1018,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
             socio = self.socios_registrados[idx_socio]
 
             # Regla de Bloqueo #2 (UML): socio.permitirIngreso()
-            from src.models.excepciones import MembresiaVencidaException, SinCupoException
             try:
                 socio.permitirIngreso()
             except MembresiaVencidaException as e:
@@ -1196,11 +1233,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
             if sup.stock <= 5:
                 item_st.setForeground(Qt.red)
             self.tabla_inventario.setItem(r, 3, item_st)
-
-    def al_cambiar_producto_venta(self):
-        """Mantiene sincronizada la selección actual del producto."""
-        pass
-
     def reponer_stock_admin(self):
         admin_autoridad = self.usuario_actual if isinstance(self.usuario_actual, Administrador) else self.usuarios_sistema.get("admin")
         if not admin_autoridad or not isinstance(admin_autoridad, Administrador):
@@ -1449,9 +1481,18 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
                 # Releer de SQLite para obtener los objetos actualizados con IDs reales
                 trabajadores_bd = self.trabajador_dao.obtener_todos()
+                self.usuarios_sistema.clear()
+                pass_map = {"admin": "admin123", "recepcion": "rec123", "instructor": "ins123"}
                 for t in trabajadores_bd:
                     key_u = getattr(t, 'usuario', None) or t.nombres.lower().replace(" ", "")
+                    if key_u in pass_map:
+                        t._passHash = pass_map[key_u]
                     self.usuarios_sistema[key_u] = t
+
+                if self.usuario_actual:
+                    key_act = getattr(self.usuario_actual, 'usuario', None)
+                    if key_act and key_act in self.usuarios_sistema:
+                        self.usuario_actual = self.usuarios_sistema[key_act]
 
                 # Refrescar tabla visual de personal
                 self.actualizar_tabla_personal()
@@ -1561,7 +1602,6 @@ class VentanaPrincipalPowerFit(QMainWindow):
             return
 
         # Invocar formalmente la regla de negocio UML: Socio.permitirIngreso()
-        from src.models.excepciones import MembresiaVencidaException
         try:
             permitido = socio.permitirIngreso()
             self.lbl_icono_torniquete.setText("🟢 PASE CONCEDIDO")

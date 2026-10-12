@@ -7,24 +7,23 @@ DIR_DATABASE = RAIZ_PROY / "database"
 DB_PATH = DIR_DATABASE / "powerfit.db"
 
 class ConexionDB:
-    """Clase encargada para crear la conexión con SQLITE je"""
+    """Clase encargada de gestionar la conexión con la base de datos SQLite."""
     _db_path = DB_PATH
 
     @classmethod
     def obt_conexion(cls):
-        """Crea y retorna una uneva conexion a la base de datos configurada"""
-
-        #1. Nos aseguramosq ue exista la carpeta database
+        """Crea y retorna una nueva conexión a la base de datos configurada."""
+        # 1. Asegurar que exista la carpeta database
         cls._db_path.parent.mkdir(parents=True, exist_ok=True)
 
-        #2 Vamo a conectar SQLite
+        # 2. Conectar a SQLite
         conexion = sqlite3.connect(cls._db_path)
 
-        #3. Configuramos para poder accedr por nombre de columa (ej: fila['nombre'])
+        # 3. Configurar acceso por nombre de columna (ej: fila['nombre'])
         conexion.row_factory = sqlite3.Row
 
-        #4. activamos restricciones / constraints de foráneas. 
-        conexion.execute ("PRAGMA foreign_keys = ON;")
+        # 4. Activar restricciones de claves foráneas
+        conexion.execute("PRAGMA foreign_keys = ON;")
 
         return conexion
     @classmethod
