@@ -7,6 +7,27 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.16] - 2026-10-13
+
+### 🧾 Emisión, Impresión Física y Exportación PDF de Boleta Electrónica (Módulo de Ventas)
+- **Modelo POO `Boleta` (`src/models/suplemento.py`)**:
+  - Creada la clase de dominio `Boleta` compuesta por la entidad `Venta`, con atributos fiscales (`cajero`, `cliente`, `medio_pago`, `tasa_dolar`, `fecha`).
+  - Implementados métodos de cálculo tributario: `calcularNeto()`, `calcularIVA()` (19% según normativa chilena) y `totalCLP`.
+  - Implementados generadores de comprobante: `generarTextoPlano()` (ticket térmico monoespaciado de 52 columnas) y `generarHTML()` (diseño comercial corporativo de alta calidad).
+  - Añadido el método de emisión en el agregado: `Venta.emitirBoleta(...) -> Boleta`.
+- **Persistencia SQLite & Auto-Migración (`src/dao/conexion.py` y `src/dao/venta_dao.py`)**:
+  - Auto-migración no destructiva con `ALTER TABLE ventas ADD COLUMN` para las columnas `tasa_cambio_usd`, `medio_pago`, `cajero` y `cliente`.
+  - Ampliado `VentaDAO.guardar()` para registrar los metadatos de auditoría de cada boleta emitida.
+  - Implementado `VentaDAO.obtener_boleta_por_id_venta(id_venta)` para reconstruir la venta con sus `DetalleVenta` y regenerar fielmente la boleta histórica.
+- **Interfaz Gráfica y Diálogo de Impresión (`src/gui/app_window.py`)**:
+  - Creado `DialogoBoleta(QDialog)` con visor `QTextBrowser` renderizando el documento en tiempo real.
+  - Soporte nativo de hardware con `QPrinter` y `QPrintDialog` para impresión física de tickets.
+  - Soporte de exportación vectorial a PDF mediante `QFileDialog.getSaveFileName` y `QPrinter.PdfFormat`.
+  - Inclusión de selector de cliente/socio sincronizado (`combo_cliente_venta`) y formas de pago (`combo_medio_pago`).
+  - Nueva columna y botón `🧾 Ver / Re-imprimir Boleta Seleccionada` con soporte de doble clic en el historial de ventas.
+
+---
+
 ## [1.1.15] - 2026-10-13
 
 ### 📧 Incorporación de Columna Correo Electrónico en Tabla de Socios

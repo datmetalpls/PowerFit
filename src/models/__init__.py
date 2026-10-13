@@ -22,6 +22,7 @@ from src.models.suplemento import (
     IndicadorDolar,
     Venta,
     DetalleVenta,
+    Boleta,
 )
 from src.models.excepciones import (
     ReglaNegocioException,
@@ -50,6 +51,7 @@ __all__ = [
     "IndicadorDolar",
     "Venta",
     "DetalleVenta",
+    "Boleta",
     "ReglaNegocioException",
     "SinCupoException",
     "MembresiaVencidaException",

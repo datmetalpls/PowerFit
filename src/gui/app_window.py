@@ -4,6 +4,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
+    QDialog,
+    QFileDialog,
     QFormLayout,
     QGridLayout,
     QGroupBox,
@@ -20,9 +22,11 @@ from PySide6.QtWidgets import (
     QStackedWidget,
     QTableWidget,
     QTableWidgetItem,
+    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
+from PySide6.QtPrintSupport import QPrinter, QPrintDialog
 
 from src.dao.clase_dao import ClaseDAO
 from src.dao.conexion import ConexionDB
@@ -34,6 +38,7 @@ from src.dao.venta_dao import VentaDAO
 from src.gui.styles import QSS_MODO_CLARO, QSS_MODO_OSCURO
 from src.models import (
     Administrador,
+    Boleta,
     DetalleVenta,
     IndicadorDolar,
     Instructor,
@@ -44,6 +49,76 @@ from src.models import (
     Suplemento,
     Venta,
 )
+
+
+class DialogoBoleta(QDialog):
+    """Ventana modal de emisión, visualización e impresión de boletas de venta."""
+
+    def __init__(self, boleta: Boleta, parent=None):
+        super().__init__(parent)
+        self.boleta = boleta
+        self.setWindowTitle(f"🧾 Boleta Electrónica N° {self.boleta.numero:06d} - PowerFit")
+        self.resize(520, 680)
+
+        layout = QVBoxLayout(self)
+
+        # Visor del documento HTML con diseño de ticket térmico/electrónico
+        self.visor = QTextBrowser()
+        self.visor.setHtml(self.boleta.generarHTML())
+        self.visor.setStyleSheet("background-color: #FFFFFF; color: #1E293B; border: 1px solid #CBD5E1; border-radius: 6px;")
+        layout.addWidget(self.visor)
+
+        # Barra de botones de acción
+        layout_botones = QHBoxLayout()
+
+        self.btn_imprimir = QPushButton("🖨️ Imprimir Ticket")
+        self.btn_imprimir.setStyleSheet("background-color: #27AE60; color: white; padding: 10px; font-weight: bold; border-radius: 5px;")
+        self.btn_imprimir.clicked.connect(self.imprimir_boleta)
+        layout_botones.addWidget(self.btn_imprimir)
+
+        self.btn_exportar_pdf = QPushButton("📄 Guardar Boleta PDF")
+        self.btn_exportar_pdf.setStyleSheet("background-color: #2980B9; color: white; padding: 10px; font-weight: bold; border-radius: 5px;")
+        self.btn_exportar_pdf.clicked.connect(self.exportar_pdf)
+        layout_botones.addWidget(self.btn_exportar_pdf)
+
+        self.btn_cerrar = QPushButton("Cerrar")
+        self.btn_cerrar.setStyleSheet("background-color: #64748B; color: white; padding: 10px; border-radius: 5px;")
+        self.btn_cerrar.clicked.connect(self.accept)
+        layout_botones.addWidget(self.btn_cerrar)
+
+        layout.addLayout(layout_botones)
+
+    def imprimir_boleta(self):
+        """Abre el diálogo nativo de impresión para mandar la boleta a cualquier impresora."""
+        printer = QPrinter(QPrinter.HighResolution)
+        dialogo = QPrintDialog(printer, self)
+        if dialogo.exec() == QPrintDialog.Accepted:
+            self.visor.document().print_(printer)
+            QMessageBox.information(
+                self,
+                "Impresión Exitosa",
+                f"Boleta Electrónica N° {self.boleta.numero:06d} enviada a la impresora."
+            )
+
+    def exportar_pdf(self):
+        """Exporta la boleta a un archivo PDF vectorial de alta calidad."""
+        nombre_defecto = f"Boleta_PowerFit_{self.boleta.numero:06d}.pdf"
+        ruta, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar Boleta en Formato PDF",
+            nombre_defecto,
+            "Archivos PDF (*.pdf)"
+        )
+        if ruta:
+            printer = QPrinter(QPrinter.HighResolution)
+            printer.setOutputFormat(QPrinter.PdfFormat)
+            printer.setOutputFileName(ruta)
+            self.visor.document().print_(printer)
+            QMessageBox.information(
+                self,
+                "Boleta PDF Guardada",
+                f"¡Boleta N° {self.boleta.numero:06d} exportada exitosamente a:\n{ruta}"
+            )
 
 
 class VentanaPrincipalPowerFit(QMainWindow):
@@ -1085,6 +1160,20 @@ class VentanaPrincipalPowerFit(QMainWindow):
             for s in self.socios_registrados:
                 self.combo_socio_inscripcion.addItem(f"{s.getNombres()} {s.getApellidoPaterno()} ({s.getRut()})")
 
+        # Sincronizar también el combo de clientes en el Punto de Venta
+        if hasattr(self, 'combo_cliente_venta'):
+            cliente_actual = self.combo_cliente_venta.currentText()
+            self.combo_cliente_venta.clear()
+            self.combo_cliente_venta.addItem("Cliente General (Ocasional)", "Cliente General")
+            for s in self.socios_registrados:
+                self.combo_cliente_venta.addItem(
+                    f"{s.getNombres()} {s.getApellidoPaterno()} ({s.getRut()})",
+                    s.getRut()
+                )
+            idx = self.combo_cliente_venta.findText(cliente_actual)
+            if idx >= 0:
+                self.combo_cliente_venta.setCurrentIndex(idx)
+
     def guardar_clase(self):
         if not isinstance(self.usuario_actual, Administrador):
             QMessageBox.critical(self, "Acceso Denegado", "Solo un Administrador puede crear clases.")
@@ -1346,6 +1435,12 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.combo_producto = QComboBox()
 
         self.input_cantidad = QLineEdit("1")
+        self.combo_medio_pago = QComboBox()
+        self.combo_medio_pago.addItems(["Tarjeta Débito", "Tarjeta Crédito", "Efectivo", "Transferencia"])
+
+        self.combo_cliente_venta = QComboBox()
+        self.combo_cliente_venta.addItem("Cliente General (Ocasional)", "Cliente General")
+
         self.input_valor_dolar = QLineEdit()
         self.input_valor_dolar.setPlaceholderText("Ej: 950 (Valor CLP del dólar)")
 
@@ -1355,12 +1450,14 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         form_ventas.addRow("Producto Suplemento: ", self.combo_producto)
         form_ventas.addRow("Cantidad a vender: ", self.input_cantidad)
+        form_ventas.addRow("Medio de Pago: ", self.combo_medio_pago)
+        form_ventas.addRow("Cliente / Socio: ", self.combo_cliente_venta)
         form_ventas.addRow("Valor dólar (CLP): ", self.input_valor_dolar)
         form_ventas.addRow("Consultar API: ", self.btn_obtener_dolar)
 
         layout_izq.addLayout(form_ventas)
 
-        self.btn_guardar_venta = QPushButton("💳 Procesar Venta")
+        self.btn_guardar_venta = QPushButton("💳 Procesar Venta & Emitir Boleta")
         self.btn_guardar_venta.setStyleSheet("background-color: #2980B9; color: white; padding: 8px; font-weight: bold;")
         self.btn_guardar_venta.clicked.connect(self.guardar_venta)
         layout_izq.addWidget(self.btn_guardar_venta)
@@ -1384,10 +1481,16 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout_izq.addWidget(lbl_hist)
 
         self.tabla_ventas = QTableWidget()
-        self.tabla_ventas.setColumnCount(4)
-        self.tabla_ventas.setHorizontalHeaderLabels(["Producto", "Cantidad", "Fecha / Dólar", "Total (CLP)"])
-        self._configurar_auto_ajuste_tabla(self.tabla_ventas, columnas_stretch=[0])
+        self.tabla_ventas.setColumnCount(6)
+        self.tabla_ventas.setHorizontalHeaderLabels(["N° Boleta", "Producto", "Cantidad", "Fecha", "Total (CLP)", "Medio Pago"])
+        self._configurar_auto_ajuste_tabla(self.tabla_ventas, columnas_stretch=[1])
+        self.tabla_ventas.itemDoubleClicked.connect(lambda item: self.ver_reimprimir_boleta_seleccionada())
         layout_izq.addWidget(self.tabla_ventas)
+
+        self.btn_ver_boleta = QPushButton("🧾 Ver / Re-imprimir Boleta Seleccionada")
+        self.btn_ver_boleta.setStyleSheet("background-color: #27AE60; color: white; padding: 7px; font-weight: bold; border-radius: 5px;")
+        self.btn_ver_boleta.clicked.connect(self.ver_reimprimir_boleta_seleccionada)
+        layout_izq.addWidget(self.btn_ver_boleta)
 
         layout_principal_ventas.addWidget(panel_izq, stretch=1)
 
@@ -1580,6 +1683,19 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Error", "No se pudo agregar el detalle de venta (Posible falta de stock local).")
             return
 
+        # Metadatos fiscales y comerciales de la boleta
+        medio_pago = self.combo_medio_pago.currentText()
+        cliente = self.combo_cliente_venta.currentText()
+        cajero = f"{self.usuario_actual.getNombres()} {self.usuario_actual.getApellidoPaterno()}" if self.usuario_actual else "Caja Principal"
+
+        # Emitir Boleta estructurada (POO)
+        boleta = obj_venta.emitirBoleta(
+            cajero=cajero,
+            cliente=cliente,
+            medio_pago=medio_pago,
+            tasa_dolar=valor_dolar
+        )
+
         # 4. Invocar Recepcionista.registrarVenta(venta) si corresponde (UML)
         recepcion_autoridad = self.usuario_actual if isinstance(self.usuario_actual, Recepcionista) else self.usuarios_sistema.get("recepcion")
         if recepcion_autoridad and hasattr(recepcion_autoridad, 'registrarVenta'):
@@ -1587,7 +1703,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         # 5. Persistir Venta en SQLite permanentemente a través de VentaDAO
         if hasattr(self, 'venta_dao'):
-            self.venta_dao.guardar(obj_venta)
+            self.venta_dao.guardar(obj_venta, cajero=cajero, cliente=cliente, medio_pago=medio_pago)
+            if hasattr(obj_venta, 'id_venta_bd') and obj_venta.id_venta_bd:
+                obj_venta.numero = obj_venta.id_venta_bd
 
         self.cargar_historial_ventas_bd()
 
@@ -1597,15 +1715,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
         if idx_previo >= 0 and idx_previo < self.combo_producto.count():
             self.combo_producto.setCurrentIndex(idx_previo)
 
-        QMessageBox.information(
-            self,
-            "Venta Transaccional Procesada",
-            f"¡Venta N° {obj_venta.numero} de '{obj_suplemento.nombre}' procesada con éxito y guardada en BD!\n"
-            f"💵 Precio Unitario: ${obj_suplemento.precioUSD:.2f} USD\n"
-            f"🌐 Tasa Aplicada: ${valor_dolar:,.2f} CLP/USD\n"
-            f"💰 Total Venta: ${obj_venta.totalCLP:,.0f} CLP\n"
-            f"📦 Stock Restante en BD: {obj_suplemento.stock} unidades"
-        )
+        # Desplegar diálogo con la Boleta Electrónica generada (Visualización, Impresión y PDF)
+        dialogo = DialogoBoleta(boleta, self)
+        dialogo.exec()
 
     def cargar_historial_ventas_bd(self):
         """Carga y muestra el historial de ventas procesadas desde la base de datos SQLite."""
@@ -1616,20 +1728,73 @@ class VentanaPrincipalPowerFit(QMainWindow):
         for v in ventas_bd:
             r = self.tabla_ventas.rowCount()
             self.tabla_ventas.insertRow(r)
-            self.tabla_ventas.setItem(r, 0, QTableWidgetItem(str(v.get('nombre_producto', 'Suplemento'))))
             
+            # Col 0: N° Boleta con id_venta almacenado en UserRole para reimpresión
+            id_v = v.get('id_venta', 0)
+            item_num = QTableWidgetItem(f"#{id_v:05d}")
+            item_num.setData(Qt.UserRole, id_v)
+            item_num.setTextAlignment(Qt.AlignCenter)
+            self.tabla_ventas.setItem(r, 0, item_num)
+
+            # Col 1: Producto
+            self.tabla_ventas.setItem(r, 1, QTableWidgetItem(str(v.get('nombre_producto', 'Suplemento'))))
+            
+            # Col 2: Cantidad
             item_cant = QTableWidgetItem(f"{v.get('cantidad', 1)} un.")
             item_cant.setTextAlignment(Qt.AlignCenter)
-            self.tabla_ventas.setItem(r, 1, item_cant)
+            self.tabla_ventas.setItem(r, 2, item_cant)
 
+            # Col 3: Fecha
             item_fecha = QTableWidgetItem(str(v.get('fecha', 'N/A')))
             item_fecha.setTextAlignment(Qt.AlignCenter)
-            self.tabla_ventas.setItem(r, 2, item_fecha)
+            self.tabla_ventas.setItem(r, 3, item_fecha)
 
+            # Col 4: Total CLP
             item_total = QTableWidgetItem(f"${v.get('total_clp', 0.0):,.0f} CLP")
-            item_total.setTextAlignment(Qt.AlignCenter)
-            self.tabla_ventas.setItem(r, 3, item_total)
+            item_total.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.tabla_ventas.setItem(r, 4, item_total)
+
+            # Col 5: Medio de Pago
+            item_medio = QTableWidgetItem(str(v.get('medio_pago', 'Tarjeta Débito')))
+            item_medio.setTextAlignment(Qt.AlignCenter)
+            self.tabla_ventas.setItem(r, 5, item_medio)
+
         self.tabla_ventas.resizeRowsToContents()
+
+    def ver_reimprimir_boleta_seleccionada(self):
+        """Abre el comprobante fiscal/boleta de la venta seleccionada en la tabla histórica."""
+        fila = self.tabla_ventas.currentRow()
+        if fila < 0:
+            QMessageBox.warning(
+                self,
+                "Selección Requerida",
+                "Por favor selecciona una venta del historial para ver o imprimir su boleta."
+            )
+            return
+
+        item_num = self.tabla_ventas.item(fila, 0)
+        if not item_num:
+            return
+
+        id_venta = item_num.data(Qt.UserRole)
+        if not id_venta:
+            try:
+                id_venta = int(item_num.text().replace('#', '').strip())
+            except ValueError:
+                QMessageBox.warning(self, "Error", "No se pudo identificar el número de boleta seleccionado.")
+                return
+
+        if hasattr(self, 'venta_dao'):
+            boleta = self.venta_dao.obtener_boleta_por_id_venta(id_venta)
+            if boleta:
+                dialogo = DialogoBoleta(boleta, self)
+                dialogo.exec()
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Boleta No Encontrada",
+                    f"No se encontró el comprobante detallado para la venta N° {id_venta} en la base de datos."
+                )
 
     # =========================================================================
     # VISTA 4: GESTIÓN DE PERSONAL / TRABAJADORES (ADMINISTRADOR)

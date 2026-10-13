@@ -143,6 +143,12 @@ class ConexionDB:
             columnas_existentes_ventas = [col['name'] for col in cursor.fetchall()]
             if 'tasa_cambio_usd' not in columnas_existentes_ventas:
                 cursor.execute("ALTER TABLE ventas ADD COLUMN tasa_cambio_usd REAL DEFAULT 0.0;")
+            if 'medio_pago' not in columnas_existentes_ventas:
+                cursor.execute("ALTER TABLE ventas ADD COLUMN medio_pago TEXT DEFAULT 'Tarjeta Débito';")
+            if 'cajero' not in columnas_existentes_ventas:
+                cursor.execute("ALTER TABLE ventas ADD COLUMN cajero TEXT DEFAULT 'Recepción';")
+            if 'cliente' not in columnas_existentes_ventas:
+                cursor.execute("ALTER TABLE ventas ADD COLUMN cliente TEXT DEFAULT 'Cliente General';")
             # 7. Tabla Detalle Ventas
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS detalles_ventas (
