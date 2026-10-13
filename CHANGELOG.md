@@ -7,6 +7,18 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.10] - 2026-10-12
+
+### 🔑 Restablecimiento de Contraseñas por Administrador
+- **Modificación de Contraseña desde GUI (`🔑 Modificar Clave`)**:
+  - Incorporado botón azul `🔑 Modificar Clave` en la barra superior de acciones de la vista de Personal.
+  - Diálogo interactivo seguro (`QInputDialog` con máscara de contraseña) para ingresar la nueva clave.
+  - Validación de campos no vacíos y longitud mínima de seguridad (4 caracteres).
+  - Invocación a `t.cambiar_password(clave)` con encriptación automática a **Argon2id** (`GestorSeguridad`) y persistencia inmediata en SQLite (`TrabajadorDAO.guardar`).
+  - Auto-desbloqueo reactivo: si la cuenta se encontraba bloqueada por intentos fallidos previos, se desbloquea automáticamente y se reinicia el contador al fijar una nueva contraseña.
+
+---
+
 ## [1.1.9] - 2026-10-12
 
 ### 🛡️ Gestión Integral de Personal (Bloqueo de Emergencia, Eliminación y UX Superior)

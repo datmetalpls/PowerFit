@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
+    QInputDialog,
     QMainWindow,
     QMessageBox,
     QPushButton,
@@ -268,6 +269,62 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 self.intentos_login_dict[usuario_sel] = 0
             self.actualizar_tabla_personal()
             QMessageBox.information(self, "Éxito", f"Cuenta de '{usuario_sel}' desbloqueada exitosamente.")
+
+    def cambiar_password_trabajador_admin(self):
+        filas = self.tabla_personal.selectionModel().selectedRows()
+        if not filas:
+            QMessageBox.warning(self, "Selección Vacía", "Debes seleccionar un trabajador de la tabla para cambiar su contraseña.")
+            return
+
+        usuario_sel = self.tabla_personal.item(filas[0].row(), 1).text()
+        if usuario_sel not in self.usuarios_sistema:
+            return
+
+        t = self.usuarios_sistema[usuario_sel]
+
+        nueva_pass, ok = QInputDialog.getText(
+            self,
+            "🔑 Modificar Contraseña de Trabajador",
+            f"Ingrese la nueva contraseña para '{usuario_sel}' ({t.getRol()}):\n(Se almacenará protegida con Argon2id)",
+            QLineEdit.Password
+        )
+
+        if not ok:
+            return
+
+        clave_limpia = nueva_pass.strip()
+        if not clave_limpia:
+            QMessageBox.warning(self, "Contraseña Vacía", "La nueva contraseña no puede estar vacía ni contener solo espacios.")
+            return
+
+        if len(clave_limpia) < 4:
+            QMessageBox.warning(self, "Contraseña Corta", "La contraseña debe tener al menos 4 caracteres por seguridad.")
+            return
+
+        # Actualizar contraseña en el modelo (se hashea automáticamente a Argon2id)
+        t.cambiar_password(clave_limpia)
+
+        # Si la cuenta estaba bloqueada por intentos fallidos, reactivarla
+        estaba_bloqueada = t.cuenta_bloqueada
+        if estaba_bloqueada:
+            t.desbloquear()
+
+        if hasattr(self, 'intentos_login_dict') and usuario_sel in self.intentos_login_dict:
+            self.intentos_login_dict[usuario_sel] = 0
+
+        # Persistir en SQLite
+        if hasattr(self, 'trabajador_dao'):
+            self.trabajador_dao.guardar(t)
+
+        self.actualizar_tabla_personal()
+
+        msg_extra = "\nAdemás, la cuenta ha sido desbloqueada para su uso inmediato." if estaba_bloqueada else ""
+        QMessageBox.information(
+            self,
+            "Contraseña Actualizada",
+            f"✅ ¡Contraseña de '{usuario_sel}' modificada exitosamente!\n"
+            f"Se almacenó encriptada con Argon2id en la base de datos.{msg_extra}"
+        )
 
     def bloquear_trabajador_admin(self):
         filas = self.tabla_personal.selectionModel().selectedRows()
@@ -1501,6 +1558,11 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.btn_desbloquear_trabajador.setStyleSheet("background-color: #27AE60; color: white; padding: 9px; font-weight: bold;")
         self.btn_desbloquear_trabajador.clicked.connect(self.desbloquear_trabajador_admin)
         layout_acciones_admin.addWidget(self.btn_desbloquear_trabajador)
+
+        self.btn_cambiar_pass_trabajador = QPushButton("🔑 Modificar Clave")
+        self.btn_cambiar_pass_trabajador.setStyleSheet("background-color: #2980B9; color: white; padding: 9px; font-weight: bold;")
+        self.btn_cambiar_pass_trabajador.clicked.connect(self.cambiar_password_trabajador_admin)
+        layout_acciones_admin.addWidget(self.btn_cambiar_pass_trabajador)
 
         self.btn_bloquear_trabajador = QPushButton("🔒 Bloquear (Emergencia)")
         self.btn_bloquear_trabajador.setStyleSheet("background-color: #E67E22; color: white; padding: 9px; font-weight: bold;")
