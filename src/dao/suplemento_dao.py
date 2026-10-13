@@ -37,7 +37,7 @@ class SuplementoDAO(BaseDAO):
     def guardar(self, entidad: Suplemento) -> bool: 
         """Inserta o actualiza un suplemento en la base de datos"""
         categoria = getattr(entidad, 'categoria', 'General')
-        precio_clp = int(entidad.precioUSD)
+        precio_usd = float(entidad.precioUSD)
 
         with ConexionDB.obt_conexion() as conn: 
             cursor = conn.cursor()
@@ -50,18 +50,18 @@ class SuplementoDAO(BaseDAO):
                     UPDATE suplementos
                     SET nombre = ?, precio_clp = ?, stock = ?, categoria = ?
                     WHERE id_suplemento = ?;
-                """, (entidad.nombre, precio_clp, entidad.stock, categoria, id_sup))
+                """, (entidad.nombre, precio_usd, entidad.stock, categoria, id_sup))
             else:
                 if id_sup > 0:
                     cursor.execute("""
                         INSERT INTO suplementos (id_suplemento, nombre, precio_clp, stock, categoria)
                         VALUES (?, ?, ?, ?, ?);
-                    """, (id_sup, entidad.nombre, precio_clp, entidad.stock, categoria))
+                    """, (id_sup, entidad.nombre, precio_usd, entidad.stock, categoria))
                 else:
                     cursor.execute("""
                         INSERT INTO suplementos (nombre, precio_clp, stock, categoria)
                         VALUES (?, ?, ?, ?);
-                    """, (entidad.nombre, precio_clp, entidad.stock, categoria))
+                    """, (entidad.nombre, precio_usd, entidad.stock, categoria))
 
             conn.commit()
             return True

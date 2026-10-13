@@ -121,7 +121,7 @@ class ConexionDB:
                 CREATE TABLE IF NOT EXISTS suplementos (
                     id_suplemento INTEGER PRIMARY KEY AUTOINCREMENT,
                     nombre TEXT NOT NULL,
-                    precio_clp INTEGER NOT NULL,
+                    precio_clp REAL NOT NULL,
                     stock INTEGER NOT NULL DEFAULT 0,
                     categoria TEXT DEFAULT 'Proteína'
                 );
@@ -298,18 +298,18 @@ class ConexionDB:
         for c in [c_spinning, c_yoga, c_crossfit]:
             clase_dao.guardar(c)
 
-        # 4. Catálogo de suplementos deportivos (10 productos)
+        # 4. Catálogo de suplementos deportivos (10 productos con precios unitarios reales en USD)
         catalogo = [
-            ("Proteína Whey Gold 100% 1kg", 45000, 50, "Proteína"),
-            ("Creatina Monohidratada 500g", 25000, 40, "Fuerza"),
-            ("Pre-Entreno C4 Explosive 300g", 30000, 35, "Energía"),
-            ("BCAA Aminoácidos 2:1:1 400g", 20000, 30, "Recuperación"),
-            ("Quemador de Grasa Lipo-6 120 cap", 35000, 25, "Definición"),
-            ("Ganador de Masa Serious Mass 2.5kg", 55000, 20, "Volumen"),
-            ("Multivitamínico Opti-Men 90 tab", 22000, 45, "Salud"),
-            ("Barras de Proteína (Caja x12)", 28000, 60, "Snack"),
-            ("Shaker Metálico PowerFit 700ml", 12000, 50, "Accesorios"),
-            ("Glutamina Micronizada 300g", 18000, 30, "Recuperación"),
+            ("Proteína Whey Gold 100% 1kg", 45.0, 50, "Proteína"),
+            ("Creatina Monohidratada 500g", 25.0, 40, "Fuerza"),
+            ("Pre-Entreno C4 Explosive 300g", 30.0, 35, "Energía"),
+            ("BCAA Aminoácidos 2:1:1 400g", 20.0, 30, "Recuperación"),
+            ("Quemador de Grasa Lipo-6 120 cap", 35.0, 25, "Definición"),
+            ("Ganador de Masa Serious Mass 2.5kg", 55.0, 20, "Volumen"),
+            ("Multivitamínico Opti-Men 90 tab", 22.0, 45, "Salud"),
+            ("Barras de Proteína (Caja x12)", 28.0, 60, "Snack"),
+            ("Shaker Metálico PowerFit 700ml", 12.0, 50, "Accesorios"),
+            ("Glutamina Micronizada 300g", 18.0, 30, "Recuperación"),
         ]
         with cls.obt_conexion() as conn:
             cursor = conn.cursor()

@@ -53,7 +53,7 @@ def reset_database():
     suplementos = sup_dao.obtener_todos()
     print(f"\n💊 CATÁLOGO DE SUPLEMENTOS ({len(suplementos)} productos en stock):")
     for sup in suplementos:
-        print(f"   • [{sup.codigo:>2}] {sup.nombre:<38} | ${sup.precioUSD:>6,.0f} CLP | Stock: {sup.stock}")
+        print(f"   • [{sup.codigo:>2}] {sup.nombre:<38} | ${sup.precioUSD:>6.2f} USD | Stock: {sup.stock}")
 
     print("\n" + "=" * 65)
     print("✨ ¡Base de datos lista para pruebas y presentaciones en vivo!")

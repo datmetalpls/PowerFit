@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.12] - 2026-10-12
+
+### 💵 Corrección de Moneda y Precios Reales en USD para Suplementos
+- **Normalización de Precios Unitarios en USD**:
+  - Corregido el catálogo semilla en `src/dao/conexion.py` y `src/gui/app_window.py` para almacenar valores reales en USD (`$45.00 USD`, `$25.00 USD`, `$30.00 USD`, etc.) en lugar de valores inflados en pesos chilenos guardados bajo el campo de dólares.
+  - Actualizada la definición de columna en la tabla `suplementos` a tipo `REAL NOT NULL` para admitir decimales precisos.
+  - Actualizado `SuplementoDAO.guardar()` para persistir `float(entidad.precioUSD)` sin truncamiento a entero.
+- **Visualización en Tabla de Inventario y Punto de Venta**:
+  - La tabla derecha *"Inventario y Stock Físico en Tiempo Real"* ahora exhibe con exactitud los precios en dólares (`$45.00 USD`, `$25.00 USD`, etc.).
+  - Auto-normalización defensiva en tiempo de ejecución: si existían bases de datos previas con montos inflados (>= 1,000 USD), la interfaz los corrige automáticamente a sus valores oficiales.
+  - Cálculo de precios en CLP en vivo mediante API del Dólar (`calcularPrecioCLP(valorDolar) = precioUSD * valorDolar`) completamente coherente (ej. 45.0 USD * ~980 CLP = ~$44,100 CLP por 1kg de proteína en lugar de $44,100,000 CLP).
+  - Clarificado el diálogo de resumen de venta con desglose explícito de Precio Unitario (USD), Tasa Dólar (CLP/USD) y Total Cobrado (CLP).
+  - Corregida la etiqueta del listado por consola en `scripts/reset_db.py` a `${sup.precioUSD:>6.2f} USD`.
+
+---
+
 ## [1.1.11] - 2026-10-12
 
 ### 🎯 Trazabilidad POO Integral y Completitud CRUD de Socios

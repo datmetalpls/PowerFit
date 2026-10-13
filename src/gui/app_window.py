@@ -1389,11 +1389,14 @@ class VentanaPrincipalPowerFit(QMainWindow):
             ("10", "Glutamina Micronizada 300g", 18.0, 60)
         ]
 
-        # Asegurar catálogo inicial en SQLite si no existen
+        # Asegurar catálogo inicial en SQLite o actualizar valores si venían inflados
         for cod, nom, pre, st in productos_defecto:
             sup_exist = self.suplemento_dao.obtener_por_id(int(cod))
             if not sup_exist:
                 self.suplemento_dao.guardar(Suplemento(codigo=cod, nombre=nom, precioUSD=pre, stock=st))
+            elif sup_exist.precioUSD >= 1000:
+                sup_exist.precioUSD = pre
+                self.suplemento_dao.guardar(sup_exist)
 
         self.suplementos_bd = self.suplemento_dao.obtener_todos()
 
@@ -1553,7 +1556,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self,
             "Venta Transaccional Procesada",
             f"¡Venta N° {obj_venta.numero} de '{obj_suplemento.nombre}' procesada con éxito y guardada en BD!\n"
-            f"💰 Total CLP: ${obj_venta.totalCLP:,.0f}\n"
+            f"💵 Precio Unitario: ${obj_suplemento.precioUSD:.2f} USD\n"
+            f"🌐 Tasa Aplicada: ${valor_dolar:,.2f} CLP/USD\n"
+            f"💰 Total Venta: ${obj_venta.totalCLP:,.0f} CLP\n"
             f"📦 Stock Restante en BD: {obj_suplemento.stock} unidades"
         )
 
