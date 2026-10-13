@@ -20,8 +20,8 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 | **Fase 1** | **Fundamentos & Modelos Base** | 🟢 Completada | `Persona` (RUT Módulo 11), `Direccion` y `Comuna` (346 comunas INE ordenadas A-Z). |
 | **Fase 2** | **Jerarquía de Usuarios & Roles** | 🟢 Completada | `Socio` (`permitirIngreso()`), `Trabajador` (`tienePermiso()`), `Instructor` (`dictarClase()`) y `Recepcionista` (`cobrarMensualidad()`). |
 | **Fase 3** | **Motor de Clases & Membresías** | 🟢 Completada | `ClaseDirigida` (`hayCupo()`), `Yoga` (`colchonetas`), `Spinning` (`bicicletas`), `Crossfit` (`estacionesTrabajo`) y `InscripcionMensual`. |
-| **Fase 4** | **Punto de Venta & API Dólar** | 🟢 Completada | `Suplemento` (`calcularPrecioCLP()`), control de stock y `IndicadorDolar` (API `mindicador.cl`). |
-| **Fase 5** | **Interfaz GUI & Base de Datos** | 🟢 Completada | Implementación de `PyQt6` para ventanas interactivas, base de datos `SQLite` con patrón `DAO`. |
+| **Fase 4** | **Punto de Venta, Boleta & API Dólar** | 🟢 Completada | `Suplemento` (`calcularPrecioCLP()`), control de stock, `IndicadorDolar` (API `mindicador.cl`), emisión de `Boleta` electrónica (POO), impresión física nativa y exportación a PDF vectorial. |
+| **Fase 5** | **Interfaz GUI & Base de Datos** | 🟢 Completada | Implementación de `PyQt6`/`PySide6` para ventanas interactivas, base de datos `SQLite` con patrón `DAO`. |
 | **Fase 6** | **Seguridad Avanzada & Control UI** | 🟢 Completada | Bloqueo físico en SQLite (RBAC) tras 3 intentos, validación de doble inscripción, corrección de cupos y restricciones estrictas de interfaz (RBAC) según UML. |
 | **Fase 7** | **Trazabilidad y Asistencia** | 🟢 Completada | Check de asistencia por instructor, timestamp persistente y persistencia en memoria POO. |
 | **Fase 8** | **Refactorización & Desacoplamiento POO** | 🟢 Completada | Centralización de `IndicadorDolar` (backup offline), RBAC polimórfico (`tienePermiso()`), métodos fábrica en modelos y desacople estricto de la GUI (`app_window.py`). |
@@ -35,8 +35,10 @@ El desarrollo del sistema PowerFit se estructura en 5 fases secuenciales basadas
 - [x] **Lógica de Negocio y Cupos:**
   - Control dinámico de inscripción de socios a clases verificando cupos disponibles.
   - Validación de solapamiento de horarios e instructores.
-- [x] **Punto de Venta e Inventario (Fase 4):**
-  - Modelo `Suplemento` y registro transaccional `Venta`.
+- [x] **Punto de Venta, Inventario & Boleta Electrónica (Fase 4):**
+  - Modelo `Suplemento` y registro transaccional `Venta` con `DetalleVenta`.
+  - Modelo `Boleta` con cálculo de Neto, IVA (19%) y emisión en ticket térmico y comprobante vectorial.
+  - Diálogo de visualización `DialogoBoleta`, impresión con `QPrinter` y exportación a PDF.
   - Servicio de conversión de divisas en vivo consumiendo la API de `mindicador.cl`.
 - [x] **Consola CLI y QA (Fase 5):**
   - Menú interactivo por consola adaptado según rol RBAC del usuario autenticado.
@@ -278,8 +280,8 @@ A continuación se detallan las modificaciones realizadas paso a paso sobre el p
   - `instructor.py`: Subclase `Instructor` (`dictarClase()`, `marcarAsistencia()`).
   - `recepcionista.py`: Subclase `Recepcionista` (`registrarSocio()`, `cobrarMensualidad()`, `crearInscripcion()`, `registrarVenta()`).
   - `clase.py`: Clase base `Clase`, `ClaseDirigida` y especializaciones `Yoga`, `Spinning`, `Crossfit`.
-  - `direccion.py` y `comuna.py`: Ubicación postal e integración de las 346 comunas INE de Chile.
-  - `inscripcion.py` y `suplemento.py`: Transacciones de reserva y punto de venta con API Dólar.
+  - `inscripcion.py`: Transacciones de reserva, inscripciones mensuales y detalles.
+  - `suplemento.py`: Modelos de `Suplemento`, `DetalleVenta`, `Venta` y `Boleta` (emisión fiscal, cálculo de IVA 19%, tickets térmicos y comprobantes vectoriales).
 - `src/gui/`: Capa de interfaz gráfica modularizada (`app_window.py` para la ventana principal PySide6 y `styles.py` para hojas de estilo QSS).
 - `tests/`: Suite de pruebas unitarias automatizadas (`test_persona.py`).
 - `uml/`: Diagramas estructurales (`posiblediagrama.drawio.xml`).

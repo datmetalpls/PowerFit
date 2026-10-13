@@ -7,6 +7,27 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.17] - 2026-10-13
+
+### 📐 Calibración de Escala de Impresión PDF y Corrección de Setter en Venta
+- **Calibración de Impresión y Exportación a PDF (`DialogoBoleta`)**:
+  - Resuelto el descuadre de escala y reducción microscópica del PDF pasando de `QPrinter.HighResolution` (1200 DPI) a `QPrinter.PrinterMode.ScreenResolution` (96 DPI).
+  - Configurado tamaño de página A4 con márgenes estandarizados de 12 mm (`QPageLayout.Unit.Millimeter` y `QMarginsF`).
+  - Sincronización explícita del tamaño del `QTextDocument` con el área imprimible de la hoja (`doc.setPageSize(paintRectPixels)`), garantizando un renderizado nítido y centrado.
+- **Rediseño Tabular y Estructura Fiscal de la Boleta (`Boleta.generarHTML`)**:
+  - Contenedor centrado de 600px con tipografía corporativa y membrete en `#EA580C`.
+  - Columnas de datos de cliente y cajero con anchos porcentuales fijos (18%, 32%, 18%, 32%) para evitar colisiones o encimamientos de texto.
+  - Tabla de ítems con cabecera oscura y totales alineados a la derecha (Neto, IVA 19% y Total Pagado).
+  - Incorporación de bloque simulado de **Timbre Electrónico SII** con código de barras fiscal.
+- **Modelo POO `Venta` (`src/models/suplemento.py`)**:
+  - Incorporado `@numero.setter` en `Venta.numero` para permitir la sincronización legítima con el correlativo fiscal autoincremental de SQLite (`lastrowid`).
+- **Feedback Interactivo y Protección GUI (`src/gui/app_window.py`)**:
+  - Agregados estados `:hover`, `:pressed` y cursor de mano (`PointingHandCursor`) en botones de venta.
+  - Escapado de ampersand `&&` para mostrar visiblemente `💳 Procesar Venta & Emitir Boleta`.
+  - Manejo completo de excepciones con `try ... except` y alertas visuales `QMessageBox.critical`.
+
+---
+
 ## [1.1.16] - 2026-10-13
 
 ### 🧾 Emisión, Impresión Física y Exportación PDF de Boleta Electrónica (Módulo de Ventas)
