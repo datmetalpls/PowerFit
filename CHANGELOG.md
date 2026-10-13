@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.9] - 2026-10-12
+
+### 🛡️ Gestión Integral de Personal (Bloqueo de Emergencia, Eliminación y UX Superior)
+- **Barra de Acciones Superior en Administración**:
+  - Reubicación ergonómica de la botonera de acciones a la parte superior de la tabla de personal, permitiendo acceso visual inmediato a las operaciones sobre cuentas.
+- **Bloqueo Preventivo y de Emergencia (`🔒 Bloquear`)**:
+  - Incorporado botón `🔒 Bloquear (Emergencia)` con confirmación interactiva (`QMessageBox.question`).
+  - Ejecución de `t.bloquear()` y persistencia inmediata en SQLite (`cuenta_bloqueada = 1`).
+  - Protección de seguridad: salvaguarda para evitar el bloqueo accidental de la cuenta `'admin'`.
+- **Eliminación Física de Trabajadores (`🗑️ Eliminar Trabajador`)**:
+  - Incorporado botón `🗑️ Eliminar Trabajador` con confirmación explícita de irreversibilidad.
+  - Conexión directa con `TrabajadorDAO.eliminar(id)` para borrado atómico en SQLite y sincronización limpia en memoria.
+  - Protecciones de seguridad: no permite eliminar la cuenta principal `'admin'` ni la cuenta del usuario actualmente logueado.
+- **Mejora Visual y Selección de Tabla**:
+  - Indicadores con emojis (`Activo 🟢` / `Bloqueado 🔴`) y configuración de selección por filas completas (`SelectRows` / `SingleSelection`).
+
+---
+
 ## [1.1.8] - 2026-10-12
 
 ### 🔐 Almacenamiento Seguro de Contraseñas con Argon2id

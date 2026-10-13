@@ -269,6 +269,76 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.actualizar_tabla_personal()
             QMessageBox.information(self, "Éxito", f"Cuenta de '{usuario_sel}' desbloqueada exitosamente.")
 
+    def bloquear_trabajador_admin(self):
+        filas = self.tabla_personal.selectionModel().selectedRows()
+        if not filas:
+            QMessageBox.warning(self, "Selección Vacía", "Debes seleccionar un trabajador de la tabla para bloquear.")
+            return
+
+        usuario_sel = self.tabla_personal.item(filas[0].row(), 1).text()
+        if usuario_sel == "admin":
+            QMessageBox.warning(self, "Acción No Permitida", "No es posible bloquear la cuenta principal de Administrador ('admin').")
+            return
+
+        if usuario_sel in self.usuarios_sistema:
+            t = self.usuarios_sistema[usuario_sel]
+            if t.cuenta_bloqueada:
+                QMessageBox.information(self, "Aviso", f"La cuenta de '{usuario_sel}' ya se encuentra bloqueada.")
+                return
+
+            respuesta = QMessageBox.question(
+                self,
+                "Confirmar Bloqueo de Emergencia",
+                f"¿Estás seguro de que deseas bloquear inmediatamente el acceso de '{usuario_sel}' ({t.getRol()})?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+            if respuesta != QMessageBox.Yes:
+                return
+
+            t.bloquear()
+            if hasattr(self, 'trabajador_dao'):
+                self.trabajador_dao.guardar(t)
+            self.actualizar_tabla_personal()
+            QMessageBox.information(self, "Cuenta Bloqueada", f"La cuenta de '{usuario_sel}' ha sido bloqueada de emergencia exitosamente.")
+
+    def eliminar_trabajador_admin(self):
+        filas = self.tabla_personal.selectionModel().selectedRows()
+        if not filas:
+            QMessageBox.warning(self, "Selección Vacía", "Debes seleccionar un trabajador de la tabla para eliminar.")
+            return
+
+        usuario_sel = self.tabla_personal.item(filas[0].row(), 1).text()
+        id_str = self.tabla_personal.item(filas[0].row(), 0).text()
+
+        if usuario_sel == "admin":
+            QMessageBox.warning(self, "Acción No Permitida", "No es posible eliminar la cuenta principal de Administrador ('admin').")
+            return
+
+        if self.usuario_actual and getattr(self.usuario_actual, 'usuario', None) == usuario_sel:
+            QMessageBox.warning(self, "Acción No Permitida", "No puedes eliminar la cuenta con la que has iniciado sesión actualmente.")
+            return
+
+        respuesta = QMessageBox.question(
+            self,
+            "Confirmar Eliminación de Trabajador",
+            f"¿Estás seguro de que deseas eliminar permanentemente al trabajador '{usuario_sel}' (ID: {id_str}) de la base de datos?\nEsta acción es irreversible.",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        if respuesta != QMessageBox.Yes:
+            return
+
+        id_num = int(id_str) if id_str.isdigit() else 0
+        if hasattr(self, 'trabajador_dao') and id_num > 0:
+            self.trabajador_dao.eliminar(id_num)
+
+        if usuario_sel in self.usuarios_sistema:
+            del self.usuarios_sistema[usuario_sel]
+
+        self.actualizar_tabla_personal()
+        QMessageBox.information(self, "Trabajador Eliminado", f"El trabajador '{usuario_sel}' ha sido eliminado exitosamente del sistema.")
+
     def restablecer_base_datos_admin(self):
         """Permite al Administrador restablecer la base de datos a sus datos semilla oficiales."""
         admin_autoridad = self.usuario_actual if isinstance(self.usuario_actual, Administrador) else self.usuarios_sistema.get("admin")
@@ -1421,32 +1491,44 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.btn_guardar_trabajador.clicked.connect(self.guardar_trabajador_admin)
         layout_personal.addWidget(self.btn_guardar_trabajador)
 
-        self.tabla_personal = QTableWidget()
-        self.tabla_personal.setColumnCount(5)
-        self.tabla_personal.setHorizontalHeaderLabels(["ID", "Usuario", "Nombre Completo", "Rol", "Estado"])
-        layout_personal.addWidget(self.tabla_personal)
+        # Encabezado y Barra de Acciones de Personal (PARTE SUPERIOR DE LA TABLA)
+        lbl_personal = QLabel("📋 Personal Registrado en el Sistema & Acciones de Cuenta")
+        lbl_personal.setStyleSheet("font-size: 14px; font-weight: bold; margin-top: 10px;")
+        layout_personal.addWidget(lbl_personal)
 
         layout_acciones_admin = QHBoxLayout()
-        self.btn_desbloquear_trabajador = QPushButton("🔓 Desbloquear Trabajador")
-        self.btn_desbloquear_trabajador.setStyleSheet("background-color: #27AE60; color: white; padding: 10px; font-weight: bold;")
+        self.btn_desbloquear_trabajador = QPushButton("🔓 Desbloquear")
+        self.btn_desbloquear_trabajador.setStyleSheet("background-color: #27AE60; color: white; padding: 9px; font-weight: bold;")
         self.btn_desbloquear_trabajador.clicked.connect(self.desbloquear_trabajador_admin)
         layout_acciones_admin.addWidget(self.btn_desbloquear_trabajador)
 
-        self.btn_reset_db = QPushButton("🔄 Restablecer Datos de Demostración (Semilla)")
-        self.btn_reset_db.setStyleSheet("background-color: #D35400; color: white; padding: 10px; font-weight: bold;")
+        self.btn_bloquear_trabajador = QPushButton("🔒 Bloquear (Emergencia)")
+        self.btn_bloquear_trabajador.setStyleSheet("background-color: #E67E22; color: white; padding: 9px; font-weight: bold;")
+        self.btn_bloquear_trabajador.clicked.connect(self.bloquear_trabajador_admin)
+        layout_acciones_admin.addWidget(self.btn_bloquear_trabajador)
+
+        self.btn_eliminar_trabajador = QPushButton("🗑️ Eliminar Trabajador")
+        self.btn_eliminar_trabajador.setStyleSheet("background-color: #C0392B; color: white; padding: 9px; font-weight: bold;")
+        self.btn_eliminar_trabajador.clicked.connect(self.eliminar_trabajador_admin)
+        layout_acciones_admin.addWidget(self.btn_eliminar_trabajador)
+
+        self.btn_reset_db = QPushButton("🔄 Restablecer Semilla")
+        self.btn_reset_db.setStyleSheet("background-color: #7F8C8D; color: white; padding: 9px; font-weight: bold;")
         self.btn_reset_db.clicked.connect(self.restablecer_base_datos_admin)
         layout_acciones_admin.addWidget(self.btn_reset_db)
 
         layout_personal.addLayout(layout_acciones_admin)
 
-        # Cargar trabajadores por defecto
-        for u in self.usuarios_sistema.values():
-            r = self.tabla_personal.rowCount()
-            self.tabla_personal.insertRow(r)
-            self.tabla_personal.setItem(r, 0, QTableWidgetItem(str(u.idTrabajador)))
-            self.tabla_personal.setItem(r, 1, QTableWidgetItem(u.usuario))
-            self.tabla_personal.setItem(r, 2, QTableWidgetItem(f"{u.nombres} {u.apellidoPaterno}"))
-            self.tabla_personal.setItem(r, 3, QTableWidgetItem(u.getRol()))
+        # Tabla de personal (situada debajo de la barra de acciones)
+        self.tabla_personal = QTableWidget()
+        self.tabla_personal.setColumnCount(5)
+        self.tabla_personal.setHorizontalHeaderLabels(["ID", "Usuario", "Nombre Completo", "Rol", "Estado"])
+        self.tabla_personal.setSelectionBehavior(QTableWidget.SelectRows)
+        self.tabla_personal.setSelectionMode(QTableWidget.SingleSelection)
+        layout_personal.addWidget(self.tabla_personal)
+
+        # Cargar trabajadores en la tabla
+        self.actualizar_tabla_personal()
 
         self.pantallas.addWidget(self.vista_personal)
 
@@ -1537,7 +1619,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.tabla_personal.setItem(r, 1, QTableWidgetItem(u.usuario))
             self.tabla_personal.setItem(r, 2, QTableWidgetItem(f"{u.nombres} {u.apellidoPaterno}"))
             self.tabla_personal.setItem(r, 3, QTableWidgetItem(u.getRol()))
-            estado = "Bloqueado 🔴" if u.cuenta_bloqueada else "Activo"
+            estado = "Bloqueado 🔴" if u.cuenta_bloqueada else "Activo 🟢"
             self.tabla_personal.setItem(r, 4, QTableWidgetItem(estado))
 
 
