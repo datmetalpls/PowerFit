@@ -187,6 +187,10 @@ class Venta:
     def numero(self) -> int:
         return self._numero
 
+    @numero.setter
+    def numero(self, nuevo_numero: int):
+        self._numero = int(nuevo_numero)
+
     @property
     def fecha(self) -> date:
         return self._fecha

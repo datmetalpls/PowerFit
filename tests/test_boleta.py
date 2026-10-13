@@ -99,6 +99,10 @@ def test_persistencia_y_reconstruccion_boleta_dao():
     assert hasattr(venta, 'id_venta_bd')
     assert venta.id_venta_bd is not None
     
+    # Probar setter de numero
+    venta.numero = venta.id_venta_bd
+    assert venta.numero == venta.id_venta_bd
+    
     # Reconstruir la boleta desde SQLite
     boleta_recuperada = venta_dao.obtener_boleta_por_id_venta(venta.id_venta_bd)
     assert boleta_recuperada is not None
