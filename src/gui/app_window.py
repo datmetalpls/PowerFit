@@ -253,8 +253,10 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.cargar_historial_ventas_bd()
 
     def _configurar_auto_ajuste_tabla(self, tabla: QTableWidget, columnas_stretch: list = None):
-        """Configura el auto-ajuste fluido de columnas al texto y oculta la cabecera vertical redundante."""
+        """Configura el auto-ajuste fluido de columnas al texto, selección de fila completa y oculta la cabecera vertical redundante."""
         tabla.verticalHeader().setVisible(False)
+        tabla.setSelectionBehavior(QTableWidget.SelectRows)
+        tabla.setSelectionMode(QTableWidget.SingleSelection)
         header = tabla.horizontalHeader()
         total_cols = tabla.columnCount()
         stretch_set = set(columnas_stretch or [])
@@ -650,6 +652,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.tabla_socios.setColumnCount(8)
         self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombres", "Ap. Paterno", "Ap. Materno", "Teléfono", "Membresía", "Vencimiento", "Ingreso"])
         self._configurar_auto_ajuste_tabla(self.tabla_socios, columnas_stretch=[1, 2, 3])
+        self.tabla_socios.itemDoubleClicked.connect(lambda item: self.cargar_socio_en_formulario())
         
         layout_tabla_acciones.addWidget(self.tabla_socios, stretch=4)
 
@@ -1637,9 +1640,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
         form_personal.addRow("RUT: ", self.input_trab_rut)
         form_personal.addRow("Nombres: ", self.input_trab_nombres)
         form_personal.addRow("Apellido Paterno: ", self.input_trab_apellido_pat)
-        form_personal.addRow("Apellido Materno: ", self.input_trab_apellido_mat)
-        form_personal.addRow("Nombre Usuario: ", self.input_trab_usuario)
-        form_personal.addRow("Contraseña: ", self.input_trab_pass)
+        form_personal.addRow("Apellido Materno (Opcional): ", self.input_trab_apellido_mat)
+        form_personal.addRow("Nombre Usuario (Login): ", self.input_trab_usuario)
+        form_personal.addRow("Contraseña Inicial: ", self.input_trab_pass)
 
         layout_personal.addLayout(form_personal)
 
@@ -1685,11 +1688,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout_personal.addLayout(layout_acciones_admin)
 
         self.tabla_personal = QTableWidget()
-        self.tabla_personal.setColumnCount(5)
-        self.tabla_personal.setHorizontalHeaderLabels(["ID", "Usuario", "Nombre Completo", "Rol", "Estado"])
-        self.tabla_personal.setSelectionBehavior(QTableWidget.SelectRows)
-        self.tabla_personal.setSelectionMode(QTableWidget.SingleSelection)
-        self._configurar_auto_ajuste_tabla(self.tabla_personal, columnas_stretch=[2])
+        self.tabla_personal.setColumnCount(8)
+        self.tabla_personal.setHorizontalHeaderLabels(["ID", "Usuario", "RUT", "Nombres", "Ap. Paterno", "Ap. Materno", "Rol", "Estado"])
+        self._configurar_auto_ajuste_tabla(self.tabla_personal, columnas_stretch=[3, 4, 5])
         layout_personal.addWidget(self.tabla_personal)
 
         # Cargar trabajadores en la tabla
@@ -1716,8 +1717,11 @@ class VentanaPrincipalPowerFit(QMainWindow):
         usr = self.input_trab_usuario.text().strip()
         pwd = self.input_trab_pass.text().strip()
 
-        if not rut or not nombres or not usr or not pwd:
-            QMessageBox.warning(self, "Campos Vacíos", "Por favor completa RUT, Nombres, Usuario y Contraseña.")
+        if not usr and nombres:
+            usr = nombres.split()[0].lower()
+
+        if not rut or not nombres or not pwd:
+            QMessageBox.warning(self, "Campos Incompletos", "Por favor completa al menos RUT, Nombres y Contraseña.")
             return
 
         try:
@@ -1789,16 +1793,22 @@ class VentanaPrincipalPowerFit(QMainWindow):
             item_user.setTextAlignment(Qt.AlignCenter)
             self.tabla_personal.setItem(r, 1, item_user)
 
-            self.tabla_personal.setItem(r, 2, QTableWidgetItem(f"{u.nombres} {u.apellidoPaterno}"))
+            item_rut = QTableWidgetItem(getattr(u, 'rut', ''))
+            item_rut.setTextAlignment(Qt.AlignCenter)
+            self.tabla_personal.setItem(r, 2, item_rut)
+
+            self.tabla_personal.setItem(r, 3, QTableWidgetItem(u.nombres))
+            self.tabla_personal.setItem(r, 4, QTableWidgetItem(u.apellidoPaterno))
+            self.tabla_personal.setItem(r, 5, QTableWidgetItem(getattr(u, 'apellidoMaterno', '') or ''))
 
             item_rol = QTableWidgetItem(u.getRol())
             item_rol.setTextAlignment(Qt.AlignCenter)
-            self.tabla_personal.setItem(r, 3, item_rol)
+            self.tabla_personal.setItem(r, 6, item_rol)
 
             estado = "Bloqueado 🔴" if u.cuenta_bloqueada else "Activo 🟢"
             item_est = QTableWidgetItem(estado)
             item_est.setTextAlignment(Qt.AlignCenter)
-            self.tabla_personal.setItem(r, 4, item_est)
+            self.tabla_personal.setItem(r, 7, item_est)
         self.tabla_personal.resizeRowsToContents()
 
 

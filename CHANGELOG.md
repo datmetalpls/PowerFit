@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.14] - 2026-10-12
+
+### 🖱️ Selección de Filas Completas & Desacople de Columnas en Personal
+- **Selección de Fila Completa (`SelectRows` + `SingleSelection`)**:
+  - Activado `tabla.setSelectionBehavior(QTableWidget.SelectRows)` en todas las tablas mediante el método centralizado `_configurar_auto_ajuste_tabla`.
+  - Ahora al hacer clic en cualquier celda de un socio (como el RUT), se resalta la **fila completa** en color naranja de extremo a extremo, facilitando la ejecución de acciones como Cobrar, Cancelar o Eliminar.
+  - Añadido atajo de doble clic sobre la tabla de socios (`itemDoubleClicked`) para cargar directamente sus datos en el formulario de edición.
+- **Desacople Formal de Columnas en Personal (No más nombres concatenados)**:
+  - Se eliminó la concatenación de nombres (`f"{u.nombres} {u.apellidoPaterno}"`) bajo la columna genérica *"Nombre Completo"*.
+  - La tabla de personal ahora cuenta con 8 columnas diferenciadas y explícitas:
+    `["ID", "Usuario", "RUT", "Nombres", "Ap. Paterno", "Ap. Materno", "Rol", "Estado"]`.
+  - Ahora el `RUT` y el `Apellido Materno` son visibles y ordenados en sus respectivas celdas.
+  - Campo `Apellido Materno (Opcional)` aclarado en el formulario y autogeneración inteligente del nombre de usuario para login si no se especifica explícitamente.
+
+---
+
 ## [1.1.13] - 2026-10-12
 
 ### 📐 Auto-Ajuste Responsivo y Dinámico de Tablas al Texto
