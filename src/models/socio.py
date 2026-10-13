@@ -80,6 +80,10 @@ class Socio(Persona):
         """Marca la cuenta/plan como cancelado/desactivado."""
         self._estadoActivo = False
 
+    def cancelarMembresia(self) -> None:
+        """UML: Cancela y desactiva la membresía del socio."""
+        self.cancelarPlan()
+
     @property
     def estado_membresia(self) -> str:
         """Determina el estado actual de la membresía ('Inactivo', 'Al Día' o 'Vencida')."""

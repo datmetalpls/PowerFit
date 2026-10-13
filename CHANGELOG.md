@@ -7,6 +7,19 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.11] - 2026-10-12
+
+### 🎯 Trazabilidad POO Integral y Completitud CRUD de Socios
+- **Completitud CRUD en Gestión de Socios**:
+  - Incorporado botón `🗑️ Eliminar Socio` conectado directamente con `SocioDAO.eliminar(id_socio)` para bajas definitivas en SQLite, cerrando el ciclo completo CRUD (Crear, Leer, Actualizar, Borrar).
+  - Añadido método formal `Socio.cancelarMembresia()` en el modelo y vinculado al botón `🚫 Cancelar Membresía`.
+  - Reorganización de la botonera lateral de socios con paleta coherente: Cobro (`#2980B9`), Cancelación (`#E67E22`), Edición (`#F39C12`) y Eliminación (`#C0392B`).
+- **Enlace de Métodos de Negocio del Modelo UML**:
+  - `Instructor.dictarClase(clase)` se invoca automáticamente cuando el instructor selecciona una disciplina en la tabla.
+  - `Recepcionista.crearInscripcion(socio, mes, anio)` se ejecuta formalmente al registrar una reserva de puesto en el mapa de salas.
+
+---
+
 ## [1.1.10] - 2026-10-12
 
 ### 🔑 Restablecimiento de Contraseñas por Administrador

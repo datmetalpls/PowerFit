@@ -642,25 +642,30 @@ class VentanaPrincipalPowerFit(QMainWindow):
         
         layout_tabla_acciones.addWidget(self.tabla_socios, stretch=4)
 
-        # Botones de Recepción para Cobro, Cancelación y Modificación
+        # Botones de Recepción para Cobro, Cancelación, Modificación y Eliminación
         layout_acciones_socio = QVBoxLayout()
         
         self.btn_renovar_membresia = QPushButton("💵 Cobrar / Renovar (+30d)")
-        self.btn_renovar_membresia.setStyleSheet("background-color: #2980B9; color: white; padding: 15px; font-weight: bold;")
+        self.btn_renovar_membresia.setStyleSheet("background-color: #2980B9; color: white; padding: 12px; font-weight: bold;")
         self.btn_renovar_membresia.clicked.connect(self.renovar_membresia_socio)
 
-        self.btn_cancelar_plan = QPushButton("🚫 Cancelar / Desactivar Plan")
-        self.btn_cancelar_plan.setStyleSheet("background-color: #C0392B; color: white; padding: 15px; font-weight: bold;")
+        self.btn_cancelar_plan = QPushButton("🚫 Cancelar Membresía")
+        self.btn_cancelar_plan.setStyleSheet("background-color: #E67E22; color: white; padding: 12px; font-weight: bold;")
         self.btn_cancelar_plan.clicked.connect(self.cancelar_plan_socio)
 
         self.btn_modificar_socio = QPushButton("✏️ Cargar a Formulario")
-        self.btn_modificar_socio.setStyleSheet("background-color: #F39C12; color: white; padding: 15px; font-weight: bold; border: 2px solid #D68910;")
+        self.btn_modificar_socio.setStyleSheet("background-color: #F39C12; color: white; padding: 12px; font-weight: bold; border: 2px solid #D68910;")
         self.btn_modificar_socio.clicked.connect(self.cargar_socio_en_formulario)
+
+        self.btn_eliminar_socio = QPushButton("🗑️ Eliminar Socio")
+        self.btn_eliminar_socio.setStyleSheet("background-color: #C0392B; color: white; padding: 12px; font-weight: bold;")
+        self.btn_eliminar_socio.clicked.connect(self.eliminar_socio)
 
         layout_acciones_socio.addWidget(self.btn_renovar_membresia)
         layout_acciones_socio.addWidget(self.btn_cancelar_plan)
-        layout_acciones_socio.addItem(QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed))
         layout_acciones_socio.addWidget(self.btn_modificar_socio)
+        layout_acciones_socio.addItem(QSpacerItem(20, 15, QSizePolicy.Minimum, QSizePolicy.Fixed))
+        layout_acciones_socio.addWidget(self.btn_eliminar_socio)
         layout_acciones_socio.addStretch()
 
         layout_tabla_acciones.addLayout(layout_acciones_socio, stretch=1) # Panel lateral usa menos espacio
@@ -886,23 +891,70 @@ class VentanaPrincipalPowerFit(QMainWindow):
             QMessageBox.warning(self, "Selección Requerida", "Por favor selecciona un socio en la tabla para cancelar su plan.")
             return
 
-        row = items [0].row()
+        row = items[0].row()
         rut_socio = self.tabla_socios.item(row, 0).text()
         socio = next((s for s in self.socios_registrados if s.coincide_rut(rut_socio)), None)
 
-        if socio: 
-            socio.cancelarPlan()
+        if socio:
+            socio.cancelarMembresia()
 
-            #Persistir cambio en SQlite
+            # Persistir cambio en SQLite
             self.socio_dao.guardar(socio)
             self.actualizar_tabla_socios()
 
             QMessageBox.warning(
                 self,
-                "Plan Cancelado",
-                f"El plan del socio {socio.nombres} ({socio.rut}) ha sido Cancelado/Desactivado en la Base de Daots. \n"
-                f"El Torniquete de portería bloqueará su ingreso hasta una nueva renovación. "
+                "Membresía Cancelada",
+                f"El plan del socio {socio.nombres} ({socio.rut}) ha sido Cancelado/Desactivado en la Base de Datos.\n"
+                f"El Torniquete de portería bloqueará su ingreso hasta una nueva renovación."
             )
+
+    def eliminar_socio(self):
+        items = self.tabla_socios.selectedItems()
+        if not items:
+            QMessageBox.warning(self, "Selección Requerida", "Por favor selecciona un socio en la tabla para eliminarlo.")
+            return
+
+        row = items[0].row()
+        rut_socio = self.tabla_socios.item(row, 0).text()
+        socio = next((s for s in self.socios_registrados if s.coincide_rut(rut_socio)), None)
+
+        if not socio:
+            QMessageBox.warning(self, "No Encontrado", "No se encontró el socio seleccionado.")
+            return
+
+        respuesta = QMessageBox.question(
+            self,
+            "Confirmar Eliminación de Socio",
+            f"¿Estás seguro de que deseas eliminar permanentemente de SQLite al socio:\n\n"
+            f"• Nombre: {socio.nombres} {socio.apellidoPaterno}\n"
+            f"• RUT: {socio.rut}\n\n"
+            f"Esta acción es irreversible y completará la baja en la base de datos.",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if respuesta != QMessageBox.Yes:
+            return
+
+        id_socio_num = int(socio.idSocio) if str(socio.idSocio).isdigit() else 0
+        if hasattr(self, 'socio_dao') and id_socio_num > 0:
+            self.socio_dao.eliminar(id_socio_num)
+
+        if socio in self.socios_registrados:
+            self.socios_registrados.remove(socio)
+
+        if self.id_socio_en_edicion == id_socio_num:
+            self.limpiar_formulario_socio()
+
+        self.actualizar_tabla_socios()
+        if hasattr(self, 'actualizar_combo_socios_inscripcion'):
+            self.actualizar_combo_socios_inscripcion()
+
+        QMessageBox.information(
+            self,
+            "Socio Eliminado",
+            f"El socio {socio.nombres} {socio.apellidoPaterno} ({socio.rut}) ha sido eliminado exitosamente de la base de datos."
+        )
 
     # =========================================================================
     # VISTA 2: CLASES DIRIGIDAS & MAPA VISUAL DE SALA
@@ -1076,6 +1128,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
             nombre_clase = self.tabla_clases.item(row, 1).text()
             if nombre_clase in self.clases_registradas:
                 self.clase_seleccionada_actual = self.clases_registradas[nombre_clase]
+                # Si el usuario actual es un Instructor, invocar Instructor.dictarClase (UML)
+                if isinstance(self.usuario_actual, Instructor):
+                    self.usuario_actual.dictarClase(self.clase_seleccionada_actual)
                 self.renderizar_mapa_sala(self.clase_seleccionada_actual)
 
     def renderizar_mapa_sala(self, obj_clase):
@@ -1174,6 +1229,12 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 # Guardar inscripción permanente en SQLite
                 id_clase_num = self.clase_seleccionada_actual.id_numerico
                 self.inscripcion_dao.inscribir_socio(socio.idSocio, id_clase_num)
+
+                # Invocar Recepcionista.crearInscripcion si corresponde al rol (UML)
+                from datetime import date
+                recepcion_autoridad = self.usuario_actual if isinstance(self.usuario_actual, Recepcionista) else self.usuarios_sistema.get("recepcion")
+                if recepcion_autoridad and hasattr(recepcion_autoridad, 'crearInscripcion'):
+                    recepcion_autoridad.crearInscripcion(socio, date.today().month, date.today().year)
 
                 # Si es instructor, marcar asistencia en SQLite
                 if isinstance(self.usuario_actual, Instructor):
