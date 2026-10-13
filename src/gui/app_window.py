@@ -252,6 +252,17 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.actualizar_inventario_y_combo()
         self.cargar_historial_ventas_bd()
 
+    def _configurar_auto_ajuste_tabla(self, tabla: QTableWidget, columnas_stretch: list = None):
+        """Configura el auto-ajuste fluido de columnas al texto y oculta la cabecera vertical redundante."""
+        tabla.verticalHeader().setVisible(False)
+        header = tabla.horizontalHeader()
+        total_cols = tabla.columnCount()
+        stretch_set = set(columnas_stretch or [])
+        for col in range(total_cols):
+            if col in stretch_set:
+                header.setSectionResizeMode(col, QHeaderView.Stretch)
+            else:
+                header.setSectionResizeMode(col, QHeaderView.ResizeToContents)
 
     def desbloquear_trabajador_admin(self):
         filas = self.tabla_personal.selectionModel().selectedRows()
@@ -638,7 +649,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.tabla_socios = QTableWidget()
         self.tabla_socios.setColumnCount(8)
         self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombres", "Ap. Paterno", "Ap. Materno", "Teléfono", "Membresía", "Vencimiento", "Ingreso"])
-        self.tabla_socios.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self._configurar_auto_ajuste_tabla(self.tabla_socios, columnas_stretch=[1, 2, 3])
         
         layout_tabla_acciones.addWidget(self.tabla_socios, stretch=4)
 
@@ -796,6 +807,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.tabla_socios.setItem(row, 6, QTableWidgetItem(str(socio.fechaVencimientoMembresia)))
             self.tabla_socios.setItem(row, 7, QTableWidgetItem(f_ingreso))
 
+        self.tabla_socios.resizeRowsToContents()
         self.actualizar_combo_socios_inscripcion()
 
     def cargar_socio_en_formulario(self):
@@ -1022,6 +1034,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.tabla_clases.setColumnCount(5)
         self.tabla_clases.setHorizontalHeaderLabels(["Disciplina", "Nombre", "Ocupación", "Sala", "Estado"])
         self.tabla_clases.itemSelectionChanged.connect(self.al_seleccionar_clase_tabla)
+        self._configurar_auto_ajuste_tabla(self.tabla_clases, columnas_stretch=[1])
         layout_izquierdo.addWidget(self.tabla_clases)
 
         layout_principal_clases.addWidget(panel_izquierdo, stretch=1)
@@ -1120,6 +1133,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
             self.tabla_clases.setItem(row, 3, QTableWidgetItem(obj_clase.sala))
             estado = "🔴 Llena" if obj_clase.cupos_disponibles == 0 else "🟢 Disponible"
             self.tabla_clases.setItem(row, 4, QTableWidgetItem(estado))
+        self.tabla_clases.resizeRowsToContents()
 
     def al_seleccionar_clase_tabla(self):
         items = self.tabla_clases.selectedItems()
@@ -1351,6 +1365,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.tabla_ventas = QTableWidget()
         self.tabla_ventas.setColumnCount(4)
         self.tabla_ventas.setHorizontalHeaderLabels(["Producto", "Cantidad", "Fecha / Dólar", "Total (CLP)"])
+        self._configurar_auto_ajuste_tabla(self.tabla_ventas, columnas_stretch=[0])
         layout_izq.addWidget(self.tabla_ventas)
 
         layout_principal_ventas.addWidget(panel_izq, stretch=1)
@@ -1366,6 +1381,7 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.tabla_inventario = QTableWidget()
         self.tabla_inventario.setColumnCount(4)
         self.tabla_inventario.setHorizontalHeaderLabels(["ID", "Producto", "Precio USD", "Stock Disponible"])
+        self._configurar_auto_ajuste_tabla(self.tabla_inventario, columnas_stretch=[1])
         layout_der.addWidget(self.tabla_inventario)
 
         layout_principal_ventas.addWidget(panel_der, stretch=1)
@@ -1412,15 +1428,23 @@ class VentanaPrincipalPowerFit(QMainWindow):
         for sup in self.suplementos_bd:
             r = self.tabla_inventario.rowCount()
             self.tabla_inventario.insertRow(r)
-            self.tabla_inventario.setItem(r, 0, QTableWidgetItem(str(sup.codigo)))
+            item_id = QTableWidgetItem(str(sup.codigo))
+            item_id.setTextAlignment(Qt.AlignCenter)
+            self.tabla_inventario.setItem(r, 0, item_id)
+
             self.tabla_inventario.setItem(r, 1, QTableWidgetItem(sup.nombre))
-            self.tabla_inventario.setItem(r, 2, QTableWidgetItem(f"${sup.precioUSD:.2f} USD"))
+
+            item_precio = QTableWidgetItem(f"${sup.precioUSD:.2f} USD")
+            item_precio.setTextAlignment(Qt.AlignCenter)
+            self.tabla_inventario.setItem(r, 2, item_precio)
             
             lbl_stock = f"📦 {sup.stock} unidades"
             item_st = QTableWidgetItem(lbl_stock)
+            item_st.setTextAlignment(Qt.AlignCenter)
             if sup.stock <= 5:
                 item_st.setForeground(Qt.red)
             self.tabla_inventario.setItem(r, 3, item_st)
+        self.tabla_inventario.resizeRowsToContents()
     def reponer_stock_admin(self):
         admin_autoridad = self.usuario_actual if isinstance(self.usuario_actual, Administrador) else self.usuarios_sistema.get("admin")
         if not admin_autoridad or not isinstance(admin_autoridad, Administrador):
@@ -1572,9 +1596,19 @@ class VentanaPrincipalPowerFit(QMainWindow):
             r = self.tabla_ventas.rowCount()
             self.tabla_ventas.insertRow(r)
             self.tabla_ventas.setItem(r, 0, QTableWidgetItem(str(v.get('nombre_producto', 'Suplemento'))))
-            self.tabla_ventas.setItem(r, 1, QTableWidgetItem(f"{v.get('cantidad', 1)} un."))
-            self.tabla_ventas.setItem(r, 2, QTableWidgetItem(str(v.get('fecha', 'N/A'))))
-            self.tabla_ventas.setItem(r, 3, QTableWidgetItem(f"${v.get('total_clp', 0.0):,.0f} CLP"))
+            
+            item_cant = QTableWidgetItem(f"{v.get('cantidad', 1)} un.")
+            item_cant.setTextAlignment(Qt.AlignCenter)
+            self.tabla_ventas.setItem(r, 1, item_cant)
+
+            item_fecha = QTableWidgetItem(str(v.get('fecha', 'N/A')))
+            item_fecha.setTextAlignment(Qt.AlignCenter)
+            self.tabla_ventas.setItem(r, 2, item_fecha)
+
+            item_total = QTableWidgetItem(f"${v.get('total_clp', 0.0):,.0f} CLP")
+            item_total.setTextAlignment(Qt.AlignCenter)
+            self.tabla_ventas.setItem(r, 3, item_total)
+        self.tabla_ventas.resizeRowsToContents()
 
     # =========================================================================
     # VISTA 4: GESTIÓN DE PERSONAL / TRABAJADORES (ADMINISTRADOR)
@@ -1650,12 +1684,12 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         layout_personal.addLayout(layout_acciones_admin)
 
-        # Tabla de personal (situada debajo de la barra de acciones)
         self.tabla_personal = QTableWidget()
         self.tabla_personal.setColumnCount(5)
         self.tabla_personal.setHorizontalHeaderLabels(["ID", "Usuario", "Nombre Completo", "Rol", "Estado"])
         self.tabla_personal.setSelectionBehavior(QTableWidget.SelectRows)
         self.tabla_personal.setSelectionMode(QTableWidget.SingleSelection)
+        self._configurar_auto_ajuste_tabla(self.tabla_personal, columnas_stretch=[2])
         layout_personal.addWidget(self.tabla_personal)
 
         # Cargar trabajadores en la tabla
@@ -1746,12 +1780,26 @@ class VentanaPrincipalPowerFit(QMainWindow):
         for u in self.usuarios_sistema.values():
             r = self.tabla_personal.rowCount()
             self.tabla_personal.insertRow(r)
-            self.tabla_personal.setItem(r, 0, QTableWidgetItem(str(u.idTrabajador)))
-            self.tabla_personal.setItem(r, 1, QTableWidgetItem(u.usuario))
+            
+            item_id = QTableWidgetItem(str(u.idTrabajador))
+            item_id.setTextAlignment(Qt.AlignCenter)
+            self.tabla_personal.setItem(r, 0, item_id)
+
+            item_user = QTableWidgetItem(u.usuario)
+            item_user.setTextAlignment(Qt.AlignCenter)
+            self.tabla_personal.setItem(r, 1, item_user)
+
             self.tabla_personal.setItem(r, 2, QTableWidgetItem(f"{u.nombres} {u.apellidoPaterno}"))
-            self.tabla_personal.setItem(r, 3, QTableWidgetItem(u.getRol()))
+
+            item_rol = QTableWidgetItem(u.getRol())
+            item_rol.setTextAlignment(Qt.AlignCenter)
+            self.tabla_personal.setItem(r, 3, item_rol)
+
             estado = "Bloqueado 🔴" if u.cuenta_bloqueada else "Activo 🟢"
-            self.tabla_personal.setItem(r, 4, QTableWidgetItem(estado))
+            item_est = QTableWidgetItem(estado)
+            item_est.setTextAlignment(Qt.AlignCenter)
+            self.tabla_personal.setItem(r, 4, item_est)
+        self.tabla_personal.resizeRowsToContents()
 
 
 

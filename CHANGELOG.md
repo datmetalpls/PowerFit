@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.13] - 2026-10-12
+
+### 📐 Auto-Ajuste Responsivo y Dinámico de Tablas al Texto
+- **Ajuste Automático de Celdas y Columnas (`QHeaderView.ResizeToContents` + `Stretch`)**:
+  - Implementado el método centralizado `_configurar_auto_ajuste_tabla()` para calibrar de forma óptima todas las tablas de la aplicación sin necesidad de reescalado manual.
+  - Las columnas de identificadores, números, estados, fechas y monedas ("ID", "Precio USD", "Stock Disponible", "RUT", "Cantidad", etc.) se ajustan automáticamente al tamaño exacto de su texto y cabecera (`ResizeToContents`), evitando truncamientos como `"ock Disponib"` o `"Proteína Whe..."`.
+  - Las columnas descriptivas y de nombres largos ("Producto", "Nombre Completo", "Disciplina") se expanden fluidamente (`Stretch`) para consumir todo el espacio restante disponible, eliminando espacios vacíos a la derecha.
+  - Ocultadas las cabeceras verticales numéricas redundantes (`verticalHeader().setVisible(False)`) en todas las tablas para una interfaz más limpia y espaciosa.
+  - Incorporado auto-ajuste de altura de fila (`resizeRowsToContents()`) y alineación visual centrada para valores numéricos, estados y stocks.
+  - Cobertura completa en:
+    - 📊 **Inventario y Stock Físico** (`tabla_inventario`).
+    - 📄 **Historial de Ventas Persistido** (`tabla_ventas`).
+    - 👥 **Gestión de Socios** (`tabla_socios`).
+    - 🏋️ **Clases Dirigidas** (`tabla_clases`).
+    - 👔 **Personal y Trabajadores** (`tabla_personal`).
+
+---
+
 ## [1.1.12] - 2026-10-12
 
 ### 💵 Corrección de Moneda y Precios Reales en USD para Suplementos
