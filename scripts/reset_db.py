@@ -32,9 +32,11 @@ def reset_database():
     sup_dao = SuplementoDAO()
 
     trabajadores = trab_dao.obtener_todos()
-    print(f"\n👤 PERSONAL REGISTRADO ({len(trabajadores)} usuarios):")
+    print(f"\n👤 PERSONAL REGISTRADO ({len(trabajadores)} usuarios - Hashes Argon2id protegidos):")
+    demo_passwords = {"admin": "admin123", "recepcion": "rec123", "instructor": "ins123"}
     for t in trabajadores:
-        print(f"   • [{t.getRol():<13}] {t.getNombres()} {t.getApellidoPaterno()} -> Usuario: '{t.usuario}' (Clave: '{t._passHash}')")
+        clave_demo = demo_passwords.get(t.usuario, "••••••••")
+        print(f"   • [{t.getRol():<13}] {t.getNombres()} {t.getApellidoPaterno()} -> Usuario: '{t.usuario}' (Clave Demo: '{clave_demo}')")
 
     socios = socio_dao.obtener_todos()
     print(f"\n🏷️  SOCIOS DE PRUEBA ({len(socios)} socios con estados para torniquete):")

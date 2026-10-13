@@ -234,11 +234,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
             trabajadores_bd = self.trabajador_dao.obtener_todos()
 
         self.usuarios_sistema.clear()
-        pass_map = {"admin": "admin123", "recepcion": "rec123", "instructor": "ins123"}
         for t in trabajadores_bd:
             key_user = getattr(t, 'usuario', None) or t.nombres.lower().replace(" ", "")
-            if key_user in pass_map:
-                t._passHash = pass_map[key_user]
             self.usuarios_sistema[key_user] = t
 
         if self.usuario_actual:
@@ -1498,11 +1495,8 @@ class VentanaPrincipalPowerFit(QMainWindow):
                 # Releer de SQLite para obtener los objetos actualizados con IDs reales
                 trabajadores_bd = self.trabajador_dao.obtener_todos()
                 self.usuarios_sistema.clear()
-                pass_map = {"admin": "admin123", "recepcion": "rec123", "instructor": "ins123"}
                 for t in trabajadores_bd:
                     key_u = getattr(t, 'usuario', None) or t.nombres.lower().replace(" ", "")
-                    if key_u in pass_map:
-                        t._passHash = pass_map[key_u]
                     self.usuarios_sistema[key_u] = t
 
                 if self.usuario_actual:

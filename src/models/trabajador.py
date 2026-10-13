@@ -1,6 +1,7 @@
 """Clase Trabajador: Representa a los empleados autenticados del gimnasio PowerFit."""
 from abc import ABC
 from src.models.persona import Persona
+from src.utils.security import GestorSeguridad
 
 
 class Trabajador(Persona, ABC):
@@ -30,7 +31,10 @@ class Trabajador(Persona, ABC):
         )
         self._idTrabajador = str(idTrabajador)
         self._usuario = usuario or nombres.lower().replace(" ", "")
-        self._passHash = passHash
+        if passHash and not GestorSeguridad.es_hash_argon2(passHash):
+            self._passHash = GestorSeguridad.hashear_password(passHash)
+        else:
+            self._passHash = passHash or ""
         self._cuenta_bloqueada = False
         self._intentos_fallidos = 0
         self._rol = rol
@@ -77,11 +81,28 @@ class Trabajador(Persona, ABC):
     def getRol(self) -> str:
         return self._rol
 
+    @property
+    def passHash(self) -> str:
+        return self._passHash
+
+    @passHash.setter
+    def passHash(self, nueva_clave: str):
+        if not nueva_clave:
+            self._passHash = ""
+        elif GestorSeguridad.es_hash_argon2(nueva_clave):
+            self._passHash = nueva_clave
+        else:
+            self._passHash = GestorSeguridad.hashear_password(nueva_clave)
+
+    def cambiar_password(self, nueva_clave: str):
+        """Actualiza la contraseña del trabajador almacenando su hash Argon2id."""
+        self.passHash = nueva_clave
+
     def autenticar(self, password_intent: str) -> bool:
-        """Valida las credenciales; si falla, computa el intento y bloquea a los 3 fallos."""
+        """Valida las credenciales contra el hash Argon2id; si falla, computa el intento y bloquea a los 3 fallos."""
         if self._cuenta_bloqueada:
             return False
-        if self._passHash == password_intent:
+        if GestorSeguridad.verificar_password(self._passHash, password_intent):
             self.reiniciar_intentos()
             return True
         self.registrar_intento_fallido()

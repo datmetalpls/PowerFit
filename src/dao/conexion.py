@@ -158,6 +158,15 @@ class ConexionDB:
 
             conexion.commit()
 
+        # Ejecutar migración idempotente de contraseñas de trabajadores a Argon2id
+        cls.migrar_passwords_a_argon2()
+
+    @classmethod
+    def migrar_passwords_a_argon2(cls) -> int:
+        """Migra de forma idempotente las contraseñas en texto plano almacenadas en la BD a Argon2id."""
+        from src.dao.trabajador_dao import TrabajadorDAO
+        return TrabajadorDAO.migrar_passwords_a_argon2()
+
     @classmethod
     def reiniciar_tablas(cls):
         """Elimina y vuelve a crear todas las tablas en SQLite desde cero."""

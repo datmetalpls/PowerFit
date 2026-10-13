@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.8] - 2026-10-12
+
+### 🔐 Almacenamiento Seguro de Contraseñas con Argon2id
+- **Criptografía Robusta Estándar de la Industria**:
+  - Incorporada la librería `argon2-cffi` a `requirements.txt` utilizando la API de alto nivel `PasswordHasher`.
+  - Creación del componente centralizado `GestorSeguridad` (`src/utils/security.py`) con parámetros seguros predeterminados de Argon2id (RFC 9106), autogestionando el salt criptográfico aleatorio embebido en el hash.
+  - Actualización de `Trabajador.autenticar()` para validar contra hashes Argon2id, capturando de forma segura contraseñas erróneas y hashes malformados/inválidos sin exponer datos sensibles ni interrumpir la ejecución.
+  - Preservación íntegra de la regla de negocio de **bloqueo de cuenta tras 3 intentos fallidos consecutivos**.
+- **Persistencia Segura e Idempotente en SQLite**:
+  - `TrabajadorDAO.guardar()` asegura que la base de datos almacene exclusivamente hashes Argon2id válidos y previene el re-hasheo accidental de hashes existentes.
+  - Implementación de `TrabajadorDAO.migrar_passwords_a_argon2()` y vinculación con `ConexionDB.crear_tablas()` para migrar de forma idempotente cuentas existentes en texto plano sin alterar hashes ya procesados.
+  - Las credenciales demo oficiales (`admin123`, `rec123`, `ins123`) se mantienen 100% operativas para los roles de Administrador, Recepcionista e Instructor.
+- **Sanitización y Pruebas Unitarias**:
+  - Ocultación de contraseñas y hashes completos en scripts de consola (`scripts/reset_db.py`) y mensajes de error.
+  - Creación de suite de pruebas unitarias `tests/test_seguridad_argon2.py` cubriendo autenticación exitosa, rechazo de credenciales incorrectas, tolerancia a hashes corruptos, bloqueo a los 3 intentos, usuarios semilla y migración idempotente.
+  - Bootstrap resiliente en `main.py` asegurando la compatibilidad de rutas de entorno virtual y carga nativa de plugins Cocoa de PySide6 en macOS.
+
+---
+
 ## [1.1.7] - 2026-10-12
 
 ### 🛡️ Hotfix de Seguridad y Dominio (Blindaje contra Cantidades Negativas en Ventas)

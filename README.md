@@ -326,6 +326,8 @@ En el desarrollo de PowerFit, se tomaron las siguientes medidas para asegurar la
 
 1. **Prevención de Inyección SQL:** Todas las consultas a la base de datos (SQLite) ubicadas en la carpeta `src/dao/` se realizan utilizando sentencias preparadas y parametrizadas (`?`). Nunca se concatena entrada del usuario directamente en la consulta.
 2. **Validación de Entradas (Setters):** Las entradas de los usuarios se validan estrictamente mediante el uso de propiedades y setters (ej. validación del Algoritmo Módulo 11 en el setter de `rut` dentro de `Persona`). Los datos inválidos lanzan excepciones (`ValueError`, `SinCupoException`, `MembresiaVencidaException`) que son capturadas de manera controlada por la interfaz gráfica (`try/except`), mostrando advertencias amigables sin interrumpir o "crashear" la ejecución del programa.
+3. **Almacenamiento Seguro de Contraseñas con Argon2id:** Las contraseñas de los trabajadores nunca se guardan en texto plano ni con cifrado reversible o SHA-256 simple. Se utiliza **Argon2id** (`argon2-cffi`) con sal criptográfica aleatoria autogestionada (RFC 9106) mediante el componente `GestorSeguridad`. El sistema incluye un mecanismo de migración e inserción idempotente en `TrabajadorDAO` que previene el re-hasheo accidental (*double-hashing*).
+4. **Protección contra Fuerza Bruta y Sanitización:** Se implementa bloqueo físico de cuentas en la base de datos tras 3 intentos fallidos consecutivos de inicio de sesión (`cuenta_bloqueada = 1`). Adicionalmente, se sanitizan los logs y consolas de mantenimiento para no exponer contraseñas ni hashes completos.
 
 ---
 
