@@ -1457,8 +1457,27 @@ class VentanaPrincipalPowerFit(QMainWindow):
 
         layout_izq.addLayout(form_ventas)
 
-        self.btn_guardar_venta = QPushButton("💳 Procesar Venta & Emitir Boleta")
-        self.btn_guardar_venta.setStyleSheet("background-color: #2980B9; color: white; padding: 8px; font-weight: bold;")
+        self.btn_guardar_venta = QPushButton("💳 Procesar Venta && Emitir Boleta")
+        self.btn_guardar_venta.setCursor(Qt.PointingHandCursor)
+        self.btn_guardar_venta.setStyleSheet("""
+            QPushButton {
+                background-color: #2980B9;
+                color: #FFFFFF;
+                padding: 10px;
+                font-weight: bold;
+                font-size: 13px;
+                border-radius: 6px;
+                border: 1px solid #1F618D;
+            }
+            QPushButton:hover {
+                background-color: #3498DB;
+            }
+            QPushButton:pressed {
+                background-color: #1A5276;
+                padding-top: 12px;
+                padding-bottom: 8px;
+            }
+        """)
         self.btn_guardar_venta.clicked.connect(self.guardar_venta)
         layout_izq.addWidget(self.btn_guardar_venta)
 
@@ -1488,7 +1507,24 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout_izq.addWidget(self.tabla_ventas)
 
         self.btn_ver_boleta = QPushButton("🧾 Ver / Re-imprimir Boleta Seleccionada")
-        self.btn_ver_boleta.setStyleSheet("background-color: #27AE60; color: white; padding: 7px; font-weight: bold; border-radius: 5px;")
+        self.btn_ver_boleta.setCursor(Qt.PointingHandCursor)
+        self.btn_ver_boleta.setStyleSheet("""
+            QPushButton {
+                background-color: #27AE60;
+                color: #FFFFFF;
+                padding: 8px;
+                font-weight: bold;
+                font-size: 12px;
+                border-radius: 6px;
+                border: 1px solid #1E8449;
+            }
+            QPushButton:hover {
+                background-color: #2ECC71;
+            }
+            QPushButton:pressed {
+                background-color: #196F3D;
+            }
+        """)
         self.btn_ver_boleta.clicked.connect(self.ver_reimprimir_boleta_seleccionada)
         layout_izq.addWidget(self.btn_ver_boleta)
 
@@ -1621,103 +1657,115 @@ class VentanaPrincipalPowerFit(QMainWindow):
             )
 
     def guardar_venta(self):
-        cant_str = self.input_cantidad.text().strip()
-        dolar_clp_str = self.input_valor_dolar.text().strip()
-
-        if not cant_str or not dolar_clp_str:
-            QMessageBox.warning(self, "Campos Incompletos", "Por favor ingresa cantidad y valor del dólar en CLP.")
-            return
-
         try:
-            cant = int(cant_str)
-            valor_dolar = float(dolar_clp_str)
-        except ValueError:
-            QMessageBox.warning(self, "Valor Inválido", "Cantidad debe ser entero y valor dólar numérico.")
-            return
+            cant_str = self.input_cantidad.text().strip()
+            dolar_clp_str = self.input_valor_dolar.text().strip()
 
-        if cant <= 0:
-            QMessageBox.warning(
-                self,
-                "Cantidad Inválida",
-                f"La cantidad a vender debe ser estrictamente mayor a cero (ingresado: {cant})."
+            if not cant_str or not dolar_clp_str:
+                QMessageBox.warning(self, "Campos Incompletos", "Por favor ingresa cantidad y valor del dólar en CLP.")
+                return
+
+            try:
+                cant = int(cant_str)
+                valor_dolar = float(dolar_clp_str)
+            except ValueError:
+                QMessageBox.warning(self, "Valor Inválido", "Cantidad debe ser entero y valor dólar numérico.")
+                return
+
+            if cant <= 0:
+                QMessageBox.warning(
+                    self,
+                    "Cantidad Inválida",
+                    f"La cantidad a vender debe ser estrictamente mayor a cero (ingresado: {cant})."
+                )
+                return
+
+            if valor_dolar <= 0:
+                QMessageBox.warning(
+                    self,
+                    "Valor Dólar Inválido",
+                    "La tasa de cambio del dólar debe ser mayor a cero."
+                )
+                return
+
+            obj_suplemento = self.combo_producto.currentData()
+            if not obj_suplemento:
+                idx = self.combo_producto.currentIndex()
+                if hasattr(self, 'suplementos_bd') and idx >= 0 and idx < len(self.suplementos_bd):
+                    obj_suplemento = self.suplementos_bd[idx]
+
+            if not obj_suplemento:
+                QMessageBox.warning(self, "Producto Inválido", "No se encontró el producto seleccionado.")
+                return
+
+            # Reconsultar el suplemento fresco desde SQLite para asegurar sincronía 100% real
+            id_sup_num = obj_suplemento.id_numerico
+            sup_actualizado = self.suplemento_dao.obtener_por_id(id_sup_num)
+            if sup_actualizado:
+                obj_suplemento = sup_actualizado
+
+            # 2. Verificar Stock (Regla #6 UML) sobre la información más fresca de la BD
+            if not obj_suplemento.hayStock(cant):
+                QMessageBox.warning(self, "Stock Insuficiente", f"No hay stock suficiente para {obj_suplemento.nombre} (Stock actual: {obj_suplemento.stock}).")
+                return
+
+            precio_clp = obj_suplemento.calcularPrecioCLP(valor_dolar)
+
+            # 3. Crear DetalleVenta y Venta compuesta (UML)
+            obj_detalle = DetalleVenta(cantidad=cant, precioUnitarioCLP=precio_clp, suplemento=obj_suplemento)
+            obj_venta = Venta(numero=self.tabla_ventas.rowCount() + 1)
+            exito = obj_venta.agregarDetalle(obj_detalle)
+
+            if not exito:
+                QMessageBox.warning(self, "Error", "No se pudo agregar el detalle de venta (Posible falta de stock local).")
+                return
+
+            # Metadatos fiscales y comerciales de la boleta
+            medio_pago = self.combo_medio_pago.currentText()
+            cliente = self.combo_cliente_venta.currentText()
+            cajero = f"{self.usuario_actual.getNombres()} {self.usuario_actual.getApellidoPaterno()}" if self.usuario_actual else "Caja Principal"
+
+            # Emitir Boleta estructurada (POO)
+            boleta = obj_venta.emitirBoleta(
+                cajero=cajero,
+                cliente=cliente,
+                medio_pago=medio_pago,
+                tasa_dolar=valor_dolar
             )
-            return
 
-        if valor_dolar <= 0:
-            QMessageBox.warning(
+            # 4. Invocar Recepcionista.registrarVenta(venta) si corresponde (UML)
+            recepcion_autoridad = self.usuario_actual if isinstance(self.usuario_actual, Recepcionista) else self.usuarios_sistema.get("recepcion")
+            if recepcion_autoridad and hasattr(recepcion_autoridad, 'registrarVenta'):
+                recepcion_autoridad.registrarVenta(obj_venta)
+
+            # 5. Persistir Venta en SQLite permanentemente a través de VentaDAO
+            if hasattr(self, 'venta_dao'):
+                self.venta_dao.guardar(obj_venta, cajero=cajero, cliente=cliente, medio_pago=medio_pago)
+                if hasattr(obj_venta, 'id_venta_bd') and obj_venta.id_venta_bd:
+                    obj_venta.numero = obj_venta.id_venta_bd
+
+            self.cargar_historial_ventas_bd()
+
+            # Refrescar vista del combo guardando el indice
+            idx_previo = self.combo_producto.currentIndex()
+            self.actualizar_inventario_y_combo()
+            if idx_previo >= 0 and idx_previo < self.combo_producto.count():
+                self.combo_producto.setCurrentIndex(idx_previo)
+
+            self.statusBar().showMessage(f"🧾 Venta N° {obj_venta.numero:05d} registrada en base de datos.", 4000)
+
+            # Desplegar diálogo con la Boleta Electrónica generada (Visualización, Impresión y PDF)
+            dialogo = DialogoBoleta(boleta, self)
+            dialogo.exec()
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            QMessageBox.critical(
                 self,
-                "Valor Dólar Inválido",
-                "La tasa de cambio del dólar debe ser mayor a cero."
+                "Error al Procesar Venta",
+                f"Ocurrió un error inesperado al procesar la venta y emitir la boleta:\n{str(e)}"
             )
-            return
-
-        obj_suplemento = self.combo_producto.currentData()
-        if not obj_suplemento:
-            idx = self.combo_producto.currentIndex()
-            if hasattr(self, 'suplementos_bd') and idx >= 0 and idx < len(self.suplementos_bd):
-                obj_suplemento = self.suplementos_bd[idx]
-
-        if not obj_suplemento:
-            QMessageBox.warning(self, "Producto Inválido", "No se encontró el producto seleccionado.")
-            return
-
-        # Reconsultar el suplemento fresco desde SQLite para asegurar sincronía 100% real
-        id_sup_num = obj_suplemento.id_numerico
-        sup_actualizado = self.suplemento_dao.obtener_por_id(id_sup_num)
-        if sup_actualizado:
-            obj_suplemento = sup_actualizado
-
-        # 2. Verificar Stock (Regla #6 UML) sobre la información más fresca de la BD
-        if not obj_suplemento.hayStock(cant):
-            QMessageBox.warning(self, "Stock Insuficiente", f"No hay stock suficiente para {obj_suplemento.nombre} (Stock actual: {obj_suplemento.stock}).")
-            return
-
-        precio_clp = obj_suplemento.calcularPrecioCLP(valor_dolar)
-
-        # 3. Crear DetalleVenta y Venta compuesta (UML)
-        obj_detalle = DetalleVenta(cantidad=cant, precioUnitarioCLP=precio_clp, suplemento=obj_suplemento)
-        obj_venta = Venta(numero=self.tabla_ventas.rowCount() + 1)
-        exito = obj_venta.agregarDetalle(obj_detalle)
-
-        if not exito:
-            QMessageBox.warning(self, "Error", "No se pudo agregar el detalle de venta (Posible falta de stock local).")
-            return
-
-        # Metadatos fiscales y comerciales de la boleta
-        medio_pago = self.combo_medio_pago.currentText()
-        cliente = self.combo_cliente_venta.currentText()
-        cajero = f"{self.usuario_actual.getNombres()} {self.usuario_actual.getApellidoPaterno()}" if self.usuario_actual else "Caja Principal"
-
-        # Emitir Boleta estructurada (POO)
-        boleta = obj_venta.emitirBoleta(
-            cajero=cajero,
-            cliente=cliente,
-            medio_pago=medio_pago,
-            tasa_dolar=valor_dolar
-        )
-
-        # 4. Invocar Recepcionista.registrarVenta(venta) si corresponde (UML)
-        recepcion_autoridad = self.usuario_actual if isinstance(self.usuario_actual, Recepcionista) else self.usuarios_sistema.get("recepcion")
-        if recepcion_autoridad and hasattr(recepcion_autoridad, 'registrarVenta'):
-            recepcion_autoridad.registrarVenta(obj_venta)
-
-        # 5. Persistir Venta en SQLite permanentemente a través de VentaDAO
-        if hasattr(self, 'venta_dao'):
-            self.venta_dao.guardar(obj_venta, cajero=cajero, cliente=cliente, medio_pago=medio_pago)
-            if hasattr(obj_venta, 'id_venta_bd') and obj_venta.id_venta_bd:
-                obj_venta.numero = obj_venta.id_venta_bd
-
-        self.cargar_historial_ventas_bd()
-
-        # Refrescar vista del combo guardando el indice
-        idx_previo = self.combo_producto.currentIndex()
-        self.actualizar_inventario_y_combo()
-        if idx_previo >= 0 and idx_previo < self.combo_producto.count():
-            self.combo_producto.setCurrentIndex(idx_previo)
-
-        # Desplegar diálogo con la Boleta Electrónica generada (Visualización, Impresión y PDF)
-        dialogo = DialogoBoleta(boleta, self)
-        dialogo.exec()
 
     def cargar_historial_ventas_bd(self):
         """Carga y muestra el historial de ventas procesadas desde la base de datos SQLite."""
