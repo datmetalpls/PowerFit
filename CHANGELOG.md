@@ -7,6 +7,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
+## [1.1.15] - 2026-10-13
+
+### 📧 Incorporación de Columna Correo Electrónico en Tabla de Socios
+- **Visualización Completa de Contacto en Socios**:
+  - Incorporada la columna *"Correo Electrónico"* en `self.tabla_socios` (ahora 9 columnas en total), sincronizada con el campo del formulario y la entidad del modelo `Socio.correoElectronico`.
+  - Configurado auto-ajuste y estiramiento inteligente para mostrar direcciones de correo completas (ej. `p.gomez@powerfit.cl`, `juan.perez@powerfit.cl`) sin truncamiento.
+  - Alineación centrada para datos numéricos y de estado (RUT, Teléfono, Membresía, Vencimiento e Ingreso).
+
+---
+
 ## [1.1.14] - 2026-10-12
 
 ### 🖱️ Selección de Filas Completas & Desacople de Columnas en Personal

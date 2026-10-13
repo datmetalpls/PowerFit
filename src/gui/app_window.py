@@ -649,9 +649,9 @@ class VentanaPrincipalPowerFit(QMainWindow):
         layout_tabla_acciones = QHBoxLayout()
         
         self.tabla_socios = QTableWidget()
-        self.tabla_socios.setColumnCount(8)
-        self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombres", "Ap. Paterno", "Ap. Materno", "Teléfono", "Membresía", "Vencimiento", "Ingreso"])
-        self._configurar_auto_ajuste_tabla(self.tabla_socios, columnas_stretch=[1, 2, 3])
+        self.tabla_socios.setColumnCount(9)
+        self.tabla_socios.setHorizontalHeaderLabels(["RUT", "Nombres", "Ap. Paterno", "Ap. Materno", "Teléfono", "Correo Electrónico", "Membresía", "Vencimiento", "Ingreso"])
+        self._configurar_auto_ajuste_tabla(self.tabla_socios, columnas_stretch=[1, 2, 5])
         self.tabla_socios.itemDoubleClicked.connect(lambda item: self.cargar_socio_en_formulario())
         
         layout_tabla_acciones.addWidget(self.tabla_socios, stretch=4)
@@ -787,11 +787,21 @@ class VentanaPrincipalPowerFit(QMainWindow):
         for socio in self.socios_registrados:
             row = self.tabla_socios.rowCount()
             self.tabla_socios.insertRow(row)
-            self.tabla_socios.setItem(row, 0, QTableWidgetItem(socio.rut))
+
+            item_rut = QTableWidgetItem(socio.rut)
+            item_rut.setTextAlignment(Qt.AlignCenter)
+            self.tabla_socios.setItem(row, 0, item_rut)
+
             self.tabla_socios.setItem(row, 1, QTableWidgetItem(socio.nombres))
             self.tabla_socios.setItem(row, 2, QTableWidgetItem(socio.apellidoPaterno))
-            self.tabla_socios.setItem(row, 3, QTableWidgetItem(socio.apellidoMaterno))
-            self.tabla_socios.setItem(row, 4, QTableWidgetItem(socio.telefono))
+            self.tabla_socios.setItem(row, 3, QTableWidgetItem(socio.apellidoMaterno or ""))
+
+            item_tel = QTableWidgetItem(socio.telefono or "")
+            item_tel.setTextAlignment(Qt.AlignCenter)
+            self.tabla_socios.setItem(row, 4, item_tel)
+
+            email_val = getattr(socio, 'correoElectronico', '') or ''
+            self.tabla_socios.setItem(row, 5, QTableWidgetItem(email_val))
 
             # Formatear fecha ingreso (truncar microsegundos si existen)
             f_ingreso = getattr(socio, 'fechaIngreso', '')
@@ -806,9 +816,17 @@ class VentanaPrincipalPowerFit(QMainWindow):
             else:
                 lbl_estado = "⚪ Plan Cancelado"
             
-            self.tabla_socios.setItem(row, 5, QTableWidgetItem(lbl_estado))
-            self.tabla_socios.setItem(row, 6, QTableWidgetItem(str(socio.fechaVencimientoMembresia)))
-            self.tabla_socios.setItem(row, 7, QTableWidgetItem(f_ingreso))
+            item_est = QTableWidgetItem(lbl_estado)
+            item_est.setTextAlignment(Qt.AlignCenter)
+            self.tabla_socios.setItem(row, 6, item_est)
+
+            item_venc = QTableWidgetItem(str(socio.fechaVencimientoMembresia))
+            item_venc.setTextAlignment(Qt.AlignCenter)
+            self.tabla_socios.setItem(row, 7, item_venc)
+
+            item_ing = QTableWidgetItem(f_ingreso)
+            item_ing.setTextAlignment(Qt.AlignCenter)
+            self.tabla_socios.setItem(row, 8, item_ing)
 
         self.tabla_socios.resizeRowsToContents()
         self.actualizar_combo_socios_inscripcion()
