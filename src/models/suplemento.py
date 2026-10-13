@@ -354,136 +354,213 @@ class Boleta:
         return "\n".join(lineas)
 
     def generarHTML(self) -> str:
-        """Genera un documento HTML optimizado para vista previa e impresión en PDF."""
+        """Genera un documento HTML optimizado para vista previa en pantalla e impresión PDF profesional."""
         filas_html = ""
         for det in self._venta.detalles:
-            p_usd = f"${det.suplemento.precioUSD:.2f} USD" if det.suplemento else ""
+            p_usd = f"(${det.suplemento.precioUSD:.2f} USD)" if det.suplemento and det.suplemento.precioUSD > 0 else ""
             filas_html += f"""
             <tr>
-                <td style="padding: 6px; text-align: center;">{det.cantidad}</td>
-                <td style="padding: 6px;"><b>{det.suplemento.nombre}</b><br><small style="color: #64748B;">{p_usd}</small></td>
-                <td style="padding: 6px; text-align: right;">${det.precioUnitarioCLP:,.0f}</td>
-                <td style="padding: 6px; text-align: right; font-weight: bold;">${det.calcularSubtotal():,.0f}</td>
+                <td style="padding: 8px 6px; text-align: center; border-bottom: 1px solid #CBD5E1; font-size: 13px;">{det.cantidad}</td>
+                <td style="padding: 8px 6px; border-bottom: 1px solid #CBD5E1; font-size: 13px;">
+                    <b>{det.suplemento.nombre}</b> <span style="color: #64748B; font-size: 11px;">{p_usd}</span>
+                </td>
+                <td style="padding: 8px 6px; text-align: right; border-bottom: 1px solid #CBD5E1; font-size: 13px;">${det.precioUnitarioCLP:,.0f}</td>
+                <td style="padding: 8px 6px; text-align: right; font-weight: bold; border-bottom: 1px solid #CBD5E1; font-size: 13px;">${det.calcularSubtotal():,.0f}</td>
             </tr>
             """
 
-        tasa_str = f"<tr><td colspan='2' style='color:#64748B;'>Tasa de Cambio Oficial:</td><td colspan='2' style='text-align:right;'><b>${self._tasa_dolar:,.2f} CLP/USD</b></td></tr>" if self._tasa_dolar > 0 else ""
+        tasa_str = f"""
+        <tr>
+            <td style="padding: 4px 6px; color: #64748B; font-size: 12px;"><b>Tasa Dólar:</b></td>
+            <td style="padding: 4px 6px; font-size: 12px;" colspan="3"><b>${self._tasa_dolar:,.2f} CLP / USD</b></td>
+        </tr>
+        """ if self._tasa_dolar > 0 else ""
 
-        html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <style>
-                body {{
-                    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-                    color: #1E293B;
-                    padding: 15px;
-                    font-size: 13px;
-                }}
-                .header {{
-                    text-align: center;
-                    border-bottom: 2px dashed #CBD5E1;
-                    padding-bottom: 12px;
-                    margin-bottom: 15px;
-                }}
-                .header h2 {{ margin: 0; color: #F97316; font-size: 20px; }}
-                .header p {{ margin: 3px 0; color: #64748B; font-size: 11px; }}
-                .info-box {{
-                    background-color: #F8FAFC;
-                    border: 1px solid #E2E8F0;
-                    border-radius: 6px;
-                    padding: 10px;
-                    margin-bottom: 15px;
-                }}
-                .info-box table {{ width: 100%; border-collapse: collapse; font-size: 12px; }}
-                .items-table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-bottom: 15px;
-                }}
-                .items-table th {{
-                    background-color: #0F172A;
-                    color: #FFFFFF;
-                    padding: 8px 6px;
-                    font-size: 12px;
-                }}
-                .items-table td {{ border-bottom: 1px solid #E2E8F0; }}
-                .totales-table {{
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 10px;
-                }}
-                .totales-table td {{ padding: 4px 6px; font-size: 13px; }}
-                .total-destacado {{
-                    font-size: 16px;
-                    font-weight: bold;
-                    color: #0F172A;
-                    border-top: 2px solid #0F172A;
-                    border-bottom: 2px solid #0F172A;
-                    padding: 8px 6px !important;
-                }}
-                .footer {{
-                    text-align: center;
-                    margin-top: 20px;
-                    border-top: 2px dashed #CBD5E1;
-                    padding-top: 12px;
-                    color: #64748B;
-                    font-size: 11px;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h2>🏋️ {self.EMPRESA_NOMBRE}</h2>
-                <p><b>RUT: {self.EMPRESA_RUT}</b> | {self.EMPRESA_GIRO}</p>
-                <p>{self.EMPRESA_DIRECCION}</p>
-                <h3 style="margin: 8px 0 0 0; color: #0F172A;">BOLETA ELECTRÓNICA N° {self.numero:06d}</h3>
+        html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {{
+            font-family: Arial, Helvetica, sans-serif;
+            color: #0F172A;
+            margin: 0;
+            padding: 15px;
+            font-size: 13px;
+            background-color: #FFFFFF;
+        }}
+        .documento {{
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }}
+        .header {{
+            text-align: center;
+            border-bottom: 2px solid #0F172A;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+        }}
+        .header h1 {{
+            margin: 0 0 4px 0;
+            color: #EA580C;
+            font-size: 22px;
+            letter-spacing: 1px;
+        }}
+        .header p {{
+            margin: 2px 0;
+            color: #475569;
+            font-size: 11px;
+        }}
+        .folio-box {{
+            margin-top: 8px;
+            border: 2px solid #0F172A;
+            background-color: #F8FAFC;
+            padding: 6px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: bold;
+            color: #0F172A;
+        }}
+        .info-card {{
+            background-color: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }}
+        .info-table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+        .info-table td {{
+            padding: 4px 6px;
+            vertical-align: top;
+            font-size: 12px;
+        }}
+        .items-table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }}
+        .items-table th {{
+            background-color: #0F172A;
+            color: #FFFFFF;
+            padding: 8px 6px;
+            font-size: 12px;
+            border: none;
+        }}
+        .totales-table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            margin-bottom: 16px;
+        }}
+        .totales-table td {{
+            padding: 5px 8px;
+            font-size: 13px;
+        }}
+        .fila-total {{
+            background-color: #FFF7ED;
+            border-top: 2px solid #EA580C;
+            border-bottom: 2px solid #EA580C;
+            font-size: 16px !important;
+            font-weight: bold;
+            color: #C2410C;
+        }}
+        .timbre-box {{
+            border: 2px dashed #94A3B8;
+            padding: 10px;
+            text-align: center;
+            margin-top: 15px;
+            background-color: #FAFAFA;
+        }}
+        .timbre-box p {{
+            margin: 2px 0;
+            font-size: 10px;
+            color: #64748B;
+        }}
+        .footer {{
+            text-align: center;
+            margin-top: 14px;
+            font-size: 11px;
+            color: #64748B;
+        }}
+    </style>
+</head>
+<body>
+    <div class="documento">
+        <div class="header">
+            <h1>🏋️ {self.EMPRESA_NOMBRE}</h1>
+            <p><b>RUT: {self.EMPRESA_RUT}</b> &bull; Giro: {self.EMPRESA_GIRO}</p>
+            <p>{self.EMPRESA_DIRECCION}</p>
+            <div class="folio-box">
+                BOLETA ELECTRÓNICA N° {self.numero:06d}
             </div>
+        </div>
 
-            <div class="info-box">
-                <table>
-                    <tr><td><b>Fecha:</b></td><td>{self.fechaFormateada}</td><td><b>Medio de Pago:</b></td><td>{self.medioPago}</td></tr>
-                    <tr><td><b>Cajero(a):</b></td><td>{self.cajero}</td><td><b>Cliente:</b></td><td>{self.cliente}</td></tr>
-                    {tasa_str}
-                </table>
-            </div>
-
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th style="width: 10%;">Cant</th>
-                        <th style="width: 50%; text-align: left;">Descripción</th>
-                        <th style="width: 20%; text-align: right;">P. Unit</th>
-                        <th style="width: 20%; text-align: right;">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {filas_html}
-                </tbody>
-            </table>
-
-            <table class="totales-table">
+        <div class="info-card">
+            <table class="info-table">
                 <tr>
-                    <td style="width: 65%; text-align: right; color: #64748B;">Monto Neto:</td>
-                    <td style="width: 35%; text-align: right; font-weight: bold;">${self.calcularNeto():,.0f} CLP</td>
+                    <td style="width: 18%; color: #64748B;"><b>Fecha Emisión:</b></td>
+                    <td style="width: 32%;"><b>{self.fechaFormateada}</b></td>
+                    <td style="width: 18%; color: #64748B;"><b>Medio de Pago:</b></td>
+                    <td style="width: 32%;"><b>{self.medioPago}</b></td>
                 </tr>
                 <tr>
-                    <td style="text-align: right; color: #64748B;">I.V.A. (19%):</td>
-                    <td style="text-align: right; font-weight: bold;">${self.calcularIVA():,.0f} CLP</td>
+                    <td style="color: #64748B;"><b>Cajero(a):</b></td>
+                    <td>{self.cajero}</td>
+                    <td style="color: #64748B;"><b>Cliente / Socio:</b></td>
+                    <td>{self.cliente}</td>
                 </tr>
-                <tr class="total-destacado">
-                    <td style="text-align: right; color: #F97316;">TOTAL PAGADO:</td>
-                    <td style="text-align: right; color: #F97316;">${self.totalCLP:,.0f} CLP</td>
-                </tr>
+                {tasa_str}
             </table>
+        </div>
 
-            <div class="footer">
-                <p><b>¡Muchas gracias por su compra!</b></p>
-                <p>Documento tributario electrónico generado por el sistema PowerFit Gym.</p>
-            </div>
-        </body>
-        </html>
-        """
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 10%; text-align: center;">Cant</th>
+                    <th style="width: 50%; text-align: left;">Descripción Ítem</th>
+                    <th style="width: 20%; text-align: right;">P. Unit (CLP)</th>
+                    <th style="width: 20%; text-align: right;">Total (CLP)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {filas_html}
+            </tbody>
+        </table>
+
+        <table class="totales-table">
+            <tr>
+                <td style="width: 60%;"></td>
+                <td style="width: 20%; text-align: right; color: #64748B;">Monto Neto:</td>
+                <td style="width: 20%; text-align: right; font-weight: bold;">${self.calcularNeto():,.0f} CLP</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td style="text-align: right; color: #64748B;">I.V.A. (19%):</td>
+                <td style="text-align: right; font-weight: bold;">${self.calcularIVA():,.0f} CLP</td>
+            </tr>
+            <tr class="fila-total">
+                <td></td>
+                <td style="text-align: right; padding: 8px;">TOTAL PAGADO:</td>
+                <td style="text-align: right; padding: 8px;">${self.totalCLP:,.0f} CLP</td>
+            </tr>
+        </table>
+
+        <div class="timbre-box">
+            <p><b>TIMBRE ELECTRÓNICO SII</b></p>
+            <p>Res. Ex. N° 80 de 2014 &bull; Verifique documento en www.sii.cl</p>
+            <p style="font-family: 'Courier New', monospace; letter-spacing: 3px; font-weight: bold; color: #0F172A; margin-top: 4px;">
+                |||||| | ||||| |||| ||||||| ||| |||||| ||||
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>¡Muchas gracias por su preferencia! &bull; Comprobante fiscal válido</p>
+        </div>
+    </div>
+</body>
+</html>"""
         return html
 

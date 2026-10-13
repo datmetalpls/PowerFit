@@ -1,6 +1,7 @@
 import sys
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QMarginsF, Qt
+from PySide6.QtGui import QPageLayout, QPageSize
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -90,10 +91,13 @@ class DialogoBoleta(QDialog):
 
     def imprimir_boleta(self):
         """Abre el diálogo nativo de impresión para mandar la boleta a cualquier impresora."""
-        printer = QPrinter(QPrinter.HighResolution)
+        printer = QPrinter(QPrinter.PrinterMode.ScreenResolution)
         dialogo = QPrintDialog(printer, self)
         if dialogo.exec() == QPrintDialog.Accepted:
-            self.visor.document().print_(printer)
+            doc = self.visor.document().clone()
+            page_rect = printer.pageLayout().paintRectPixels(printer.resolution())
+            doc.setPageSize(page_rect.size())
+            doc.print_(printer)
             QMessageBox.information(
                 self,
                 "Impresión Exitosa",
@@ -101,7 +105,7 @@ class DialogoBoleta(QDialog):
             )
 
     def exportar_pdf(self):
-        """Exporta la boleta a un archivo PDF vectorial de alta calidad."""
+        """Exporta la boleta a un archivo PDF vectorial perfectamente escalado y encuadrado."""
         nombre_defecto = f"Boleta_PowerFit_{self.boleta.numero:06d}.pdf"
         ruta, _ = QFileDialog.getSaveFileName(
             self,
@@ -110,10 +114,17 @@ class DialogoBoleta(QDialog):
             "Archivos PDF (*.pdf)"
         )
         if ruta:
-            printer = QPrinter(QPrinter.HighResolution)
+            printer = QPrinter(QPrinter.PrinterMode.ScreenResolution)
             printer.setOutputFormat(QPrinter.PdfFormat)
             printer.setOutputFileName(ruta)
-            self.visor.document().print_(printer)
+            printer.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
+            printer.setPageMargins(QMarginsF(12, 12, 12, 12), QPageLayout.Unit.Millimeter)
+
+            doc = self.visor.document().clone()
+            page_rect = printer.pageLayout().paintRectPixels(printer.resolution())
+            doc.setPageSize(page_rect.size())
+            doc.print_(printer)
+
             QMessageBox.information(
                 self,
                 "Boleta PDF Guardada",
