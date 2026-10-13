@@ -1512,8 +1512,11 @@ class VentanaPrincipalPowerFit(QMainWindow):
         self.btn_eliminar_trabajador.clicked.connect(self.eliminar_trabajador_admin)
         layout_acciones_admin.addWidget(self.btn_eliminar_trabajador)
 
-        self.btn_reset_db = QPushButton("🔄 Restablecer Semilla")
-        self.btn_reset_db.setStyleSheet("background-color: #7F8C8D; color: white; padding: 9px; font-weight: bold;")
+        self.btn_reset_db = QPushButton("⚠️ Restablecer Semilla (Peligro)")
+        self.btn_reset_db.setStyleSheet(
+            "background-color: #78281F; color: #FFFFFF; border: 2px solid #E74C3C; "
+            "border-radius: 5px; padding: 8px; font-weight: bold;"
+        )
         self.btn_reset_db.clicked.connect(self.restablecer_base_datos_admin)
         layout_acciones_admin.addWidget(self.btn_reset_db)
 
